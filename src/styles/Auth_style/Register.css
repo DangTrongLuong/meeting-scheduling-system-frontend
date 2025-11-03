@@ -1,0 +1,107 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #f1f1f1;
+  font-family: Arial, sans-serif;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+/* Khung tổng thể */
+.register-container {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f1f1f1;
+}
+
+/* Tiêu đề app */
+.app-title {
+  color: #007bff;
+  font-size: 30px;
+  font-weight: bold;
+  margin-bottom: 25px;
+}
+
+/* Hộp form */
+.register-box {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 35px 45px;
+  width: 380px; /* Cố định form width */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+/* Tiêu đề form */
+.form-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 25px;
+  color: #222;
+}
+
+/* Nhóm họ và tên */
+.name-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.name-group input {
+  flex: 1;
+}
+
+/* Input chung */
+input {
+  width: 100%;
+  padding: 9px;
+  margin-bottom: 15px;
+  border: 1px solid #888;
+  border-radius: 4px;
+  background-color: #fff;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+input::placeholder {
+  color: #666;
+}
+
+
+.google-btn:hover {
+  background-color: #f5f5f5;
+}
+
+.google-btn img {
+  width: 18px;
+  height: 18px;
+}
+
+/* Nút đăng ký */
+.signup-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #00b300;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 15px;
+  transition: 0.2s;
+  box-sizing: border-box;
+}
+
+.signup-btn:hover {
+  background-color: #009900;
+}
