@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import "../../styles/LoginPage.css";
+import { useNavigate } from "react-router-dom";
+import "../../styles/Auth_style/LoginPage.css";
 import cmc_background from "../../assets/cmc-bg.png";
 import logo from "../../assets/logocmc.png";
 import { ToastContainer, toast } from "react-toastify";
@@ -8,6 +9,7 @@ import { FcGoogle } from "react-icons/fc";
 import { login } from "../../context/AuthContext";
 
 export default function LoginPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -130,6 +132,11 @@ export default function LoginPage() {
     setGeneralError("");
   };
 
+  const handleRegisterClick = (e) => {
+    e.preventDefault();
+    navigate("/register");
+  };
+
   return (
     <>
       <ToastContainer
@@ -229,6 +236,12 @@ export default function LoginPage() {
 
             <div className="login-form-footer">
               Forgot password? <a href="#support">Clich here !</a>
+            </div>
+            <div className="login-form-footer">
+              Don't have an account?{" "}
+              <a href="/register" onClick={handleRegisterClick}>
+                Register now!
+              </a>
             </div>
           </div>
         </div>
