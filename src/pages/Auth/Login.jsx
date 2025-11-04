@@ -119,10 +119,22 @@ export default function LoginPage() {
         },
       });
     } catch (error) {
-      const errorMsg =
-        error.message || "Invalid account or password. Please try again.";
-      setGeneralError("Invalid account or password. Please try again.");
-      toast.error("Invalid account or password. Please try again.");
+      console.error("Login error:", error);
+
+      const msg = error.message.toLowerCase();
+      let errorMessage = "Login failed. Please try again.";
+
+      if (msg.includes("not activated") || msg.includes("activate")) {
+        errorMessage =
+          "Account not activated. Please check your email to verify.";
+      } else if (msg.includes("invalid email or password")) {
+        errorMessage = "Invalid email or password. Please try again.";
+      } else if (msg.includes("no response")) {
+        errorMessage = "No response from server. Please check your network.";
+      }
+
+      setGeneralError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

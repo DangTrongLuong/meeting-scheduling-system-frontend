@@ -258,6 +258,31 @@
   text-decoration: underline;
 }
 
+.register-success-message {
+  color: #10b981;
+  font-size: 13px;
+  margin: 15px 0;
+  padding: 10px 12px;
+  background: #d5f4e6;
+  border-radius: 6px;
+  border-left: 3px solid #10b981;
+  text-align: center;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-in;
+}
+
+/* Hiệu ứng fade in nhẹ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .register-error-message {
   color: #e74c3c;
   font-size: 13px;

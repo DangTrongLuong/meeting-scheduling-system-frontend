@@ -42,6 +42,10 @@ export const login = async (email, password) => {
 
     throw new Error(data.message || "Login failed");
   } catch (error) {
+    const msg = error.message;
+    if (msg.includes("Account not activated")) {
+      throw new Error("Account not activated. Please check your email!");
+    }
     console.error("Login error:", error);
     if (error.response) {
       throw new Error(
