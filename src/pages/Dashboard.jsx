@@ -45,6 +45,44 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      
+      // Call API to invalidate token on backend
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        // Clear local storage
+        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
+        localStorage.removeItem('user');
+        sessionStorage.removeItem('user');
+        
+        // Redirect to login page
+        window.location.href = '/login';
+      } else {
+        console.error('Logout failed');
+        // Still clear local storage even if API call fails
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = '/login';
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Clear storage and redirect even on error
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = '/login';
+    }
+  };
+
   return (
     <div className="dashboard">
       {/* Navbar */}
@@ -147,6 +185,12 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* Logout Button */}
+      <button className="logout-btn" onClick={handleLogout}>
+        <span className="logout-icon">🚪</span>
+        Đăng xuất
+      </button>
     </div>
   );
 }
