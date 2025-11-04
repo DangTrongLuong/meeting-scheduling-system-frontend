@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/Dashboard.css";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+
   const teamMembers = [
     { name: "QT", icon: "👤"},
     { name: "HT",  icon: "👤" },
@@ -65,21 +68,21 @@ export default function Dashboard() {
         localStorage.removeItem('user');
         sessionStorage.removeItem('user');
         
-        // Redirect to login page
-        window.location.href = '/login';
+        // Navigate to login page
+        navigate('/');
       } else {
         console.error('Logout failed');
         // Still clear local storage even if API call fails
         localStorage.clear();
         sessionStorage.clear();
-        window.location.href = '/login';
+        navigate('/');
       }
     } catch (error) {
       console.error('Error during logout:', error);
       // Clear storage and redirect even on error
       localStorage.clear();
       sessionStorage.clear();
-      window.location.href = '/login';
+      navigate('/');
     }
   };
 
