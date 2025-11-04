@@ -1,0 +1,100 @@
+/* src/pages/VerifyPage.css */
+.verify-page-container {
+  min-height: 95vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: "Inter", sans-serif;
+}
+
+.verify-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+}
+
+.verify-logo {
+  margin-bottom: 24px;
+}
+
+.verify-logo img {
+  height: 60px;
+  margin: 0 auto;
+  display: block;
+}
+
+.verify-icon {
+  margin-bottom: 24px;
+}
+
+.verify-icon svg {
+  margin: 0 auto;
+  display: block;
+}
+
+.verify-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  color: #1f2937;
+}
+
+.verify-message {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0 0 32px 0;
+  line-height: 1.5;
+}
+
+.verify-btn-primary {
+  background: #4a69f5;
+  color: white;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.verify-btn-primary:hover {
+  background: #2f43f7;
+}
+
+.verify-btn-secondary {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.verify-btn-danger {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .verify-card {
+    padding: 30px 20px;
+  }
+  .verify-title {
+    font-size: 24px;
+  }
+}

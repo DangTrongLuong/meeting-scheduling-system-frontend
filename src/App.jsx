@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard.jsx";
 import { UserProvider } from "./context/UserContext.jsx";
 import AuthMiddleware from "./middlewares/AuthMiddleware.jsx";
 import "./App.css";
+import VerifyPage from "./pages/Verify/VerifyPage.jsx";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           {/* Public route - không cần login */}
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<LoginPage />} />
+          <Route path="/verify" element={<VerifyPage />} />
           <Route
             path="/loginSuccess"
             element={<AuthMiddleware>{null}</AuthMiddleware>}

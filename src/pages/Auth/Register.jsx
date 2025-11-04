@@ -19,6 +19,7 @@ export default function RegisterPage() {
   const [passwordError, setPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [generalError, setGeneralError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState({
     name: false,
@@ -163,6 +164,7 @@ export default function RegisterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setGeneralError("");
+    setSuccessMessage("");
 
     // Validate all fields
     const nameError = validateName(name);
@@ -189,12 +191,27 @@ export default function RegisterPage() {
 
     try {
       await register(name.trim(), email.trim(), password);
-      toast.success("Registration successful!", {
-        autoClose: 1500,
-        onClose: () => {
-          navigate("/");
-        },
+      setSuccessMessage(
+        "Registration successful! Please check your email to activate your account."
+      );
+
+      setName("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      setTouched({
+        name: false,
+        email: false,
+        password: false,
+        confirmPassword: false,
       });
+      setNameError("");
+      setEmailError("");
+      setPasswordError("");
+      setConfirmPasswordError("");
+      setTimeout(() => {
+        navigate("/");
+      }, 5000);
     } catch (error) {
       const errorMsg =
         error.message || "Registration failed. Please try again.";
@@ -222,7 +239,7 @@ export default function RegisterPage() {
     <>
       <ToastContainer
         position="top-right"
-        autoClose={1500}
+        autoClose={5000}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
@@ -339,6 +356,10 @@ export default function RegisterPage() {
                   </span>
                 )}
               </div>
+
+              {successMessage && (
+                <div className="register-success-message">{successMessage}</div>
+              )}
 
               {generalError && (
                 <div className="register-error-message">{generalError}</div>
