@@ -8,7 +8,7 @@ const AuthMiddleware = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { setUser } = useUser();
-  const { triggerSuccess } = useContext(NotificationContext);
+  //   const { triggerSuccess } = useContext(NotificationContext);
   const hasFetched = useRef(false);
   const isProcessingLoginSuccess = useRef(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -210,7 +210,7 @@ const AuthMiddleware = ({ children }) => {
 
           console.log("Login success, navigating to dashboard");
           setDebugInfo("Navigating to dashboard...");
-          triggerSuccess(`Welcome, you have logged in successfully`);
+          //   triggerSuccess(`Welcome, you have logged in successfully`);
           setIsLoading(false);
           navigate("/dashboard", { replace: true });
         })

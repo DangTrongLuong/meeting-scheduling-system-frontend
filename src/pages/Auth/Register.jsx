@@ -214,6 +214,10 @@ export default function RegisterPage() {
     navigate("/");
   };
 
+  const googleLogin = () => {
+    window.location.href = `http://localhost:8080/api/auth/login/google`;
+  };
+
   return (
     <>
       <ToastContainer
@@ -247,7 +251,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="register-google">
-              <button className="btn btn-register-gg">
+              <button className="btn btn-register-gg" onClick={googleLogin}>
                 <FcGoogle size={20} />
                 Sign in with Google
               </button>
