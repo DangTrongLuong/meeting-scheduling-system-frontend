@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
-import "../../styles/VerifyPage.css";
+import "../../styles/Auth_style/VerifyPage.css";
 
 export default function VerifyPage() {
   const [searchParams] = useSearchParams();

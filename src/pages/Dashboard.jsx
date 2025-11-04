@@ -6,16 +6,19 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   const teamMembers = [
-    { name: "QT", icon: "👤"},
-    { name: "HT",  icon: "👤" },
-    { name: "LT",  icon: "👤" },
-    { name: "MT",  icon: "👤" },
-    { name: "NT",  icon: "👤" },
-    { name: "V",  icon: "👤" }
+    { name: "QT", icon: "👤" },
+    { name: "HT", icon: "👤" },
+    { name: "LT", icon: "👤" },
+    { name: "MT", icon: "👤" },
+    { name: "NT", icon: "👤" },
+    { name: "V", icon: "👤" },
   ];
 
   const weekDays = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN"];
-  const timeSlots = Array.from({ length: 18 }, (_, i) => `${(6 + i).toString().padStart(2, "0")}:00`);
+  const timeSlots = Array.from(
+    { length: 18 },
+    (_, i) => `${(6 + i).toString().padStart(2, "0")}:00`
+  );
   const [currentTime, setCurrentTime] = useState("");
   const [showMore, setShowMore] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
@@ -41,7 +44,12 @@ export default function Dashboard() {
     const updateTime = () => {
       const now = new Date();
       const options = { weekday: "short", month: "short", day: "numeric" };
-      setCurrentTime(`${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} - ${now.toLocaleDateString("vi-VN", options)}`);
+      setCurrentTime(
+        `${now.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })} - ${now.toLocaleDateString("vi-VN", options)}`
+      );
     };
     updateTime();
     const interval = setInterval(updateTime, 60000);
@@ -50,39 +58,32 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      
-      // Call API to invalidate token on backend
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
+
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
-      
-      if (response.ok) {
-        // Clear local storage
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
-        localStorage.removeItem('user');
-        sessionStorage.removeItem('user');
-        
-        // Navigate to login page
-        navigate('/');
-      } else {
-        console.error('Logout failed');
-        // Still clear local storage even if API call fails
-        localStorage.clear();
-        sessionStorage.clear();
-        navigate('/');
-      }
-    } catch (error) {
-      console.error('Error during logout:', error);
-      // Clear storage and redirect even on error
+
       localStorage.clear();
       sessionStorage.clear();
-      navigate('/');
+
+      if (response.ok) {
+        console.log("Logout successful");
+      } else {
+        console.warn("Logout failed on server, but cleared local data.");
+      }
+
+      navigate("/");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      localStorage.clear();
+      sessionStorage.clear();
+      navigate("/");
     }
   };
 
@@ -94,7 +95,11 @@ export default function Dashboard() {
           <div>{currentTime}</div>
           <div className="team-box">
             {teamMembers.slice(0, 4).map((m, i) => (
-              <div key={i} className="avatar" style={{ backgroundColor: "#3498db" }}>
+              <div
+                key={i}
+                className="avatar"
+                style={{ backgroundColor: "#3498db" }}
+              >
                 {m.icon}
               </div>
             ))}
@@ -142,9 +147,15 @@ export default function Dashboard() {
 
           <div className="room-box">
             <h4>Phòng đã đặt</h4>
-            <ul><li>Phòng 101</li><li>Phòng 202</li></ul>
+            <ul>
+              <li>Phòng 101</li>
+              <li>Phòng 202</li>
+            </ul>
             <h4>Phòng trống</h4>
-            <ul><li>Phòng 303</li><li>Phòng 404</li></ul>
+            <ul>
+              <li>Phòng 303</li>
+              <li>Phòng 404</li>
+            </ul>
           </div>
         </aside>
 
@@ -155,7 +166,9 @@ export default function Dashboard() {
             <div className="week-header">
               <div className="time-header">Giờ</div>
               {weekDays.map((day, i) => (
-                <div key={i} className="week-day">{day}</div>
+                <div key={i} className="week-day">
+                  {day}
+                </div>
               ))}
             </div>
 

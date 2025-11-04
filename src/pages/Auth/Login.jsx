@@ -148,6 +148,10 @@ export default function LoginPage() {
     e.preventDefault();
     navigate("/register");
   };
+  const handleForgotPasswordClick = (e) => {
+    e.preventDefault();
+    navigate("/forgot_password");
+  };
 
   const googleLogin = () => {
     window.location.href = `http://localhost:8080/api/auth/login/google`;
@@ -251,7 +255,10 @@ export default function LoginPage() {
             </form>
 
             <div className="login-form-footer">
-              Forgot password? <a href="#support">Clich here !</a>
+              Forgot password?{" "}
+              <a href="/forgot_password" onClick={handleForgotPasswordClick}>
+                Clich here !
+              </a>
             </div>
             <div className="login-form-footer">
               Don't have an account?{" "}
