@@ -16,7 +16,6 @@ function App() {
     <Router>
       <UserProvider>
         <Routes>
-          {/* Public route - không cần login */}
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<LoginPage />} />
           <Route path="/verify" element={<VerifyPage />} />
