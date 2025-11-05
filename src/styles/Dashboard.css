@@ -183,60 +183,126 @@ html, body, #root {
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  background-color: #fff;
 }
 
 .week-calendar {
   display: grid;
   grid-template-rows: auto 1fr;
   height: 100%;
+  overflow: hidden;
 }
 
 .week-header {
   display: grid;
   grid-template-columns: 80px repeat(7, 1fr);
-  background-color: #007bff;
-  color: #fff;
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.time-header {
+  background-color: #f8f9fa;
+  color: #666;
   text-align: center;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 12px 8px;
+  border-right: 1px solid #dee2e6;
+}
+
+.week-day {
+  padding: 8px;
+  text-align: center;
+  border-right: 1px solid #dee2e6;
+}
+
+.date-display {
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.day-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
 }
 
 .schedule-grid {
   display: grid;
   grid-template-columns: 80px repeat(7, 1fr);
-  grid-auto-rows: 40px; /* mỗi khung giờ cao 40px */
+  grid-auto-rows: 60px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .time-slot {
   background-color: #f8f9fa;
-  border: 1px solid #ddd;
+  border-right: 1px solid #dee2e6;
+  border-bottom: 1px solid #e9ecef;
   text-align: center;
-  line-height: 40px;
+  font-size: 12px;
+  color: #666;
+  padding: 8px 4px;
+  font-weight: 500;
+  position: sticky;
+  left: 0;
 }
 
 .schedule-cell {
-  border: 1px solid #ddd;
+  border-right: 1px solid #e9ecef;
+  border-bottom: 1px solid #e9ecef;
   cursor: pointer;
+  position: relative;
+  transition: background-color 0.2s;
 }
 
-.week-day {
-  padding: 8px 0;
-  font-weight: bold;
+.schedule-cell:hover {
+  background-color: #f8f9fa;
 }
 
-.time-header {
-  background-color: #007bff;
-  color: white;
-  text-align: center;
-  font-weight: bold;
-  line-height: 40px;
-}
-
-.meeting {
-  background-color: #007bff;
+.meeting-block {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  border-radius: 6px;
+  padding: 6px 8px;
   color: #fff;
-  padding: 4px;
-  border-radius: 4px;
+  font-size: 11px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+.meeting-block:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.meeting-title {
+  font-weight: 600;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meeting-subtitle {
+  font-size: 10px;
+  opacity: 0.9;
+  margin-bottom: 2px;
+}
+
+.meeting-room {
+  font-size: 10px;
+  opacity: 0.8;
+}
 /* Popup */
 .event-popup {
   position: fixed;
@@ -248,13 +314,61 @@ html, body, #root {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 2000;
 }
 
 .popup-content {
   background: #fff;
   color: #000;
-  padding: 20px;
-  border-radius: 8px;
-  width: 300px;
-  text-align: center;
+  padding: 24px;
+  border-radius: 12px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+.popup-content h3 {
+  margin: 0 0 16px 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.popup-content p {
+  margin: 0 0 20px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.popup-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btn-primary, .btn-secondary {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
 }

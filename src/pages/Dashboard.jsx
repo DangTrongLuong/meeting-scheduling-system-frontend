@@ -11,7 +11,7 @@ export default function Dashboard() {
     { name: "V",  icon: "👤" }
   ];
 
-  const weekDays = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN"];
+  const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const timeSlots = Array.from({ length: 18 }, (_, i) => `${(6 + i).toString().padStart(2, "0")}:00`);
   const [currentTime, setCurrentTime] = useState("");
   const [showMore, setShowMore] = useState(false);
@@ -112,7 +112,7 @@ export default function Dashboard() {
           <div className="week-calendar">
             {/* Header: ngày trong tuần */}
             <div className="week-header">
-              <div className="time-header">Giờ</div>
+              <div className="time-header">Time</div>
               {weekDays.map((day, i) => (
                 <div key={i} className="week-day">{day}</div>
               ))}
