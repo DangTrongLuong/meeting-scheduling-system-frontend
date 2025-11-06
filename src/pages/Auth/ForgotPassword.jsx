@@ -144,19 +144,18 @@ export default function ForgotPasswordPage() {
       setSuccessMessage(
         response.data.message || "Reset code sent to your email."
       );
-      setStep(2);
+      setStep(1);
       setResendTimer(60 * Math.pow(2, resendAttempts)); // Double time each resend
       setCanResend(false);
       if (isResend) setResendAttempts(resendAttempts + 1);
-    } catch (error) {
-      setGeneralError(
-        error.response?.data?.message || "Failed to send reset code."
-      );
-      toast.error(generalError);
-    } finally {
-      setLoading(false);
-    }
-  };
+} catch (error) {
+  const message = error.response?.data?.message || "Failed to send reset code.";
+  setGeneralError(message);
+  toast.error(message);
+} finally {
+  setLoading(false);
+}
+  }
 
   // Verify code
   const handleVerifyCode = async () => {
@@ -467,3 +466,4 @@ export default function ForgotPasswordPage() {
     </>
   );
 }
+
