@@ -11,6 +11,8 @@ import "./App.css";
 import VerifyPage from "./pages/Verify/VerifyPage.jsx";
 import ForgotPasswordPage from "./pages/Auth/ForgotPassword.jsx";
 
+import DashboardAdmin from "./pages/Admin/DashboardAdmin.jsx";
+
 function App() {
   return (
     <Router>
@@ -38,6 +40,15 @@ function App() {
             element={
               <AuthMiddleware>
                 <Profile />
+              </AuthMiddleware>
+            }
+          />
+
+          <Route
+            path="/dashboardAdmin"
+            element={
+              <AuthMiddleware>
+                <DashboardAdmin />
               </AuthMiddleware>
             }
           />

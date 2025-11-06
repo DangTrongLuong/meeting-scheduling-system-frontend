@@ -112,10 +112,15 @@ export default function LoginPage() {
 
     try {
       const result = await login(email.trim(), password);
+      const role = localStorage.getItem("role");
       toast.success("Login successfully!", {
         autoClose: 1000,
         onClose: () => {
-          window.location.href = "/dashboard";
+          if (role === "ADMIN") {
+            window.location.href = "/dashboardAdmin";
+          } else {
+            window.location.href = "/dashboard";
+          }
         },
       });
     } catch (error) {

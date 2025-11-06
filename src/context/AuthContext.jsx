@@ -40,6 +40,59 @@ export const login = async (email, password) => {
       return { ...result, authProvider: "LOCAL" };
     }
 
+    try {
+      console.log("Local login failed, attempting admin login");
+
+      const response = await axios.post(
+        "http://localhost:8080/api/admin/auth/login",
+        { email, password },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+
+      const data = response.data;
+
+      if (response.status === 200 && data.token) {
+        console.log("Admin login data", data);
+
+        localStorage.setItem("accessToken", data.token);
+        localStorage.setItem("tokenExpiresAt", Date.now() + 3600 * 1000); // 1 hour
+        localStorage.setItem("userId", data.user.id);
+        localStorage.setItem("userEmail", data.user.email || email);
+        localStorage.setItem("userName", data.user.username || "Admin");
+        localStorage.setItem(
+          "avatarUrl",
+          "http://localhost:8080/uploads/avatars/user-avatar.png"
+        );
+        localStorage.setItem("role", data.user.role || "ADMIN");
+        localStorage.setItem(
+          "created_at",
+          new Date().toISOString().split("T")[0]
+        );
+        localStorage.setItem("backgroundUrl", null);
+        localStorage.setItem("authProvider", "admin");
+
+        return {
+          accessToken: data.token,
+          expiresIn: 3600,
+          id: data.user.id,
+          email: data.user.email,
+          name: data.user.username,
+          avatarUrl: "http://localhost:8080/uploads/avatars/user-avatar.png",
+          role: data.user.role || "ADMIN",
+          createdAt: new Date().toISOString().split("T")[0],
+          backgroundUrl: null,
+          authProvider: "admin",
+        };
+      }
+    } catch (error) {
+      console.error("Admin login failed:", error);
+    }
+
     throw new Error(data.message || "Login failed");
   } catch (error) {
     const msg = error.message;
