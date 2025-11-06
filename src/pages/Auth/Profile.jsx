@@ -13,6 +13,7 @@ const ProfileContent = () => {
   const { user, setUser } = useUser();
 
   const [userInfo, setUserInfo] = useState({});
+
   const [userName, setUserName] = useState(
     localStorage.getItem("userName") || "User"
   );
@@ -52,6 +53,7 @@ const ProfileContent = () => {
   const profileImgRef = useRef(null);
   const coverImgRef = useRef(null);
   const removeCoverBtnRef = useRef(null);
+
 
   const updateDOM = () => {
     if (fullNameRef.current) fullNameRef.current.textContent = userName;
@@ -129,6 +131,7 @@ const ProfileContent = () => {
       toast.error("Please select a valid image file");
       return;
     }
+    
 
     const formData = new FormData();
     formData.append("avatar", file);
@@ -236,18 +239,30 @@ const ProfileContent = () => {
     }));
   };
 
-  const handleUpdateInfo = () => {
-    setConfirmMessage("Are you sure you want to update your information?");
-    setConfirmAction(() => async () => {
-      try {
-        const response = await axios.put(
-          `/api/auth/update-user/${userInfo.id}`,
-          {
-            name: editFormData.name,
-            age: parseInt(editFormData.age) || 0,
-            address: editFormData.address,
-          }
-        );
+ const validateAge = () => {
+  const ageNumber = Number(editFormData.age);
+  if (!Number.isInteger(ageNumber) || ageNumber < 8 || ageNumber > 100) {
+    toast.error("Age must be a number between 8 and 100.");
+    return false;
+  }
+  return true;
+};
+
+const handleUpdateInfo = () => {
+  if (!validateAge()) return;
+
+  setConfirmMessage("Are you sure you want to update your information?");
+  setConfirmAction(() => async () => {
+    try {
+      const response = await axios.put(
+        `/api/auth/update-user/${userInfo.id}`,
+        {
+          name: editFormData.name,
+          age: parseInt(editFormData.age),
+          address: editFormData.address,
+        }
+      );
+
 
         if (response.data) {
           setUserName(editFormData.name);
@@ -267,10 +282,10 @@ const ProfileContent = () => {
           setShowEditInfoForm(false);
           toast.success("Information updated successfully");
         }
-      } catch (error) {
-        console.error("Error updating information:", error);
-        toast.error("Failed to update information");
-      }
+
+    } catch (error) {
+      toast.error("Failed to update user information.");
+    }
       setShowConfirmForm(false);
     });
     setShowConfirmForm(true);
