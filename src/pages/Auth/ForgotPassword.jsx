@@ -7,6 +7,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FcGoogle } from "react-icons/fc";
 import axios from "axios";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
@@ -31,6 +32,7 @@ export default function ForgotPasswordPage() {
     newPassword: false,
     confirmPassword: false,
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   // Validation functions
   const validateEmail = (emailValue) => {
@@ -144,18 +146,19 @@ export default function ForgotPasswordPage() {
       setSuccessMessage(
         response.data.message || "Reset code sent to your email."
       );
-      setStep(1);
+      setStep(2);
       setResendTimer(60 * Math.pow(2, resendAttempts)); // Double time each resend
       setCanResend(false);
       if (isResend) setResendAttempts(resendAttempts + 1);
-} catch (error) {
-  const message = error.response?.data?.message || "Failed to send reset code.";
-  setGeneralError(message);
-  toast.error(message);
-} finally {
-  setLoading(false);
-}
-  }
+    } catch (error) {
+      const message =
+        error.response?.data?.message || "Failed to send reset code.";
+      setGeneralError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Verify code
   const handleVerifyCode = async () => {
@@ -378,19 +381,32 @@ export default function ForgotPasswordPage() {
                     <label className="forgotpassword-form-label">
                       New Password
                     </label>
-                    <input
-                      type="password"
-                      value={newPassword}
-                      onChange={handleNewPasswordChange}
-                      onBlur={handleNewPasswordBlur}
-                      onFocus={handleInputFocus}
-                      className={`forgotpassword-form-input ${
-                        touched.newPassword && newPasswordError
-                          ? "input-error"
-                          : ""
-                      }`}
-                      placeholder="Enter new password"
-                    />
+                    <div className="password-wrapper">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={newPassword}
+                        onChange={handleNewPasswordChange}
+                        onBlur={handleNewPasswordBlur}
+                        onFocus={handleInputFocus}
+                        className={`forgotpassword-form-input ${
+                          touched.newPassword && newPasswordError
+                            ? "input-error"
+                            : ""
+                        }`}
+                        placeholder="Enter new password"
+                      />
+                      {showPassword ? (
+                        <AiOutlineEyeInvisible
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="password-toggle-icon"
+                        />
+                      ) : (
+                        <AiOutlineEye
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="password-toggle-icon"
+                        />
+                      )}
+                    </div>
                     {touched.newPassword && newPasswordError && (
                       <span className="forgotpassword-error-text">
                         {newPasswordError}
@@ -402,19 +418,32 @@ export default function ForgotPasswordPage() {
                     <label className="forgotpassword-form-label">
                       Confirm New Password
                     </label>
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={handleConfirmPasswordChange}
-                      onBlur={handleConfirmPasswordBlur}
-                      onFocus={handleInputFocus}
-                      className={`forgotpassword-form-input ${
-                        touched.confirmPassword && confirmPasswordError
-                          ? "input-error"
-                          : ""
-                      }`}
-                      placeholder="Confirm new password"
-                    />
+                    <div className="password-wrapper">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={handleConfirmPasswordChange}
+                        onBlur={handleConfirmPasswordBlur}
+                        onFocus={handleInputFocus}
+                        className={`forgotpassword-form-input ${
+                          touched.confirmPassword && confirmPasswordError
+                            ? "input-error"
+                            : ""
+                        }`}
+                        placeholder="Confirm new password"
+                      />
+                      {showPassword ? (
+                        <AiOutlineEyeInvisible
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="password-toggle-icon"
+                        />
+                      ) : (
+                        <AiOutlineEye
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="password-toggle-icon"
+                        />
+                      )}
+                    </div>
                     {touched.confirmPassword && confirmPasswordError && (
                       <span className="forgotpassword-error-text">
                         {confirmPasswordError}
@@ -466,4 +495,3 @@ export default function ForgotPasswordPage() {
     </>
   );
 }
-
