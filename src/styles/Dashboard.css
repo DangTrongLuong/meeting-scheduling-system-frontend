@@ -7,22 +7,24 @@
   width:100%;
 }
 
+
 .navbar {
-  height: 60px;
-  background-color: #007bff;
-  color: white;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  padding: 0 20px;
-  font-size: 18px;
-  font-weight: 600;
-  justify-content: space-between
+  background-color: #007bff;
+  color: #fff;
+  padding: 10px 16px;
 }
+
+
 
 .calendar-container {
   flex: 1;
-  padding: 20px;
+  padding: 16px;
+  overflow: auto;
 }
+
 
 .fc {
   background: white;
@@ -41,7 +43,6 @@
   align-items: center;
   margin-left: auto; /* đẩy toàn bộ về bên phải */
   gap: 12px;
-
 }
 
 .time-display {
@@ -141,42 +142,78 @@
 }
 
 /* Layout */
+
 .content {
   display: flex;
-  flex: 1;
-  overflow: hidden;
   width: 100%;
+  margin-top:60px;
+  height: calc(100vh - 60px); /* trừ navbar */
 }
 
+/* Sidebar giữ nguyên thông tin phòng */
+
+
+
+/* Sidebar mở rộng */
 .sidebar {
-  width: 220px;
-  background-color: #007bff;
-  color: #fff;
-  padding: 16px;
+  width: 300px; /* mở rộng hơn */
+  background: #f8f8f8;
+  padding: 20px;
+  border-right: 1px solid #ddd;
   overflow-y: auto;
-  box-shadow: 2px 0 4px rgba(0,0,0,0.1);
 }
 
-.sidebar-title {
-  margin: 0 0 16px 0;
-  font-size: 18px;
-  font-weight: 600;
+/* Lịch nhỏ không có box */
+.mini-calendar {
+  margin-bottom: 30px;
 }
+
+.react-calendar {
+  width: 100%;
+  border: none; /* bỏ viền */
+  background: transparent; /* bỏ nền */
+  font-size: 11px;
+}
+
+.react-calendar__navigation button {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.react-calendar__tile {
+  padding: 8px;
+}
+
+.react-calendar__tile--active {
+  background: #ffc400;
+  color: #fff;
+  border-radius: 50%;
+}
+
+.react-calendar__tile--now {
+  background: #e6f0ff;
+  border-radius: 50%;
+}
+
+/* Tiêu đề sidebar */
+.sidebar-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+
 
 .room-box {
-  background-color: #fff;
-  color: #000;
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .room-box-title {
-  margin: 0 0 12px 0;
-  font-size: 15px;
-  font-weight: 600;
-  color: #333;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 8px;
 }
+
 
 .room-list {
   list-style: none;
@@ -193,11 +230,13 @@
   gap: 8px;
 }
 
+
 .room-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
   display: inline-block;
+  margin-right: 8px;
 }
 
 /* Main Content */

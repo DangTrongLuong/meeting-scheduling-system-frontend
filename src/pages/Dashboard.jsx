@@ -5,6 +5,10 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import viLocale from '@fullcalendar/core/locales/vi';
 import "../styles/Dashboard.css"; 
+import NavBarUser from "../components/NavBarUser";
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
+
 
 export default function Dashboard() {
   const calendarRef = useRef(null);
@@ -189,7 +193,8 @@ export default function Dashboard() {
   return (
     <div className="dashboard">
       {/* Navbar */}
-      <div className="navbar">
+      <NavBarUser />
+      {/* <div className="navbar">
   <div className="navbar-left">
     <div className="time-display">{currentTime}</div>
     <div className="team-box">
@@ -231,65 +236,62 @@ export default function Dashboard() {
     <div className="mail-icon">📩</div>
     <div className="profile-circle">👤</div>
   </div>
-</div>
-
+</div> */}
 {/* Content */}
+
 <div className="content">
   {/* Sidebar */}
-  <aside className="sidebar">
-    <h3 className="sidebar-title">Thông tin phòng</h3>
+  
+<aside className="sidebar">
+  {/* Lịch tháng nhỏ */}
+  <div className="mini-calendar">
+    <Calendar
+      value={new Date()} // giá trị mặc định là hôm nay
+      locale="vi-VN" // ngôn ngữ tiếng Việt
+    />
+  </div>
 
-    <div className="room-box">
-      <h4 className="room-box-title">Phòng đã đặt hôm nay</h4>
-      <ul className="room-list">
-        {getBookedRooms().map((roomId, i) => {
-          const room = rooms.find((r) => r.id === roomId);
-          return (
-            <li key={i} className="room-item">
-              <span
-                className="room-dot"
-                style={{ backgroundColor: room.color }}
-              ></span>
-              {room.name}
-            </li>
-          );
-        })}
-        {getBookedRooms().length === 0 && (
-          <li className="room-item">Chưa có phòng nào được đặt</li>
-        )}
-      </ul>
-
-      <h4 className="room-box-title" style={{ marginTop: 16 }}>
-        Phòng trống hôm nay
-      </h4>
-      <ul className="room-list">
-        {getAvailableRooms().map((room, i) => (
+  {/* Thông tin phòng */}
+  <h3 className="sidebar-title">Thông tin phòng</h3>
+  <div className="room-box">
+    <h4 className="room-box-title">Phòng đã đặt hôm nay</h4>
+    <ul className="room-list">
+      {getBookedRooms().map((roomId, i) => {
+        const room = rooms.find((r) => r.id === roomId);
+        return (
           <li key={i} className="room-item">
-            <span
-              className="room-dot"
-              style={{ backgroundColor: room.color }}
-            ></span>
+            <span className="room-dot" style={{ backgroundColor: room.color }}></span>
             {room.name}
           </li>
-        ))}
-      </ul>
-    </div>
+        );
+      })}
+      {getBookedRooms().length === 0 && (
+        <li className="room-item">Chưa có phòng nào được đặt</li>
+      )}
+    </ul>
 
-    <div className="room-box">
-      <h4 className="room-box-title">Danh sách phòng</h4>
-      <ul className="room-list">
-        {rooms.map((room, i) => (
-          <li key={i} className="room-item">
-            <span
-              className="room-dot"
-              style={{ backgroundColor: room.color }}
-            ></span>
-            {room.name}
-          </li>
-        ))}
-      </ul>
-    </div>
-  </aside>
+    <h4 className="room-box-title" style={{ marginTop: 16 }}>Phòng trống hôm nay</h4>
+    <ul className="room-list">
+      {getAvailableRooms().map((room, i) => (
+        <li key={i} className="room-item">
+          <span className="room-dot" style={{ backgroundColor: room.color }}></span>
+          {room.name}
+        </li>
+      ))}
+    </ul>
+
+    <h4 className="room-box-title" style={{ marginTop: 16 }}>Danh sách phòng</h4>
+    <ul className="room-list">
+      {rooms.map((room, i) => (
+        <li key={i} className="room-item">
+          <span className="room-dot" style={{ backgroundColor: room.color }}></span>
+          {room.name}
+        </li>
+      ))}
+    </ul>
+  </div>
+</aside>
+
 
   {/* Calendar */}
   <div className="calendar-container">
@@ -304,7 +306,7 @@ export default function Dashboard() {
         center: "title",
         right: "dayGridMonth,timeGridWeek,timeGridDay",
       }}
-      height="90vh"
+      height="100%"
       contentHeight="auto"
       aspectRatio={1.8}
     />
