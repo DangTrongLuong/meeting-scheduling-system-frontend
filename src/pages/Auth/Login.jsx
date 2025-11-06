@@ -7,6 +7,9 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FcGoogle } from "react-icons/fc";
 import { login } from "../../context/AuthContext";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -17,6 +20,7 @@ export default function LoginPage() {
   const [generalError, setGeneralError] = useState("");
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState({ email: false, password: false });
+  const [showPassword, setShowPassword] = useState(false);
 
   // Validation functions
   const validateEmail = (emailValue) => {
@@ -224,19 +228,37 @@ export default function LoginPage() {
                 )}
               </div>
 
-              <div className="login-form-group">
+              <div
+                className="login-form-group"
+                style={{ position: "relative" }}
+              >
                 <label className="login-form-label">Password</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={handlePasswordChange}
-                  onBlur={handlePasswordBlur}
-                  onFocus={handleInputFocus}
-                  className={`login-form-input ${
-                    touched.password && passwordError ? "input-error" : ""
-                  }`}
-                  placeholder="Enter your password"
-                />
+
+                <div className="password-wrapper">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={handlePasswordChange}
+                    onBlur={handlePasswordBlur}
+                    onFocus={handleInputFocus}
+                    className={`login-form-input ${
+                      touched.password && passwordError ? "input-error" : ""
+                    }`}
+                    placeholder="Enter your password"
+                  />
+                  {showPassword ? (
+                    <AiOutlineEyeInvisible
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="password-toggle-icon"
+                    />
+                  ) : (
+                    <AiOutlineEye
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="password-toggle-icon"
+                    />
+                  )}
+                </div>
+
                 {touched.password && passwordError && (
                   <span className="login-error-text">{passwordError}</span>
                 )}

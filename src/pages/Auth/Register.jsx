@@ -7,6 +7,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FcGoogle } from "react-icons/fc";
 import { register } from "../../context/AuthContext";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ export default function RegisterPage() {
     password: false,
     confirmPassword: false,
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   // Validation functions
   const validateName = (nameValue) => {
@@ -312,6 +314,7 @@ export default function RegisterPage() {
                   }`}
                   placeholder="Enter your @gmail.com email"
                 />
+
                 {touched.email && emailError && (
                   <span className="register-error-text">{emailError}</span>
                 )}
@@ -319,17 +322,30 @@ export default function RegisterPage() {
 
               <div className="register-form-group">
                 <label className="register-form-label">Password</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={handlePasswordChange}
-                  onBlur={handlePasswordBlur}
-                  onFocus={handleInputFocus}
-                  className={`register-form-input ${
-                    touched.password && passwordError ? "input-error" : ""
-                  }`}
-                  placeholder="Enter your password"
-                />
+                <div className="password-wrapper">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={handlePasswordChange}
+                    onBlur={handlePasswordBlur}
+                    onFocus={handleInputFocus}
+                    className={`register-form-input ${
+                      touched.password && passwordError ? "input-error" : ""
+                    }`}
+                    placeholder="Enter your password"
+                  />
+                  {showPassword ? (
+                    <AiOutlineEyeInvisible
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="password-toggle-icon"
+                    />
+                  ) : (
+                    <AiOutlineEye
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="password-toggle-icon"
+                    />
+                  )}
+                </div>
                 {touched.password && passwordError && (
                   <span className="register-error-text">{passwordError}</span>
                 )}
@@ -337,19 +353,32 @@ export default function RegisterPage() {
 
               <div className="register-form-group">
                 <label className="register-form-label">Confirm Password</label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={handleConfirmPasswordChange}
-                  onBlur={handleConfirmPasswordBlur}
-                  onFocus={handleInputFocus}
-                  className={`register-form-input ${
-                    touched.confirmPassword && confirmPasswordError
-                      ? "input-error"
-                      : ""
-                  }`}
-                  placeholder="Confirm your password"
-                />
+                <div className="password-wrapper">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={handleConfirmPasswordChange}
+                    onBlur={handleConfirmPasswordBlur}
+                    onFocus={handleInputFocus}
+                    className={`register-form-input ${
+                      touched.confirmPassword && confirmPasswordError
+                        ? "input-error"
+                        : ""
+                    }`}
+                    placeholder="Confirm your password"
+                  />
+                  {showPassword ? (
+                    <AiOutlineEyeInvisible
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="password-toggle-icon"
+                    />
+                  ) : (
+                    <AiOutlineEye
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="password-toggle-icon"
+                    />
+                  )}
+                </div>
                 {touched.confirmPassword && confirmPasswordError && (
                   <span className="register-error-text">
                     {confirmPasswordError}
