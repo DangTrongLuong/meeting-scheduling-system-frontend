@@ -1,0 +1,30 @@
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background-color: #0084ff !important;
+  z-index: 1100 !important;
+  transition: width 1.5s ease;
+}
+
+.progress-bar.active {
+  width: 100%;
+  animation: progressAnimation 1.5s ease forwards;
+}
+
+@keyframes progressAnimation {
+  0% {
+    width: 0;
+    opacity: 1;
+  }
+  80% {
+    width: 100%;
+    opacity: 1;
+  }
+  100% {
+    width: 100%;
+    opacity: 0;
+  }
+}

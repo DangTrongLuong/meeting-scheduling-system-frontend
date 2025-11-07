@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext, use } from "react";
 
-import NavBarUser from "../../components/NavBarUser";
+import NavBar from "../../components/NavBar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faTrashCan } from "@fortawesome/free-regular-svg-icons";
 import "../../styles/Auth_style/Profile.css";
@@ -53,7 +53,6 @@ const ProfileContent = () => {
   const profileImgRef = useRef(null);
   const coverImgRef = useRef(null);
   const removeCoverBtnRef = useRef(null);
-
 
   const updateDOM = () => {
     if (fullNameRef.current) fullNameRef.current.textContent = userName;
@@ -131,7 +130,6 @@ const ProfileContent = () => {
       toast.error("Please select a valid image file");
       return;
     }
-    
 
     const formData = new FormData();
     formData.append("avatar", file);
@@ -239,30 +237,29 @@ const ProfileContent = () => {
     }));
   };
 
- const validateAge = () => {
-  const ageNumber = Number(editFormData.age);
-  if (!Number.isInteger(ageNumber) || ageNumber < 8 || ageNumber > 100) {
-    toast.error("Age must be a number between 8 and 100.");
-    return false;
-  }
-  return true;
-};
+  const validateAge = () => {
+    const ageNumber = Number(editFormData.age);
+    if (!Number.isInteger(ageNumber) || ageNumber < 8 || ageNumber > 100) {
+      toast.error("Age must be a number between 8 and 100.");
+      return false;
+    }
+    return true;
+  };
 
-const handleUpdateInfo = () => {
-  if (!validateAge()) return;
+  const handleUpdateInfo = () => {
+    if (!validateAge()) return;
 
-  setConfirmMessage("Are you sure you want to update your information?");
-  setConfirmAction(() => async () => {
-    try {
-      const response = await axios.put(
-        `/api/auth/update-user/${userInfo.id}`,
-        {
-          name: editFormData.name,
-          age: parseInt(editFormData.age),
-          address: editFormData.address,
-        }
-      );
-
+    setConfirmMessage("Are you sure you want to update your information?");
+    setConfirmAction(() => async () => {
+      try {
+        const response = await axios.put(
+          `/api/auth/update-user/${userInfo.id}`,
+          {
+            name: editFormData.name,
+            age: parseInt(editFormData.age),
+            address: editFormData.address,
+          }
+        );
 
         if (response.data) {
           setUserName(editFormData.name);
@@ -282,10 +279,9 @@ const handleUpdateInfo = () => {
           setShowEditInfoForm(false);
           toast.success("Information updated successfully");
         }
-
-    } catch (error) {
-      toast.error("Failed to update user information.");
-    }
+      } catch (error) {
+        toast.error("Failed to update user information.");
+      }
       setShowConfirmForm(false);
     });
     setShowConfirmForm(true);
@@ -295,7 +291,7 @@ const handleUpdateInfo = () => {
     <>
       <ToastContainer />
       <div className="container">
-        <NavBarUser />
+        <NavBar />
         <div id="global-progress-bar" className="progress-bar"></div>
         <div className="content-container">
           <div className={`main-container}`}>
