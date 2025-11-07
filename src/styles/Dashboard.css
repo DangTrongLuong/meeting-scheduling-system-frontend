@@ -120,6 +120,7 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
+  margin-top: 45px;
   font-weight: 500;
 }
 
@@ -363,3 +364,4 @@
 .checkbox {
   cursor: pointer;
 }
+
