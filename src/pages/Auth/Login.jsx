@@ -246,17 +246,19 @@ export default function LoginPage() {
                     }`}
                     placeholder="Enter your password"
                   />
-                  {showPassword ? (
-                    <AiOutlineEyeInvisible
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="password-toggle-icon"
-                    />
-                  ) : (
-                    <AiOutlineEye
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="password-toggle-icon"
-                    />
-                  )}
+{password.length > 0 && (
+  showPassword ? (
+    <AiOutlineEyeInvisible
+      onClick={() => setShowPassword(!showPassword)}
+      className="password-toggle-icon"
+    />
+  ) : (
+    <AiOutlineEye
+      onClick={() => setShowPassword(!showPassword)}
+      className="password-toggle-icon"
+    />
+  )
+)}
                 </div>
 
                 {touched.password && passwordError && (
