@@ -239,6 +239,15 @@ export default function Dashboard() {
     <div className="profile-circle">👤</div>
   </div>
 </div> */}
+
+  <div className="navbar-right">
+    <button className="meeting-btn" onClick={() => setShowNewEventModal(true)}>
+      + Đặt phòng
+    </button>
+    {/*<div className="mail-icon">📩</div>
+    <div className="profile-circle">👤</div>*/}
+  </div>
+  
       {/* Content */}
 
       <div className="content">
