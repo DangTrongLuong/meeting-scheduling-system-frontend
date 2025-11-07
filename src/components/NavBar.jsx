@@ -1,14 +1,14 @@
 // src/components/NavBarUser.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { User, LogOut, ChevronRight, X, Menu } from "lucide-react";
-import "../styles/NavBarUser.css";
+import "../styles/NavBar.css";
 import logo_cmc from "../assets/logocmc.png";
 import user_img from "../assets/user-avatar.png";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 
-const NavBarUser = ({ onToggleSidebar }) => {
+const NavBar = ({ onToggleSidebar }) => {
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const { user, setUser } = useUser();
@@ -137,4 +137,4 @@ const NavBarUser = ({ onToggleSidebar }) => {
   );
 };
 
-export default NavBarUser;
+export default NavBar;

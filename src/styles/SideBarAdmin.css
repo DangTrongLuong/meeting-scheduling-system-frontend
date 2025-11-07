@@ -1,0 +1,234 @@
+.sidebar {
+  width: 280px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  height: calc(100vh - 70px);
+  position: fixed;
+  left: 0;
+  top: 70px;
+  box-shadow: 2px 0 12px rgba(0, 132, 255, 0.08);
+  border-right: 1px solid rgba(0, 132, 255, 0.1);
+  overflow-y: auto;
+  z-index: 900;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 899;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.close-sidebar-btn {
+  display: none;
+}
+
+.sidebar-content {
+  padding: 24px 0;
+  height: 90%;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 24px;
+  margin: 4px 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  border-left: 3px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.menu-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 132, 255, 0.05) 0%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.menu-item:hover::before {
+  opacity: 1;
+}
+
+.menu-item:hover {
+  background: linear-gradient(90deg, #e8f4ff 0%, #f0f7ff 100%);
+  border-bottom: 2px solid #0084ff;
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(0, 132, 255, 0.1);
+}
+
+.menu-item.active {
+  background: linear-gradient(90deg, #d4ebff 0%, #e8f4ff 100%);
+  border-bottom: 2px solid #0084ff;
+  box-shadow: 0 2px 12px rgba(0, 132, 255, 0.15);
+}
+
+.menu-item.active .menu-icon,
+.menu-item.active .menu-label {
+  color: #0084ff;
+}
+
+.menu-icon {
+  color: #093765;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.menu-item:hover .menu-icon,
+.menu-item.active .menu-icon {
+  color: #0084ff;
+  transform: scale(1.1);
+}
+
+.menu-label {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: #093765;
+  transition: all 0.3s ease;
+}
+
+.menu-item:hover .menu-label {
+  color: #0084ff;
+  font-weight: 600;
+}
+
+.menu-item.active .menu-label {
+  font-weight: 600;
+}
+
+.menu-chevron {
+  color: #093765;
+  transition: all 0.3s ease;
+  margin-left: auto;
+}
+
+.menu-item:hover .menu-chevron,
+.menu-item.active .menu-chevron {
+  color: #0084ff;
+  transform: translateX(3px);
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(0, 132, 255, 0.2);
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 132, 255, 0.4);
+}
+
+.btn-logout {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+.logout-btn {
+  width: 95%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+  transition: all 0.3s ease;
+  min-width: 140px;
+}
+
+.logout-btn:hover {
+  background: linear-gradient(135deg, #ff5252 0%, #dd4444 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
+}
+
+.logout-btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    top: 55px;
+    height: 100vh;
+    box-shadow: none;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .sidebar.closed {
+    transform: translateX(-100%);
+  }
+
+  .close-sidebar-btn {
+    display: flex;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    color: #0084ff;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    z-index: 10;
+  }
+
+  .close-sidebar-btn:hover {
+    background: rgba(0, 132, 255, 0.1);
+  }
+
+  .sidebar-content {
+    padding-top: 60px;
+  }
+
+  .menu-item {
+    margin: 4px 8px;
+    padding: 14px 20px;
+  }
+  .sidebar-content {
+    height: 80%;
+  }
+}

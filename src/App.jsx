@@ -2,7 +2,7 @@ import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Register from "./pages/Auth/Register.jsx";
 import LoginPage from "./pages/Auth/Login.jsx";
-import Dashboard from "./pages/Dashboard.jsx";
+import Dashboard from "./pages/User/Dashboard.jsx";
 import Profile from "./pages/Auth/Profile.jsx";
 
 import { UserProvider } from "./context/UserContext.jsx";
