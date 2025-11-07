@@ -1,0 +1,133 @@
+
+.page-layout {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+}
+
+
+.main-content {
+  flex: 1; /* chiếm toàn bộ phần còn lại */
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+.device-container {
+  width: 100%;
+  padding: 20px 30px;
+  box-sizing: border-box;
+}
+
+.device-management {
+  font-size: 30px;
+  font-weight: 600;
+  color: #093765;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 10px;
+  text-align: left;
+}
+
+/* Controls */
+.device-controls {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.device-search-input {
+  flex: 1;
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.device-sort-dropdown {
+  padding: 10px 16px;
+  background-color: #17a2b8;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.device-btn-add {
+  padding: 10px 20px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.device-sort-dropdown:hover {
+  background-color: #138496;
+}
+
+.device-btn-add:hover {
+  background-color: #218838;
+}
+
+/* Summary */
+.device-summary {
+  width: 100%;
+  padding: 12px 16px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-weight: 600;
+  color: #495057;
+  border-left: 5px solid #007bff;
+  text-align: left;
+}
+
+/* No Data */
+.device-no-data {
+  text-align: center;
+  padding: 40px 20px;
+  color: #093765;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Table */
+.device-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.device-table th,
+.device-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  text-align: left;
+  font-size: 14px;
+}
+
+.device-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .device-controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .device-search-input,
+  .device-sort-dropdown,
+  .device-btn-add {
+    width: 100%;
+  }
+}
