@@ -1,15 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   Home,
-  Book,
   User,
-  FolderOpen,
-  Package,
-  Mail,
-  BarChart3,
   ChevronRight,
   X,
   LogOut,
+  BedDouble,
+  Monitor,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../styles/SideBarAdmin.css";
@@ -31,14 +28,14 @@ const SideBar = ({ activeItem, onItemClick, isOpen, onClose }) => {
     },
     {
       id: "devices",
-      icon: Book,
+      icon: Monitor,
       label: "Devices",
       hasSubmenu: true,
       path: "/devices",
     },
     {
       id: "management-rooms",
-      icon: User,
+      icon: BedDouble,
       label: "Rooms",
       hasSubmenu: true,
       path: "/managementRooms",

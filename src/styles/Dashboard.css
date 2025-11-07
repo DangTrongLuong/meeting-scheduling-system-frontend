@@ -2,11 +2,9 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f9f9f9;
-  width:100%;
+  width: 100%;
 }
-
 
 .navbar {
   display: flex;
@@ -17,14 +15,11 @@
   padding: 10px 16px;
 }
 
-
-
 .calendar-container {
   flex: 1;
   padding: 16px;
   overflow: auto;
 }
-
 
 .fc {
   background: white;
@@ -93,7 +88,7 @@
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   display: flex;
   gap: 12px;
   z-index: 100;
@@ -147,13 +142,11 @@
 .content {
   display: flex;
   width: 100%;
-  margin-top:60px;
+  margin-top: 60px;
   height: calc(100vh - 60px); /* trừ navbar */
 }
 
 /* Sidebar giữ nguyên thông tin phòng */
-
-
 
 /* Sidebar mở rộng */
 .sidebar {
@@ -203,8 +196,6 @@
   margin-bottom: 10px;
 }
 
-
-
 .room-box {
   margin-bottom: 20px;
 }
@@ -214,7 +205,6 @@
   font-weight: bold;
   margin-bottom: 8px;
 }
-
 
 .room-list {
   list-style: none;
@@ -230,7 +220,6 @@
   align-items: center;
   gap: 8px;
 }
-
 
 .room-dot {
   width: 10px;
@@ -255,7 +244,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0,0,0,0.5);
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -269,7 +258,7 @@
   max-width: 500px;
   max-height: 90vh;
   overflow: auto;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .modal-title {

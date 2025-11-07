@@ -44,6 +44,14 @@ const ProfileContent = () => {
   const [confirmMessage, setConfirmMessage] = useState("");
   const [confirmAction, setConfirmAction] = useState(null);
 
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [generalError, setGeneralError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
   const fullNameRef = useRef(null);
   const emailRef = useRef(null);
   const roleRef = useRef(null);
@@ -238,11 +246,18 @@ const ProfileContent = () => {
   };
 
   const validateAge = () => {
-    const ageNumber = Number(editFormData.age);
-    if (!Number.isInteger(ageNumber) || ageNumber < 8 || ageNumber > 100) {
+    const ageValue = editFormData.age;
+
+    if (!ageValue || ageValue.trim() === "") {
+      return true;
+    }
+
+    const ageNumber = Number(ageValue);
+    if (isNaN(ageNumber) || ageNumber < 8 || ageNumber > 100) {
       toast.error("Age must be a number between 8 and 100.");
       return false;
     }
+
     return true;
   };
 
@@ -287,14 +302,64 @@ const ProfileContent = () => {
     setShowConfirmForm(true);
   };
 
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setGeneralError("");
+    setSuccessMessage("");
+
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords do not match.");
+      return;
+    }
+
+    setShowConfirmModal(true);
+  };
+
+  const submitPasswordChange = async () => {
+    try {
+      const response = await axios.post("/api/admin/auth/reset-password", {
+        email: localStorage.getItem("userEmail"),
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      });
+
+      const result = response.data;
+      if (result.success) {
+        toast.success("Password changed successfully.");
+        setSuccessMessage(
+          response.data.message || "Password reset successfully."
+        );
+        setShowConfirmModal(false);
+        setShowPasswordModal(false);
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        setGeneralError(
+          error.response?.data?.message || "Failed to reset password."
+        );
+      }
+    } catch (error) {
+      setShowConfirmModal(false);
+      setGeneralError(
+        error.response?.data?.message || "Failed to reset password."
+      );
+      toast.error(
+        error.response?.data?.message ||
+          "Error occurred while changing password."
+      );
+    }
+  };
+
   return (
     <>
-      <ToastContainer />
-      <div className="container">
+      <ToastContainer position="top-right" style={{ marginTop: "60px" }} />
+
+      <div className="container-profile">
         <NavBar />
         <div id="global-progress-bar" className="progress-bar"></div>
-        <div className="content-container">
-          <div className={`main-container}`}>
+        <div className="content-container-profile">
+          <div className={`main-container-profile`}>
             <div className="profile-container-cover">
               <div className="cover-image">
                 <img
@@ -352,22 +417,109 @@ const ProfileContent = () => {
                     />
                   </div>
 
-                  <input
-                    type="file"
-                    id="avatar-input"
-                    accept="image/*"
-                    style={{ display: "none" }}
-                    onChange={handleAvatarChange}
-                  />
-                  <button
-                    id="edit-avatar-btn"
-                    className="edit-btn"
-                    onClick={() =>
-                      document.getElementById("avatar-input").click()
-                    }
-                  >
-                    Edit Picture
-                  </button>
+                  <div className="btn-edit-change-profile">
+                    <input
+                      type="file"
+                      id="avatar-input"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={handleAvatarChange}
+                    />
+                    <button
+                      id="edit-avatar-btn"
+                      className="edit-btn"
+                      onClick={() =>
+                        document.getElementById("avatar-input").click()
+                      }
+                    >
+                      Edit Picture
+                    </button>
+
+                    <button
+                      id="change-password-btn"
+                      className="edit-btn"
+                      onClick={() => setShowPasswordModal(true)}
+                    >
+                      Change Password
+                    </button>
+                  </div>
+                  {showPasswordModal && (
+                    <div className="modal-overlay-profile">
+                      <div className="modal-content-profile">
+                        <h2>Change Password</h2>
+                        <form onSubmit={handlePasswordSubmit}>
+                          <label>Email:</label>
+                          <input
+                            type="email"
+                            value={localStorage.getItem("userEmail")}
+                            readOnly
+                          />
+
+                          <label>Current Password:</label>
+                          <input
+                            type="password"
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            required
+                          />
+
+                          <label>New Password:</label>
+                          <input
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            required
+                          />
+
+                          <label>Confirm New Password:</label>
+                          <input
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
+                          />
+
+                          {successMessage && (
+                            <div className="forgotpassword-success-message">
+                              {successMessage}
+                            </div>
+                          )}
+                          {generalError && (
+                            <div className="forgotpassword-error-message">
+                              {generalError}
+                            </div>
+                          )}
+
+                          <div className="modal-buttons-profile">
+                            <button
+                              type="button"
+                              onClick={() => setShowPasswordModal(false)}
+                            >
+                              Cancel
+                            </button>
+                            <button type="submit">Confirm</button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  )}
+
+                  {showConfirmModal && (
+                    <div className="modal-overlay-confirm-change">
+                      <div className="modal-content-confirm-change">
+                        <h3>Confirm Password Change</h3>
+                        <p>Are you sure you want to change your password?</p>
+                        <div className="modal-buttons-confirm-change">
+                          <button onClick={() => setShowConfirmModal(false)}>
+                            Cancel
+                          </button>
+                          <button onClick={submitPasswordChange}>
+                            Confirm
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="profile-info">
                   <div className="profile-info-header">
