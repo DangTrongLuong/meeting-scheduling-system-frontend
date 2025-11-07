@@ -353,3 +353,13 @@
     font-size: 12px;
   }
 }
+/* Ẩn icon mặc định của Edge */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+/* Ẩn icon mặc định của Chrome */
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  display: none;
+}
