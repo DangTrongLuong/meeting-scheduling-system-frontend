@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import "../../styles/Auth_style/LoginPage.css";
 import cmc_background from "../../assets/cmc-bg.png";
 import logo from "../../assets/logocmc.png";
@@ -13,6 +13,7 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -21,6 +22,19 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState({ email: false, password: false });
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const error = params.get("error");
+    const message = params.get("message");
+
+    if (error === "google_login_failed" && message) {
+      const decoded = decodeURIComponent(message);
+      setGeneralError(decoded);
+
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [location]);
 
   // Validation functions
   const validateEmail = (emailValue) => {
@@ -246,19 +260,18 @@ export default function LoginPage() {
                     }`}
                     placeholder="Enter your password"
                   />
-{password.length > 0 && (
-  showPassword ? (
-    <AiOutlineEyeInvisible
-      onClick={() => setShowPassword(!showPassword)}
-      className="password-toggle-icon"
-    />
-  ) : (
-    <AiOutlineEye
-      onClick={() => setShowPassword(!showPassword)}
-      className="password-toggle-icon"
-    />
-  )
-)}
+                  {password.length > 0 &&
+                    (showPassword ? (
+                      <AiOutlineEyeInvisible
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="password-toggle-icon"
+                      />
+                    ) : (
+                      <AiOutlineEye
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="password-toggle-icon"
+                      />
+                    ))}
                 </div>
 
                 {touched.password && passwordError && (
