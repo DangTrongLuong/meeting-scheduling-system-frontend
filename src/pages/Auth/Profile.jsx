@@ -8,6 +8,7 @@ import { useUser } from "../../context/UserContext";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 const ProfileContent = () => {
   const { user, setUser } = useUser();
@@ -24,9 +25,7 @@ const ProfileContent = () => {
   const [role, setRole] = useState(localStorage.getItem("role"));
   const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl);
 
-  const [backgroundUrl, setBackgroundUrl] = useState(
-    localStorage.getItem("backgroundUrl") || ""
-  );
+  const [backgroundUrl, setBackgroundUrl] = useState(user.backgroundUrl);
 
   const [age, setAge] = useState("");
   const [address, setAddress] = useState("");
@@ -51,6 +50,13 @@ const ProfileContent = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [generalError, setGeneralError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [touched, setTouched] = useState({
+    newPassword: false,
+    confirmPassword: false,
+  });
+  const [newPasswordError, setNewPasswordError] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
 
   const fullNameRef = useRef(null);
   const emailRef = useRef(null);
@@ -61,6 +67,29 @@ const ProfileContent = () => {
   const profileImgRef = useRef(null);
   const coverImgRef = useRef(null);
   const removeCoverBtnRef = useRef(null);
+
+  const validatePassword = (passwordValue) => {
+    if (!passwordValue) {
+      return "New password is required";
+    }
+    if (passwordValue.length < 8) {
+      return "Password must be at least 8 characters";
+    }
+    const hasLower = /[a-z]/.test(passwordValue);
+    const hasUpper = /[A-Z]/.test(passwordValue);
+    const hasNumber = /[0-9]/.test(passwordValue);
+    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(
+      passwordValue
+    );
+
+    if (!hasLower) return "Password must contain at least one lowercase letter";
+    if (!hasUpper) return "Password must contain at least one uppercase letter";
+    if (!hasNumber) return "Password must contain at least one number";
+    if (!hasSpecial)
+      return "Password must contain at least one special character";
+
+    return "";
+  };
 
   const updateDOM = () => {
     if (fullNameRef.current) fullNameRef.current.textContent = userName;
@@ -117,7 +146,7 @@ const ProfileContent = () => {
 
       if (data.backgroundUrl) {
         setBackgroundUrl(data.backgroundUrl);
-        localStorage.setItem("backgroundUrl", data.backgroundUrl);
+        setUser({ ...user, backgroundUrl: data.backgroundUrl });
       }
     } catch (error) {
       console.error("Error fetching user info:", error);
@@ -453,6 +482,7 @@ const ProfileContent = () => {
                             type="email"
                             value={localStorage.getItem("userEmail")}
                             readOnly
+                            className="readonly-input"
                           />
 
                           <label>Current Password:</label>
@@ -460,24 +490,93 @@ const ProfileContent = () => {
                             type="password"
                             value={currentPassword}
                             onChange={(e) => setCurrentPassword(e.target.value)}
+                            onFocus={() => setGeneralError("")}
                             required
+                            placeholder="Enter current password"
                           />
 
+                          {/* New Password Field with Validation */}
                           <label>New Password:</label>
-                          <input
-                            type="password"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            required
-                          />
+                          <div className="password-input-group">
+                            <input
+                              type={showPassword ? "text" : "password"}
+                              value={newPassword}
+                              onChange={(e) => {
+                                setNewPassword(e.target.value);
+                                if (touched.newPassword) {
+                                  setNewPasswordError(
+                                    validatePassword(e.target.value)
+                                  );
+                                }
+                              }}
+                              onBlur={() => {
+                                setTouched({ ...touched, newPassword: true });
+                                setNewPasswordError(
+                                  validatePassword(newPassword)
+                                );
+                              }}
+                              onFocus={() => setGeneralError("")}
+                              required
+                              placeholder="Enter new password"
+                              className={
+                                touched.newPassword && newPasswordError
+                                  ? "input-error"
+                                  : ""
+                              }
+                            />
+                            <span
+                              className="password-toggle-icon"
+                              onClick={() => setShowPassword(!showPassword)}
+                            >
+                              {showPassword ? (
+                                <AiOutlineEyeInvisible />
+                              ) : (
+                                <AiOutlineEye />
+                              )}
+                            </span>
+                          </div>
+                          {touched.newPassword && newPasswordError && (
+                            <span className="login-error-text">
+                              {newPasswordError}
+                            </span>
+                          )}
 
                           <label>Confirm New Password:</label>
                           <input
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            onChange={(e) => {
+                              setConfirmPassword(e.target.value);
+                              if (touched.confirmPassword) {
+                                setConfirmPasswordError(
+                                  e.target.value !== newPassword
+                                    ? "Passwords do not match"
+                                    : ""
+                                );
+                              }
+                            }}
+                            onBlur={() => {
+                              setTouched({ ...touched, confirmPassword: true });
+                              setConfirmPasswordError(
+                                confirmPassword !== newPassword
+                                  ? "Passwords do not match"
+                                  : ""
+                              );
+                            }}
+                            onFocus={() => setGeneralError("")}
                             required
+                            placeholder="Confirm new password"
+                            className={
+                              touched.confirmPassword && confirmPasswordError
+                                ? "input-error"
+                                : ""
+                            }
                           />
+                          {touched.confirmPassword && confirmPasswordError && (
+                            <span className="login-error-text">
+                              {confirmPasswordError}
+                            </span>
+                          )}
 
                           {successMessage && (
                             <div className="forgotpassword-success-message">
@@ -493,17 +592,41 @@ const ProfileContent = () => {
                           <div className="modal-buttons-profile">
                             <button
                               type="button"
-                              onClick={() => setShowPasswordModal(false)}
+                              onClick={() => {
+                                setShowPasswordModal(false);
+                                setCurrentPassword("");
+                                setNewPassword("");
+                                setConfirmPassword("");
+                                setTouched({
+                                  newPassword: false,
+                                  confirmPassword: false,
+                                });
+                                setNewPasswordError("");
+                                setConfirmPasswordError("");
+                                setGeneralError("");
+                                setSuccessMessage("");
+                              }}
                             >
                               Cancel
                             </button>
-                            <button type="submit">Confirm</button>
+                            <button
+                              type="submit"
+                              disabled={
+                                !currentPassword ||
+                                !newPassword ||
+                                !confirmPassword ||
+                                !!newPasswordError ||
+                                !!confirmPasswordError ||
+                                newPassword !== confirmPassword
+                              }
+                            >
+                              Confirm
+                            </button>
                           </div>
                         </form>
                       </div>
                     </div>
                   )}
-
                   {showConfirmModal && (
                     <div className="modal-overlay-confirm-change">
                       <div className="modal-content-confirm-change">
