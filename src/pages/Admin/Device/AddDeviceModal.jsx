@@ -41,7 +41,6 @@ const AddDeviceModal = ({ onClose, onSave }) => {
       }
 
       const savedDevice = await response.json();
-      onSave(savedDevice); // Update parent state
       onClose(); // Close modal
     } catch (error) {
       console.error("Error saving device:", error);

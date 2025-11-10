@@ -26,42 +26,61 @@ const Devices = () => {
     setActiveMenuItem(pathToItem[location.pathname] || "devices");
   }, [location.pathname]);
 
+  //  Load danh sách thiết bị từ backend
   const loadDevices = async () => {
-    try {
-      const res = await fetch(API_URL);
-      if (!res.ok) throw new Error("Failed to fetch devices");
-      const data = await res.json();
-      setDevices(data);
-    } catch (err) {
-      console.error("Error fetching devices:", err);
-      alert("Cannot load devices. Please check your server.");
-    }
-  };
+  try {
+    const res = await fetch(API_URL);
+    if (!res.ok) throw new Error("Failed to fetch devices");
+    const data = await res.json();
+    setDevices(data); //  Lấy dữ liệu từ DB
+  } catch (err) {
+    console.error("Error fetching devices:", err);
+    alert("Cannot load devices. Please check your server.");
+  }
+};
 
   useEffect(() => {
     loadDevices();
   }, []);
 
   const handleAddDevice = async (device) => {
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(device),
-      });
-      if (res.ok) {
-        const newDevice = await res.json();
-        setDevices([...devices, newDevice]);
-        setShowModal(false);
-      } else {
-        alert("Failed to add device");
-      }
-    } catch (err) {
-      console.error("Error adding device:", err);
-      alert("Error adding device. Please try again.");
-    }
-  };
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(device),
+    });
 
+   if (res.ok) {
+  const newDevice = await res.json();
+
+  setDevices((prevDevices) => {
+    const normalizedName = newDevice.name.trim().toLowerCase();
+    const existingIndex = prevDevices.findIndex(
+      (d) => d.name.trim().toLowerCase() === normalizedName
+    );
+
+    if (existingIndex !== -1) {
+      const updatedDevices = [...prevDevices];
+      updatedDevices[existingIndex] = newDevice; // replace bằng dữ liệu BE trả về
+      return updatedDevices;
+    } else {
+      return [...prevDevices, newDevice];
+    }
+  });
+
+  setShowModal(false);
+} else {
+      alert("Failed to add device");
+    }
+  } catch (err) {
+    console.error("Error adding device:", err);
+    alert("Error adding device. Please try again.");
+  }
+};
+
+
+  //  Lọc theo search
   const filteredDevices = devices.filter((d) =>
     d.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
