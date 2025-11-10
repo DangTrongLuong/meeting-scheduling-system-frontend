@@ -5,6 +5,7 @@ import "../../../styles/DashboardAdmin.css";
 import NavBar from "../../../components/NavBar";
 import SideBarAdmin from "../../../components/SideBarAdmin";
 import AddDeviceModal from "./AddDeviceModal";
+import Swal from "sweetalert2";
 
 const Devices = () => {
   const [devices, setDevices] = useState([]);
@@ -51,31 +52,62 @@ const Devices = () => {
       body: JSON.stringify(device),
     });
 
-   if (res.ok) {
-  const newDevice = await res.json();
+    if (res.ok) {
+      const newDevice = await res.json();
 
-  setDevices((prevDevices) => {
-    const normalizedName = newDevice.name.trim().toLowerCase();
-    const existingIndex = prevDevices.findIndex(
-      (d) => d.name.trim().toLowerCase() === normalizedName
-    );
+      //  Cập nhật state ngay để hiển thị dữ liệu mới
+      setDevices((prevDevices) => {
+        const normalizedName = newDevice.name.trim().toLowerCase();
+        const existingIndex = prevDevices.findIndex(
+          (d) => d.name.trim().toLowerCase() === normalizedName
+        );
 
-    if (existingIndex !== -1) {
-      const updatedDevices = [...prevDevices];
-      updatedDevices[existingIndex] = newDevice; // replace bằng dữ liệu BE trả về
-      return updatedDevices;
+        if (existingIndex !== -1) {
+          // Nếu thiết bị đã tồn tại, replace bằng dữ liệu BE trả về
+          const updatedDevices = [...prevDevices];
+          updatedDevices[existingIndex] = newDevice;
+          return updatedDevices;
+        } else {
+          // Nếu chưa có, thêm mới
+          return [...prevDevices, newDevice];
+        }
+      });
+
+      setShowModal(false);
     } else {
-      return [...prevDevices, newDevice];
-    }
-  });
-
-  setShowModal(false);
-} else {
       alert("Failed to add device");
     }
   } catch (err) {
     console.error("Error adding device:", err);
     alert("Error adding device. Please try again.");
+  }
+};
+
+
+const handleDeleteDevice = async (id) => {
+  const result = await Swal.fire({
+    title: "Delete Device?",
+    text: "Are you sure you want to delete this device?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#e74c3c",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Yes, delete it!",
+  });
+
+  if (result.isConfirmed) {
+    try {
+      const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setDevices((prevDevices) => prevDevices.filter((d) => d.id !== id));
+        Swal.fire("Deleted!", "The device has been removed.", "success");
+      } else {
+        Swal.fire("Error", "Failed to delete device.", "error");
+      }
+    } catch (err) {
+      console.error("Error deleting device:", err);
+      Swal.fire("Error", "Something went wrong.", "error");
+    }
   }
 };
 
@@ -140,6 +172,7 @@ const Devices = () => {
                     <th>Name</th>
                     <th>Quantity</th>
                     <th>Status</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -148,6 +181,11 @@ const Devices = () => {
                       <td>{d.name}</td>
                       <td>{d.quantity}</td>
                       <td>{d.active ? "Active" : "Inactive"}</td>
+                      <td>
+                        <button className="btn-delete" onClick={() => handleDeleteDevice(d.id)}>
+                          ❌ 
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
