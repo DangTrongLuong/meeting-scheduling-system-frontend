@@ -64,7 +64,7 @@ const DashboardAdmin = () => {
               {loading ? "Đang tải..." : `Xin chào, ${userName}`}
             </p>
 
-            <div className="card-grid">
+            {/* <div className="card-grid">
               <div className="card">
                 <Book size={40} color="#0084FF" />
                 <h3 className="card-title">Quản lý Thiết bị</h3>
@@ -88,7 +88,7 @@ const DashboardAdmin = () => {
                 <h3 className="card-title">Báo cáo</h3>
                 <p className="card-text">Thống kê và báo cáo hệ thống</p>
               </div>
-            </div>
+            </div> */}
           </div>
         </main>
       </div>

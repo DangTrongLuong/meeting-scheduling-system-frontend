@@ -4,14 +4,14 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import viLocale from "@fullcalendar/core/locales/vi";
-import "../../styles/Dashboard.css";
+import "../../styles/DashboardUser.css";
 import NavBar from "../../components/NavBar";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-export default function Dashboard() {
+export default function DashboardUser() {
   const calendarRef = useRef(null);
   const handleDateClick = (info) => {
     const title = prompt("Nhập tiêu đề sự kiện:");
@@ -265,8 +265,17 @@ export default function Dashboard() {
     const booked = getBookedRooms();
     return rooms.filter((r) => !booked.includes(r.id));
   };
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const closeSidebar = () => {
+    setSidebarOpen(false);
+  };
   return (
-    <div className="dashboard">
+    <div className="my-project-container">
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -278,81 +287,68 @@ export default function Dashboard() {
         draggable
         pauseOnHover
       />
+      <NavBar onToggleSidebar={toggleSidebar} />
 
-      {/* Navbar */}
-      <NavBar />
-      {/* <div className="navbar-left">
-  <div className="time-display">{currentTime}</div>
-  <div className="team-box">
-    {teamMembers.slice(0, 4).map((m, i) => (
-      <div key={i} className="avatar" style={{ backgroundColor: m.color }}>
-        {m.icon}
-      </div>
-    ))}
-    {teamMembers.length > 4 && (
-      <div
-        className="more-box"
-        onMouseEnter={() => setShowMore(true)}
-        onMouseLeave={() => setShowMore(false)}
-      >
-        ⋯
-        {showMore && (
-          <div className="more-popup">
-            {teamMembers.slice(4).map((m, i) => (
-              <div key={i} className="popup-item">
-                <span
-                  className="avatar"
-                  style={{ backgroundColor: m.color, width: 32, height: 32 }}
-                >
-                  {m.icon}
-                </span>
-                <span className="popup-name">{m.name}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    )}
-  </div>
-</div>
-<div className="navbar-right">
-  <button className="meeting-btn" onClick={() => setShowNewEventModal(true)}>
-    + Đặt phòng
-  </button>
-  <div className="mail-icon">📩</div>
-  <div className="profile-circle">👤</div>
-</div> */}
-
-      <div className="navbar-right">
-        <button className="meeting-btn" onClick={() => setShowNewEventModal(true)}>
-          + Đặt phòng
-        </button>
-        {/*<div className="mail-icon">📩</div>
-    <div className="profile-circle">👤</div>*/}
-      </div>
-
-      {/* Content */}
-
-      <div className="content">
-        {/* Sidebar */}
-
-        <aside className="sidebar">
-          {/* Lịch tháng nhỏ */}
-          <div className="mini-calendar">
-            <Calendar
-              value={new Date()} // giá trị mặc định là hôm nay
-              locale="vi-VN" // ngôn ngữ tiếng Việt
+      <div className="main-content">
+        <div className="navbar-right">
+          <button
+            className="meeting-btn"
+            onClick={() => setShowNewEventModal(true)}
+          >
+            + Đặt phòng
+          </button>
+        </div>
+        <div className="main-inner-calender">
+          <div className="calendar-container">
+            <FullCalendar
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+              initialView="dayGridMonth"
+              locale={viLocale}
+              events={events}
+              dateClick={handleDateClick}
+              headerToolbar={{
+                left: "prev,next today",
+                center: "title",
+                right: "dayGridMonth,timeGridWeek,timeGridDay",
+              }}
+              height="100%"
+              contentHeight="auto"
+              aspectRatio={1.8}
             />
           </div>
 
-          {/* Thông tin phòng */}
-          <h3 className="sidebar-title">Thông tin phòng</h3>
-          <div className="room-box">
-            <h4 className="room-box-title">Phòng đã đặt hôm nay</h4>
-            <ul className="room-list">
-              {getBookedRooms().map((roomId, i) => {
-                const room = rooms.find((r) => r.id === roomId);
-                return (
+          <aside className="sidebar-user-calender">
+            <div className="mini-calendar">
+              <Calendar value={new Date()} locale="en-EN" />
+            </div>
+
+            {/* Thông tin phòng */}
+            <h3 className="sidebar-title">Thông tin phòng</h3>
+            <div className="room-box">
+              <h4 className="room-box-title">Phòng đã đặt hôm nay</h4>
+              <ul className="room-list">
+                {getBookedRooms().map((roomId, i) => {
+                  const room = rooms.find((r) => r.id === roomId);
+                  return (
+                    <li key={i} className="room-item">
+                      <span
+                        className="room-dot"
+                        style={{ backgroundColor: room.color }}
+                      ></span>
+                      {room.name}
+                    </li>
+                  );
+                })}
+                {getBookedRooms().length === 0 && (
+                  <li className="room-item">Chưa có phòng nào được đặt</li>
+                )}
+              </ul>
+
+              <h4 className="room-box-title" style={{ marginTop: 16 }}>
+                Phòng trống hôm nay
+              </h4>
+              <ul className="room-list">
+                {getAvailableRooms().map((room, i) => (
                   <li key={i} className="room-item">
                     <span
                       className="room-dot"
@@ -360,62 +356,25 @@ export default function Dashboard() {
                     ></span>
                     {room.name}
                   </li>
-                );
-              })}
-              {getBookedRooms().length === 0 && (
-                <li className="room-item">Chưa có phòng nào được đặt</li>
-              )}
-            </ul>
+                ))}
+              </ul>
 
-            <h4 className="room-box-title" style={{ marginTop: 16 }}>
-              Phòng trống hôm nay
-            </h4>
-            <ul className="room-list">
-              {getAvailableRooms().map((room, i) => (
-                <li key={i} className="room-item">
-                  <span
-                    className="room-dot"
-                    style={{ backgroundColor: room.color }}
-                  ></span>
-                  {room.name}
-                </li>
-              ))}
-            </ul>
-
-            <h4 className="room-box-title" style={{ marginTop: 16 }}>
-              Danh sách phòng
-            </h4>
-            <ul className="room-list">
-              {rooms.map((room, i) => (
-                <li key={i} className="room-item">
-                  <span
-                    className="room-dot"
-                    style={{ backgroundColor: room.color }}
-                  ></span>
-                  {room.name}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </aside>
-
-        {/* Calendar */}
-        <div className="calendar-container">
-          <FullCalendar
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView="dayGridMonth"
-            locale={viLocale}
-            events={events}
-            dateClick={handleDateClick}
-            headerToolbar={{
-              left: "prev,next today",
-              center: "title",
-              right: "dayGridMonth,timeGridWeek,timeGridDay",
-            }}
-            height="100%"
-            contentHeight="auto"
-            aspectRatio={1.8}
-          />
+              <h4 className="room-box-title" style={{ marginTop: 16 }}>
+                Danh sách phòng
+              </h4>
+              <ul className="room-list">
+                {rooms.map((room, i) => (
+                  <li key={i} className="room-item">
+                    <span
+                      className="room-dot"
+                      style={{ backgroundColor: room.color }}
+                    ></span>
+                    {room.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </aside>
         </div>
       </div>
 
@@ -446,7 +405,10 @@ export default function Dashboard() {
                   rows="3"
                   value={newEventData.description || ""}
                   onChange={(e) =>
-                    setNewEventData({ ...newEventData, description: e.target.value })
+                    setNewEventData({
+                      ...newEventData,
+                      description: e.target.value,
+                    })
                   }
                   placeholder="Mô tả chi tiết về cuộc họp..."
                   disabled={loading}
@@ -454,19 +416,21 @@ export default function Dashboard() {
               </div>
 
               <div className="form-group">
-               <label className="label">Mời Email:</label>
-               <textarea
-                className="input"
-                rows="2"
-                value={newEventData.inviteEmails || ""}
-                onChange={(e) =>
-                setNewEventData({ ...newEventData, inviteEmails: e.target.value })
-                 }
+                <label className="label">Mời Email:</label>
+                <textarea
+                  className="input"
+                  rows="2"
+                  value={newEventData.inviteEmails || ""}
+                  onChange={(e) =>
+                    setNewEventData({
+                      ...newEventData,
+                      inviteEmails: e.target.value,
+                    })
+                  }
                   placeholder="Nhập email người được mời..."
                   disabled={loading}
                 />
               </div>
-
 
               <div className="form-group">
                 <label className="label">Ngày:</label>
@@ -506,7 +470,10 @@ export default function Dashboard() {
                   className="select"
                   value={newEventData.startTime}
                   onChange={(e) =>
-                    setNewEventData({ ...newEventData, startTime: e.target.value })
+                    setNewEventData({
+                      ...newEventData,
+                      startTime: e.target.value,
+                    })
                   }
                   disabled={loading}
                 >
@@ -524,7 +491,10 @@ export default function Dashboard() {
                   className="select"
                   value={newEventData.endTime}
                   onChange={(e) =>
-                    setNewEventData({ ...newEventData, endTime: e.target.value })
+                    setNewEventData({
+                      ...newEventData,
+                      endTime: e.target.value,
+                    })
                   }
                   disabled={loading}
                 >
