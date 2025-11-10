@@ -84,11 +84,11 @@ export default function Dashboard() {
   const [showNewEventModal, setShowNewEventModal] = useState(false);
   const [newEventData, setNewEventData] = useState({
     title: "",
-    start: "",
-    end: "",
+    date: "",
+    startTime: "09:00",
+    endTime: "09:30",
     room: "101",
-    organizer: "QT",
-    participants: [],
+    description: "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -120,13 +120,31 @@ export default function Dashboard() {
   };
 
   const handleDateSelect = (selectInfo) => {
+    const selectedDate = selectInfo.startStr.split("T")[0]; // Extract date part
     setNewEventData({
       ...newEventData,
-      start: selectInfo.startStr,
-      end: selectInfo.endStr,
+      date: selectedDate,
+      startTime: "09:00",
+      endTime: "09:30",
     });
     setShowNewEventModal(true);
   };
+
+  // Generate time slots (30-minute intervals for 24 hours)
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, "0")}:${minute
+          .toString()
+          .padStart(2, "0")}`;
+        slots.push(timeString);
+      }
+    }
+    return slots;
+  };
+
+  const timeSlots = generateTimeSlots();
 
   const handleCreateEvent = async () => {
     if (!newEventData.title) {
@@ -134,15 +152,25 @@ export default function Dashboard() {
       return;
     }
 
-    if (!newEventData.start || !newEventData.end) {
+    if (!newEventData.date) {
+      toast.error("Vui lòng chọn ngày!");
+      return;
+    }
+
+    if (!newEventData.startTime || !newEventData.endTime) {
       toast.error("Vui lòng chọn thời gian bắt đầu và kết thúc!");
       return;
     }
 
-    const startTime = new Date(newEventData.start);
-    const endTime = new Date(newEventData.end);
+    // Check if end time is after start time
+    const startMinutes =
+      parseInt(newEventData.startTime.split(":")[0]) * 60 +
+      parseInt(newEventData.startTime.split(":")[1]);
+    const endMinutes =
+      parseInt(newEventData.endTime.split(":")[0]) * 60 +
+      parseInt(newEventData.endTime.split(":")[1]);
 
-    if (startTime >= endTime) {
+    if (endMinutes <= startMinutes) {
       toast.error("Thời gian kết thúc phải sau thời gian bắt đầu!");
       return;
     }
@@ -150,19 +178,22 @@ export default function Dashboard() {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
+
+      // Combine date and time to create ISO strings
+      const startDateTime = `${newEventData.date}T${newEventData.startTime}:00`;
+      const endDateTime = `${newEventData.date}T${newEventData.endTime}:00`;
 
       const meetingData = {
         title: newEventData.title,
         roomId: newEventData.room,
-        startTime: newEventData.start,
-        endTime: newEventData.end,
-        organizerId: newEventData.organizer,
-        participantIds: newEventData.participants,
+        startTime: startDateTime,
+        endTime: endDateTime,
         description: newEventData.description || "",
       };
 
-      const response = await fetch("/api/meetings", {
+      const response = await fetch("/api/users/meetings", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -183,14 +214,13 @@ export default function Dashboard() {
       const newEvent = {
         id: createdMeeting.id.toString(),
         title: `${newEventData.title} - ${room.name}`,
-        start: newEventData.start,
-        end: newEventData.end,
+        start: startDateTime,
+        end: endDateTime,
         backgroundColor: room.color,
         borderColor: room.color,
         extendedProps: {
           room: newEventData.room,
-          organizer: newEventData.organizer,
-          participants: newEventData.participants,
+          description: newEventData.description,
         },
       };
 
@@ -198,18 +228,19 @@ export default function Dashboard() {
       setShowNewEventModal(false);
       setNewEventData({
         title: "",
-        start: "",
-        end: "",
+        date: "",
+        startTime: "09:00",
+        endTime: "09:30",
         room: "101",
-        organizer: "QT",
-        participants: [],
         description: "",
       });
 
       toast.success("Đặt phòng thành công!");
     } catch (error) {
       console.error("Error creating meeting:", error);
-      toast.error(error.message || "Có lỗi xảy ra khi đặt phòng. Vui lòng thử lại!");
+      toast.error(
+        error.message || "Có lỗi xảy ra khi đặt phòng. Vui lòng thử lại!"
+      );
     } finally {
       setLoading(false);
     }
@@ -220,21 +251,6 @@ export default function Dashboard() {
       setEvents(events.filter((e) => e.id !== selectedEvent.id));
       setShowEventModal(false);
       setSelectedEvent(null);
-    }
-  };
-
-  const toggleParticipant = (member) => {
-    const participants = newEventData.participants || [];
-    if (participants.includes(member)) {
-      setNewEventData({
-        ...newEventData,
-        participants: participants.filter((p) => p !== member),
-      });
-    } else {
-      setNewEventData({
-        ...newEventData,
-        participants: [...participants, member],
-      });
     }
   };
 
@@ -403,50 +419,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Event Detail Modal */}
-      {showEventModal && selectedEvent && (
-        <div className="modal" onClick={() => setShowEventModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3 className="modal-title">Chi tiết cuộc họp</h3>
-            <div className="modal-body">
-              <p>
-                <strong>Tiêu đề:</strong> {selectedEvent.title}
-              </p>
-              <p>
-                <strong>Phòng:</strong>{" "}
-                {rooms.find((r) => r.id === selectedEvent.room)?.name}
-              </p>
-              <p>
-                <strong>Thời gian:</strong>{" "}
-                {new Date(selectedEvent.start).toLocaleString("vi-VN")} -{" "}
-                {new Date(selectedEvent.end).toLocaleString("vi-VN", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </p>
-              <p>
-                <strong>Người tổ chức:</strong> {selectedEvent.organizer}
-              </p>
-              <p>
-                <strong>Người tham gia:</strong>{" "}
-                {selectedEvent.participants?.join(", ") || "Không có"}
-              </p>
-            </div>
-            <div className="modal-footer">
-              <button className="delete-btn" onClick={handleDeleteEvent}>
-                Xóa
-              </button>
-              <button
-                className="close-btn"
-                onClick={() => setShowEventModal(false)}
-              >
-                Đóng
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* New Event Modal */}
       {showNewEventModal && (
         <div className="modal" onClick={() => setShowNewEventModal(false)}>
@@ -482,6 +454,20 @@ export default function Dashboard() {
               </div>
 
               <div className="form-group">
+                <label className="label">Ngày:</label>
+                <input
+                  type="date"
+                  className="input"
+                  value={newEventData.date}
+                  onChange={(e) =>
+                    setNewEventData({ ...newEventData, date: e.target.value })
+                  }
+                  disabled={loading}
+                  min={new Date().toISOString().split("T")[0]} // Không cho chọn ngày trong quá khứ
+                />
+              </div>
+
+              <div className="form-group">
                 <label className="label">Phòng:</label>
                 <select
                   className="select"
@@ -500,68 +486,39 @@ export default function Dashboard() {
               </div>
 
               <div className="form-group">
-                <label className="label">Người tổ chức:</label>
+                <label className="label">Thời gian bắt đầu:</label>
                 <select
                   className="select"
-                  value={newEventData.organizer}
+                  value={newEventData.startTime}
                   onChange={(e) =>
-                    setNewEventData({
-                      ...newEventData,
-                      organizer: e.target.value,
-                    })
+                    setNewEventData({ ...newEventData, startTime: e.target.value })
                   }
+                  disabled={loading}
                 >
-                  {teamMembers.map((member) => (
-                    <option key={member.name} value={member.name}>
-                      {member.name}
+                  {timeSlots.map((time) => (
+                    <option key={time} value={time}>
+                      {time}
                     </option>
                   ))}
                 </select>
               </div>
 
               <div className="form-group">
-                <label className="label">Người tham gia:</label>
-                <div className="participant-list">
-                  {teamMembers.map((member) => (
-                    <label key={member.name} className="checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={newEventData.participants?.includes(
-                          member.name
-                        )}
-                        onChange={() => toggleParticipant(member.name)}
-                        className="checkbox"
-                      />
-                      {member.name}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label className="label">Thời gian bắt đầu:</label>
-                <input
-                  type="datetime-local"
-                  className="input"
-                  value={newEventData.start}
-                  onChange={(e) =>
-                    setNewEventData({ ...newEventData, start: e.target.value })
-                  }
-                  disabled={loading}
-                />
-              </div>
-
-              <div className="form-group">
                 <label className="label">Thời gian kết thúc:</label>
-                <input
-                  type="datetime-local"
-                  className="input"
-                  value={newEventData.end}
+                <select
+                  className="select"
+                  value={newEventData.endTime}
                   onChange={(e) =>
-                    setNewEventData({ ...newEventData, end: e.target.value })
+                    setNewEventData({ ...newEventData, endTime: e.target.value })
                   }
                   disabled={loading}
-                />
+                >
+                  {timeSlots.map((time) => (
+                    <option key={time} value={time}>
+                      {time}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
             <div className="modal-footer">
@@ -578,6 +535,48 @@ export default function Dashboard() {
                 disabled={loading}
               >
                 Hủy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Event Detail Modal */}
+      {showEventModal && selectedEvent && (
+        <div className="modal" onClick={() => setShowEventModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3 className="modal-title">Chi tiết cuộc họp</h3>
+            <div className="modal-body">
+              <p>
+                <strong>Tiêu đề:</strong> {selectedEvent.title}
+              </p>
+              <p>
+                <strong>Phòng:</strong>{" "}
+                {rooms.find((r) => r.id === selectedEvent.room)?.name}
+              </p>
+              <p>
+                <strong>Thời gian:</strong>{" "}
+                {new Date(selectedEvent.start).toLocaleString("vi-VN")} -{" "}
+                {new Date(selectedEvent.end).toLocaleString("vi-VN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+              {selectedEvent.description && (
+                <p>
+                  <strong>Mô tả:</strong> {selectedEvent.description}
+                </p>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="delete-btn" onClick={handleDeleteEvent}>
+                Xóa
+              </button>
+              <button
+                className="close-btn"
+                onClick={() => setShowEventModal(false)}
+              >
+                Đóng
               </button>
             </div>
           </div>
