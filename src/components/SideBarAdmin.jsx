@@ -12,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 import "../styles/SideBarAdmin.css";
 import "../styles/ProgressBar.css";
 
-const SideBar = ({ activeItem, onItemClick, isOpen, onClose }) => {
+const SideBarAdmin = ({ activeItem, onItemClick, isOpen, onClose }) => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -115,7 +115,7 @@ const SideBar = ({ activeItem, onItemClick, isOpen, onClose }) => {
       <div className={`progress-bar ${isLoading ? "active" : ""}`}></div>
       <aside
         ref={sidebarRef}
-        className={`sidebar ${isMobile && isOpen ? "open" : ""} ${
+        className={`sidebar-admin ${isMobile && isOpen ? "open" : ""} ${
           isMobile && !isOpen ? "closed" : ""
         }`}
       >
@@ -155,4 +155,4 @@ const SideBar = ({ activeItem, onItemClick, isOpen, onClose }) => {
   );
 };
 
-export default SideBar;
+export default SideBarAdmin;
