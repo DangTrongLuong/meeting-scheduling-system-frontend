@@ -19,9 +19,14 @@
   width: 100%;
 }
 
-.device-search-input {
+.device-search-wrapper {
+  position: relative;
   flex: 1;
-  padding: 10px 15px;
+}
+
+.device-search-input {
+  width: 100%;
+  padding: 10px 15px 10px 40px;
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 16px;
@@ -31,6 +36,15 @@
 .device-search-input:focus {
   border-color: #007bff;
   outline: none;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #888;
 }
 
 .device-sort-dropdown {
@@ -63,6 +77,53 @@
 
 .device-btn-add:hover {
   background-color: #218838;
+}
+
+/* Suggestion Dropdown */
+.suggestion-dropdown {
+  position: absolute;
+  top: 48px;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  z-index: 100;
+  max-height: 220px;
+  overflow-y: auto;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.suggestion-dropdown li {
+  padding: 12px 14px;
+  font-size: 15px;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.suggestion-dropdown li:hover {
+  background-color: #f0f4ff;
+}
+
+.highlight {
+  font-weight: bold;
+  color: #007bff;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Summary */
@@ -141,10 +202,10 @@
   border: none;
   cursor: pointer;
   font-size: 18px;
-  color: #e74c3c; /* đỏ */
+  color: #e74c3c;
   transition: color 0.2s;
 }
 
 .btn-delete:hover {
-  color: #c0392b; /* đỏ đậm khi hover */
+  color: #c0392b;
 }
