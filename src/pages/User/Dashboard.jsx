@@ -8,6 +8,8 @@ import "../../styles/Dashboard.css";
 import NavBar from "../../components/NavBar";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Dashboard() {
   const calendarRef = useRef(null);
@@ -88,6 +90,7 @@ export default function Dashboard() {
     organizer: "QT",
     participants: [],
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const updateTime = () => {
@@ -125,37 +128,91 @@ export default function Dashboard() {
     setShowNewEventModal(true);
   };
 
-  const handleCreateEvent = () => {
+  const handleCreateEvent = async () => {
     if (!newEventData.title) {
-      alert("Vui lòng nhập tiêu đề cuộc họp!");
+      toast.error("Vui lòng nhập tiêu đề cuộc họp!");
       return;
     }
 
-    const room = rooms.find((r) => r.id === newEventData.room);
-    const newEvent = {
-      id: Date.now().toString(),
-      title: `${newEventData.title} - ${room.name}`,
-      start: newEventData.start,
-      end: newEventData.end,
-      backgroundColor: room.color,
-      borderColor: room.color,
-      extendedProps: {
-        room: newEventData.room,
-        organizer: newEventData.organizer,
-        participants: newEventData.participants,
-      },
-    };
+    if (!newEventData.start || !newEventData.end) {
+      toast.error("Vui lòng chọn thời gian bắt đầu và kết thúc!");
+      return;
+    }
 
-    setEvents([...events, newEvent]);
-    setShowNewEventModal(false);
-    setNewEventData({
-      title: "",
-      start: "",
-      end: "",
-      room: "101",
-      organizer: "QT",
-      participants: [],
-    });
+    const startTime = new Date(newEventData.start);
+    const endTime = new Date(newEventData.end);
+
+    if (startTime >= endTime) {
+      toast.error("Thời gian kết thúc phải sau thời gian bắt đầu!");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+
+      const meetingData = {
+        title: newEventData.title,
+        roomId: newEventData.room,
+        startTime: newEventData.start,
+        endTime: newEventData.end,
+        organizerId: newEventData.organizer,
+        participantIds: newEventData.participants,
+        description: newEventData.description || "",
+      };
+
+      const response = await fetch("/api/meetings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(meetingData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create meeting");
+      }
+
+      const createdMeeting = await response.json();
+
+      // Add new event to local state
+      const room = rooms.find((r) => r.id === newEventData.room);
+      const newEvent = {
+        id: createdMeeting.id.toString(),
+        title: `${newEventData.title} - ${room.name}`,
+        start: newEventData.start,
+        end: newEventData.end,
+        backgroundColor: room.color,
+        borderColor: room.color,
+        extendedProps: {
+          room: newEventData.room,
+          organizer: newEventData.organizer,
+          participants: newEventData.participants,
+        },
+      };
+
+      setEvents([...events, newEvent]);
+      setShowNewEventModal(false);
+      setNewEventData({
+        title: "",
+        start: "",
+        end: "",
+        room: "101",
+        organizer: "QT",
+        participants: [],
+        description: "",
+      });
+
+      toast.success("Đặt phòng thành công!");
+    } catch (error) {
+      console.error("Error creating meeting:", error);
+      toast.error(error.message || "Có lỗi xảy ra khi đặt phòng. Vui lòng thử lại!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteEvent = () => {
@@ -194,60 +251,70 @@ export default function Dashboard() {
   };
   return (
     <div className="dashboard">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+
       {/* Navbar */}
       <NavBar />
-      {/* <div className="navbar">
-  <div className="navbar-left">
-    <div className="time-display">{currentTime}</div>
-    <div className="team-box">
-      {teamMembers.slice(0, 4).map((m, i) => (
-        <div key={i} className="avatar" style={{ backgroundColor: m.color }}>
-          {m.icon}
-        </div>
-      ))}
-      {teamMembers.length > 4 && (
-        <div
-          className="more-box"
-          onMouseEnter={() => setShowMore(true)}
-          onMouseLeave={() => setShowMore(false)}
-        >
-          ⋯
-          {showMore && (
-            <div className="more-popup">
-              {teamMembers.slice(4).map((m, i) => (
-                <div key={i} className="popup-item">
-                  <span
-                    className="avatar"
-                    style={{ backgroundColor: m.color, width: 32, height: 32 }}
-                  >
-                    {m.icon}
-                  </span>
-                  <span className="popup-name">{m.name}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+      {/* <div className="navbar-left">
+  <div className="time-display">{currentTime}</div>
+  <div className="team-box">
+    {teamMembers.slice(0, 4).map((m, i) => (
+      <div key={i} className="avatar" style={{ backgroundColor: m.color }}>
+        {m.icon}
+      </div>
+    ))}
+    {teamMembers.length > 4 && (
+      <div
+        className="more-box"
+        onMouseEnter={() => setShowMore(true)}
+        onMouseLeave={() => setShowMore(false)}
+      >
+        ⋯
+        {showMore && (
+          <div className="more-popup">
+            {teamMembers.slice(4).map((m, i) => (
+              <div key={i} className="popup-item">
+                <span
+                  className="avatar"
+                  style={{ backgroundColor: m.color, width: 32, height: 32 }}
+                >
+                  {m.icon}
+                </span>
+                <span className="popup-name">{m.name}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )}
   </div>
-  <div className="navbar-right">
-    <button className="meeting-btn" onClick={() => setShowNewEventModal(true)}>
-      + Đặt phòng
-    </button>
-    <div className="mail-icon">📩</div>
-    <div className="profile-circle">👤</div>
-  </div>
+</div>
+<div className="navbar-right">
+  <button className="meeting-btn" onClick={() => setShowNewEventModal(true)}>
+    + Đặt phòng
+  </button>
+  <div className="mail-icon">📩</div>
+  <div className="profile-circle">👤</div>
 </div> */}
 
-  <div className="navbar-right">
-    <button className="meeting-btn" onClick={() => setShowNewEventModal(true)}>
-      + Đặt phòng
-    </button>
-    {/*<div className="mail-icon">📩</div>
+      <div className="navbar-right">
+        <button className="meeting-btn" onClick={() => setShowNewEventModal(true)}>
+          + Đặt phòng
+        </button>
+        {/*<div className="mail-icon">📩</div>
     <div className="profile-circle">👤</div>*/}
-  </div>
-  
+      </div>
+
       {/* Content */}
 
       <div className="content">
@@ -396,6 +463,21 @@ export default function Dashboard() {
                     setNewEventData({ ...newEventData, title: e.target.value })
                   }
                   placeholder="VD: Họp team, Training..."
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="label">Mô tả (tùy chọn):</label>
+                <textarea
+                  className="input"
+                  rows="3"
+                  value={newEventData.description || ""}
+                  onChange={(e) =>
+                    setNewEventData({ ...newEventData, description: e.target.value })
+                  }
+                  placeholder="Mô tả chi tiết về cuộc họp..."
+                  disabled={loading}
                 />
               </div>
 
@@ -407,6 +489,7 @@ export default function Dashboard() {
                   onChange={(e) =>
                     setNewEventData({ ...newEventData, room: e.target.value })
                   }
+                  disabled={loading}
                 >
                   {rooms.map((room) => (
                     <option key={room.id} value={room.id}>
@@ -464,6 +547,7 @@ export default function Dashboard() {
                   onChange={(e) =>
                     setNewEventData({ ...newEventData, start: e.target.value })
                   }
+                  disabled={loading}
                 />
               </div>
 
@@ -476,16 +560,22 @@ export default function Dashboard() {
                   onChange={(e) =>
                     setNewEventData({ ...newEventData, end: e.target.value })
                   }
+                  disabled={loading}
                 />
               </div>
             </div>
             <div className="modal-footer">
-              <button className="create-btn" onClick={handleCreateEvent}>
-                Tạo
+              <button
+                className="create-btn"
+                onClick={handleCreateEvent}
+                disabled={loading}
+              >
+                {loading ? "Đang tạo..." : "Tạo"}
               </button>
               <button
                 className="close-btn"
                 onClick={() => setShowNewEventModal(false)}
+                disabled={loading}
               >
                 Hủy
               </button>
