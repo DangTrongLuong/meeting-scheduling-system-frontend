@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import "../../../styles/Device/Devices.css";       
-import "../../../styles/DashboardAdmin.css";      
+import "../../../styles/Device/Devices.css";
+import "../../../styles/DashboardAdmin.css";
 import NavBar from "../../../components/NavBar";
 import SideBarAdmin from "../../../components/SideBarAdmin";
-import AddDeviceModal from "./AddDeviceModal";     
-
+import AddDeviceModal from "./AddDeviceModal";
 
 const Devices = () => {
   const [devices, setDevices] = useState([]);
@@ -14,6 +13,8 @@ const Devices = () => {
   const [activeMenuItem, setActiveMenuItem] = useState("devices");
   const [showModal, setShowModal] = useState(false);
   const location = useLocation();
+
+  const API_URL = "http://localhost:8080/api/admin/devices";
 
   useEffect(() => {
     const pathToItem = {
@@ -27,11 +28,13 @@ const Devices = () => {
 
   const loadDevices = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/devices");
+      const res = await fetch(API_URL);
+      if (!res.ok) throw new Error("Failed to fetch devices");
       const data = await res.json();
       setDevices(data);
     } catch (err) {
       console.error("Error fetching devices:", err);
+      alert("Cannot load devices. Please check your server.");
     }
   };
 
@@ -40,24 +43,24 @@ const Devices = () => {
   }, []);
 
   const handleAddDevice = async (device) => {
-  try {
-    const res = await fetch("http://localhost:8080/api/devices", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(device),
-    });
-    if (res.ok) {
-      const newDevice = await res.json();
-      setDevices([...devices, newDevice]);
-      setShowModal(false);
-    } else {
-      console.error("Failed to add device");
-      alert("Failed to add device");
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(device),
+      });
+      if (res.ok) {
+        const newDevice = await res.json();
+        setDevices([...devices, newDevice]);
+        setShowModal(false);
+      } else {
+        alert("Failed to add device");
+      }
+    } catch (err) {
+      console.error("Error adding device:", err);
+      alert("Error adding device. Please try again.");
     }
-  } catch (err) {
-    console.error("Error adding device:", err);
-  }
-};
+  };
 
   const filteredDevices = devices.filter((d) =>
     d.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -76,6 +79,7 @@ const Devices = () => {
         <main className="main-content">
           <h2 className="device-management">Device Management</h2>
 
+          {/* Controls */}
           <div className="device-controls">
             <input
               type="text"
@@ -85,19 +89,28 @@ const Devices = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <button className="device-sort-dropdown">Sort by Name</button>
-            <button className="device-btn-add" onClick={() => setShowModal(true)}>
+            <button
+              className="device-btn-add"
+              onClick={() => setShowModal(true)}
+            >
               + Add Device
             </button>
           </div>
 
+          {/* Modal */}
           {showModal && (
-            <AddDeviceModal onClose={() => setShowModal(false)} onSave={handleAddDevice} />
+            <AddDeviceModal
+              onClose={() => setShowModal(false)}
+              onSave={handleAddDevice}
+            />
           )}
 
+          {/* Summary */}
           <div className="device-summary">
             Total: {filteredDevices.length} / {devices.length}
           </div>
 
+          {/* Device List */}
           <div className="device-list">
             {filteredDevices.length === 0 ? (
               <p className="device-no-data">No devices found</p>
@@ -106,7 +119,6 @@ const Devices = () => {
                 <thead>
                   <tr>
                     <th>Name</th>
-                    <th>Type</th>
                     <th>Quantity</th>
                     <th>Status</th>
                   </tr>
@@ -115,7 +127,6 @@ const Devices = () => {
                   {filteredDevices.map((d) => (
                     <tr key={d.id}>
                       <td>{d.name}</td>
-                      <td>{d.type || "N/A"}</td>
                       <td>{d.quantity}</td>
                       <td>{d.active ? "Active" : "Inactive"}</td>
                     </tr>
