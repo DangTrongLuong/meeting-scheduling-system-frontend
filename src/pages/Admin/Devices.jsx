@@ -4,17 +4,14 @@ import "../../styles/Devices.css";
 import "../../styles/DashboardAdmin.css";
 import NavBar from "../../components/NavBar";
 import SideBarAdmin from "../../components/SideBarAdmin";
+import AddDeviceModal from "../../components/AddDeviceModal";
 
 const Devices = () => {
   const [devices, setDevices] = useState([]);
-  const [formData, setFormData] = useState({
-    name: "",
-    type: "",
-    quantity: "",
-  });
   const [searchTerm, setSearchTerm] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeMenuItem, setActiveMenuItem] = useState("devices");
+  const [showModal, setShowModal] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -27,43 +24,39 @@ const Devices = () => {
     setActiveMenuItem(pathToItem[location.pathname] || "devices");
   }, [location.pathname]);
 
+  const loadDevices = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/devices");
+      const data = await res.json();
+      setDevices(data);
+    } catch (err) {
+      console.error("Error fetching devices:", err);
+    }
+  };
+
   useEffect(() => {
-    fetch("http://localhost:8080/api/devices")
-      .then((res) => res.json())
-      .then((data) => setDevices(data))
-      .catch((err) => console.error("Error fetching devices:", err));
+    loadDevices();
   }, []);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleMenuClick = (itemId) => {
-    setActiveMenuItem(itemId);
-  };
-
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
-  const closeSidebar = () => {
-    setSidebarOpen(false);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    fetch("http://localhost:8080/api/devices", {
+  const handleAddDevice = async (device) => {
+  try {
+    const res = await fetch("http://localhost:8080/api/devices", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    })
-      .then((res) => res.json())
-      .then((newDevice) => {
-        setDevices([...devices, newDevice]);
-        setFormData({ name: "", type: "", quantity: "" });
-      })
-      .catch((err) => console.error("Error adding device:", err));
-  };
+      body: JSON.stringify(device),
+    });
+    if (res.ok) {
+      const newDevice = await res.json();
+      setDevices([...devices, newDevice]);
+      setShowModal(false);
+    } else {
+      console.error("Failed to add device");
+      alert("Failed to add device");
+    }
+  } catch (err) {
+    console.error("Error adding device:", err);
+  }
+};
 
   const filteredDevices = devices.filter((d) =>
     d.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -71,13 +64,13 @@ const Devices = () => {
 
   return (
     <div className="my-project-container">
-      <NavBar onToggleSidebar={toggleSidebar} />
+      <NavBar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
       <div className="main-layout">
         <SideBarAdmin
           activeItem={activeMenuItem}
-          onItemClick={handleMenuClick}
+          onItemClick={setActiveMenuItem}
           isOpen={sidebarOpen}
-          onClose={closeSidebar}
+          onClose={() => setSidebarOpen(false)}
         />
         <main className="main-content">
           <h2 className="device-management">Device Management</h2>
@@ -86,21 +79,24 @@ const Devices = () => {
             <input
               type="text"
               className="device-search-input"
-              placeholder="Search by name, type..."
+              placeholder="Search by name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <button className="device-sort-dropdown">Sort by Name</button>
-            <button className="device-btn-add" onClick={handleSubmit}>
+            <button className="device-btn-add" onClick={() => setShowModal(true)}>
               + Add Device
             </button>
           </div>
+
+          {showModal && (
+            <AddDeviceModal onClose={() => setShowModal(false)} onSave={handleAddDevice} />
+          )}
 
           <div className="device-summary">
             Total: {filteredDevices.length} / {devices.length}
           </div>
 
-          {/* Danh sách thiết bị */}
           <div className="device-list">
             {filteredDevices.length === 0 ? (
               <p className="device-no-data">No devices found</p>
@@ -111,14 +107,16 @@ const Devices = () => {
                     <th>Name</th>
                     <th>Type</th>
                     <th>Quantity</th>
+                    <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredDevices.map((d, index) => (
-                    <tr key={index}>
+                  {filteredDevices.map((d) => (
+                    <tr key={d.id}>
                       <td>{d.name}</td>
-                      <td>{d.type}</td>
+                      <td>{d.type || "N/A"}</td>
                       <td>{d.quantity}</td>
+                      <td>{d.active ? "Active" : "Inactive"}</td>
                     </tr>
                   ))}
                 </tbody>
