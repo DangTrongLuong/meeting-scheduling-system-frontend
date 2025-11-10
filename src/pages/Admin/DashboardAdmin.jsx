@@ -58,37 +58,39 @@ const DashboardAdmin = () => {
         <main className="main-content">
           <div className="content-inner">
             <h1 className="page-title">
-              Chào mừng đến với Hệ thống Quản lý Thiết bị
+              Welcome to the Device Management System
             </h1>
             <p className="page-subtitle">
-              {loading ? "Đang tải..." : `Xin chào, ${userName}`}
+              {loading ? "Loading..." : `Hello, ${userName}`}
             </p>
 
-            {/* <div className="card-grid">
+            {/* 
+            <div className="card-grid">
               <div className="card">
                 <Book size={40} color="#0084FF" />
-                <h3 className="card-title">Quản lý Thiết bị</h3>
-                <p className="card-text">Thêm, sửa, xóa thông tin thiết bị</p>
+                <h3 className="card-title">Device Management</h3>
+                <p className="card-text">Add, edit, and delete device information</p>
               </div>
 
               <div className="card">
                 <User size={40} color="#0084FF" />
-                <h3 className="card-title">Quản lý Phòng</h3>
-                <p className="card-text">Quản lý thông tin các phòng họp</p>
+                <h3 className="card-title">Room Management</h3>
+                <p className="card-text">Manage meeting room details</p>
               </div>
 
               <div className="card">
                 <Package size={40} color="#0084FF" />
-                <h3 className="card-title">Quản lý Người dùng</h3>
-                <p className="card-text">Xử lý thông tin người dùng</p>
+                <h3 className="card-title">User Management</h3>
+                <p className="card-text">Handle user information</p>
               </div>
 
               <div className="card">
                 <BarChart3 size={40} color="#0084FF" />
-                <h3 className="card-title">Báo cáo</h3>
-                <p className="card-text">Thống kê và báo cáo hệ thống</p>
+                <h3 className="card-title">Reports</h3>
+                <p className="card-text">System statistics and reports</p>
               </div>
-            </div> */}
+            </div> 
+            */}
           </div>
         </main>
       </div>
