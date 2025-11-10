@@ -2,7 +2,7 @@ import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Register from "./pages/Auth/Register.jsx";
 import LoginPage from "./pages/Auth/Login.jsx";
-import Dashboard from "./pages/User/Dashboard.jsx";
+import DashboardUser from "./pages/User/DashboardUser.jsx";
 import Profile from "./pages/Auth/Profile.jsx";
 
 import { UserProvider } from "./context/UserContext.jsx";
@@ -28,10 +28,10 @@ function App() {
             element={<AuthMiddleware>{null}</AuthMiddleware>}
           />
           <Route
-            path="/dashboard"
+            path="/dashboardUser"
             element={
               <AuthMiddleware>
-                <Dashboard />
+                <DashboardUser />
               </AuthMiddleware>
             }
           />

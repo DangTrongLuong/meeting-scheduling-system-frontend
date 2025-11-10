@@ -1,9 +1,8 @@
-.dashboard {
+.main-inner-calender {
   display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background-color: #f9f9f9;
   width: 100%;
+  height: 100%;
+  padding: 10px 0;
 }
 
 .navbar {
@@ -16,8 +15,9 @@
 }
 
 .calendar-container {
-  flex: 1;
   padding: 16px;
+  width: 1400px;
+  max-width: 80%;
   overflow: auto;
 }
 
@@ -35,8 +35,9 @@
 
 .navbar-right {
   display: flex;
+  justify-content: end;
   align-items: center;
-  margin-left: auto; /* đẩy toàn bộ về bên phải */
+  margin: 20px 30px 0 20px;
   gap: 12px;
 }
 
@@ -143,14 +144,14 @@
   display: flex;
   width: 100%;
   margin-top: 60px;
-  height: calc(100vh - 60px); /* trừ navbar */
+  height: calc(100vh - 60px);
 }
 
-/* Sidebar giữ nguyên thông tin phòng */
-
-/* Sidebar mở rộng */
-.sidebar {
-  width: 300px; /* mở rộng hơn */
+.sidebar-user-calender {
+  position: relative;
+  right: 0;
+  top: 20px;
+  width: 280px;
   background: #f8f8f8;
   padding: 20px;
   border-right: 1px solid #ddd;
@@ -372,4 +373,3 @@ textarea.input {
 .checkbox {
   cursor: pointer;
 }
-
