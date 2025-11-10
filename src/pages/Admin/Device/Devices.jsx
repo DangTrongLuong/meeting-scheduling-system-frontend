@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import "../../styles/Devices.css";
-import "../../styles/DashboardAdmin.css";
-import NavBar from "../../components/NavBar";
-import SideBarAdmin from "../../components/SideBarAdmin";
-import AddDeviceModal from "../../components/AddDeviceModal";
+import "../../../styles/Device/Devices.css";       
+import "../../../styles/DashboardAdmin.css";      
+import NavBar from "../../../components/NavBar";
+import SideBarAdmin from "../../../components/SideBarAdmin";
+import AddDeviceModal from "./AddDeviceModal";     
+
 
 const Devices = () => {
   const [devices, setDevices] = useState([]);
