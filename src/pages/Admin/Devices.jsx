@@ -1,32 +1,37 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import "../../styles/Devices.css";
+import "../../styles/DashboardAdmin.css";
 import NavBar from "../../components/NavBar";
 import SideBarAdmin from "../../components/SideBarAdmin";
 
 const Devices = () => {
   const [devices, setDevices] = useState([]);
-  const [formData, setFormData] = useState({ name: "", type: "", quantity: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    type: "",
+    quantity: "",
+  });
   const [searchTerm, setSearchTerm] = useState("");
-const [activeMenuItem, setActiveMenuItem] = useState("devices");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeMenuItem, setActiveMenuItem] = useState("devices");
   const location = useLocation();
 
-   useEffect(() => {
+  useEffect(() => {
     const pathToItem = {
       "/dashboardAdmin": "home",
       "/devices": "devices",
       "/rooms": "rooms",
       "/users": "users",
-      
     };
     setActiveMenuItem(pathToItem[location.pathname] || "devices");
   }, [location.pathname]);
 
   useEffect(() => {
     fetch("http://localhost:8080/api/devices")
-      .then(res => res.json())
-      .then(data => setDevices(data))
-      .catch(err => console.error("Error fetching devices:", err));
+      .then((res) => res.json())
+      .then((data) => setDevices(data))
+      .catch((err) => console.error("Error fetching devices:", err));
   }, []);
 
   const handleChange = (e) => {
@@ -37,34 +42,46 @@ const [activeMenuItem, setActiveMenuItem] = useState("devices");
     setActiveMenuItem(itemId);
   };
 
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const closeSidebar = () => {
+    setSidebarOpen(false);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     fetch("http://localhost:8080/api/devices", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData)
+      body: JSON.stringify(formData),
     })
-      .then(res => res.json())
-      .then(newDevice => {
+      .then((res) => res.json())
+      .then((newDevice) => {
         setDevices([...devices, newDevice]);
         setFormData({ name: "", type: "", quantity: "" });
       })
-      .catch(err => console.error("Error adding device:", err));
+      .catch((err) => console.error("Error adding device:", err));
   };
 
-  const filteredDevices = devices.filter(d =>
+  const filteredDevices = devices.filter((d) =>
     d.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className="page-layout">
-      <SideBarAdmin />
-      <div className="main-content">
-        <NavBar activeItem={activeMenuItem} onItemClick={handleMenuClick}/>
-        <div className="device-container">
+    <div className="my-project-container">
+      <NavBar onToggleSidebar={toggleSidebar} />
+      <div className="main-layout">
+        <SideBarAdmin
+          activeItem={activeMenuItem}
+          onItemClick={handleMenuClick}
+          isOpen={sidebarOpen}
+          onClose={closeSidebar}
+        />
+        <main className="main-content">
           <h2 className="device-management">Device Management</h2>
 
-          {/* Controls giống Books */}
           <div className="device-controls">
             <input
               type="text"
@@ -79,7 +96,6 @@ const [activeMenuItem, setActiveMenuItem] = useState("devices");
             </button>
           </div>
 
-          {/* Summary giống Books */}
           <div className="device-summary">
             Total: {filteredDevices.length} / {devices.length}
           </div>
@@ -109,7 +125,7 @@ const [activeMenuItem, setActiveMenuItem] = useState("devices");
               </table>
             )}
           </div>
-        </div>
+        </main>
       </div>
     </div>
   );
