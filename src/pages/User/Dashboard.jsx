@@ -454,6 +454,21 @@ export default function Dashboard() {
               </div>
 
               <div className="form-group">
+               <label className="label">Mời Email:</label>
+               <textarea
+                className="input"
+                rows="2"
+                value={newEventData.inviteEmails || ""}
+                onChange={(e) =>
+                setNewEventData({ ...newEventData, inviteEmails: e.target.value })
+                 }
+                  placeholder="Nhập email người được mời..."
+                  disabled={loading}
+                />
+              </div>
+
+
+              <div className="form-group">
                 <label className="label">Ngày:</label>
                 <input
                   type="date"
