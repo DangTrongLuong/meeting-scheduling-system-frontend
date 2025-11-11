@@ -6,7 +6,7 @@ import NavBar from "../../../components/NavBar";
 import SideBarAdmin from "../../../components/SideBarAdmin";
 import AddDeviceModal from "./AddDeviceModal";
 import Swal from "sweetalert2";
-import { Trash2 } from "lucide-react";
+import { Edit, Trash2 } from "lucide-react";
 
 const Devices = () => {
   const [devices, setDevices] = useState([]);
@@ -14,6 +14,8 @@ const Devices = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeMenuItem, setActiveMenuItem] = useState("devices");
   const [showModal, setShowModal] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [editDevice, setEditDevice] = useState(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const location = useLocation();
   const inputRef = useRef(null);
@@ -36,7 +38,6 @@ const Devices = () => {
       const res = await fetch(API_URL);
       if (!res.ok) throw new Error("Failed to fetch devices");
       const data = await res.json();
-      
       setDevices(data);
     } catch (err) {
       console.error("Error fetching devices:", err);
@@ -47,7 +48,6 @@ const Devices = () => {
   useEffect(() => {
     loadDevices();
   }, []);
-
 
   const handleDeleteDevice = async (id) => {
     const result = await Swal.fire({
@@ -74,6 +74,15 @@ const Devices = () => {
         Swal.fire("Error", "Something went wrong.", "error");
       }
     }
+  };
+
+  // ✅ Hàm Edit Device
+  const handleEditDevice = (id) => {
+    const deviceToEdit = devices.find((d) => d.id === id);
+    if (!deviceToEdit) return;
+    setEditDevice(deviceToEdit);
+    setIsEdit(true);
+    setShowModal(true);
   };
 
   // Lọc theo search
@@ -150,7 +159,11 @@ const Devices = () => {
             <button className="device-sort-dropdown">Sort by Name</button>
             <button
               className="device-btn-add"
-              onClick={() => setShowModal(true)}
+              onClick={() => {
+                setShowModal(true);
+                setIsEdit(false);
+                setEditDevice(null);
+              }}
             >
               + Add Device
             </button>
@@ -159,12 +172,14 @@ const Devices = () => {
           {/* Modal */}
           {showModal && (
             <AddDeviceModal
-              onClose={() => setShowModal(false)}
-              
-              onSave={() => {
-                loadDevices(); 
+              onClose={() => {
+                setShowModal(false);
+                setIsEdit(false);
+                setEditDevice(null);
               }}
-
+              onSave={() => loadDevices()}
+              isEdit={isEdit}
+              device={editDevice}
             />
           )}
 
@@ -194,12 +209,16 @@ const Devices = () => {
                       <td>{d.quantity}</td>
                       <td>{d.active ? "Active" : "Inactive"}</td>
                       <td>
+                        <button className="btn-edit" onClick={() => handleEditDevice(d.id)}>
+  <Edit size={20} />
+</button>
                         <button
                           className="btn-delete"
                           onClick={() => handleDeleteDevice(d.id)}
                         >
                           <Trash2 size={20} />
                         </button>
+                        
                       </td>
                     </tr>
                   ))}
