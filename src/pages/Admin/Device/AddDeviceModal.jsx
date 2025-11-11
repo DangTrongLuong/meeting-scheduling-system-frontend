@@ -26,6 +26,12 @@ const AddDeviceModal = ({ onClose, onSave }) => {
       return;
     }
 
+    //  Chuẩn hóa tên trước khi gửi (lowercase + trim)
+    const normalizedData = {
+      ...formData,
+      name: formData.name.trim().toLowerCase(),
+    };
+
     setLoading(true);
     try {
       const response = await fetch("http://localhost:8080/api/admin/devices", {
@@ -33,7 +39,7 @@ const AddDeviceModal = ({ onClose, onSave }) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(normalizedData),
       });
 
       if (!response.ok) {
@@ -41,7 +47,13 @@ const AddDeviceModal = ({ onClose, onSave }) => {
       }
 
       const savedDevice = await response.json();
-      onClose(); // Close modal
+
+      // Gọi callback để cập nhật danh sách thiết bị
+      if (onSave) {
+        onSave(savedDevice);
+      }
+
+      onClose(); // Đóng modal
     } catch (error) {
       console.error("Error saving device:", error);
       alert("Error saving device. Please try again.");
@@ -85,7 +97,8 @@ const AddDeviceModal = ({ onClose, onSave }) => {
               name="active"
               checked={formData.active}
               onChange={handleChange}
-            /> Active
+            />{" "}
+            Active
           </label>
 
           {/* Actions */}
