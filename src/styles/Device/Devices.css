@@ -209,3 +209,16 @@
 .btn-delete:hover {
   color: #c0392b;
 }
+
+.btn-edit {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #007bff; /* Xanh dương cho edit */
+  transition: color 0.2s;
+}
+
+.btn-edit:hover {
+  color: #0056b3; /* Xanh đậm khi hover */
+}

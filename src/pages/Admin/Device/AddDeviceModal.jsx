@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../../../styles/Device/AddDeviceModal.css";
 
-const AddDeviceModal = ({ onClose, onSave }) => {
+const AddDeviceModal = ({ onClose, onSave, isEdit, device }) => {
   const [formData, setFormData] = useState({
     name: "",
     quantity: 0,
@@ -9,6 +9,17 @@ const AddDeviceModal = ({ onClose, onSave }) => {
   });
 
   const [loading, setLoading] = useState(false);
+
+  // ✅ Khi edit, load dữ liệu thiết bị vào form
+  useEffect(() => {
+    if (isEdit && device) {
+      setFormData({
+        name: device.name,
+        quantity: device.quantity,
+        active: device.active,
+      });
+    }
+  }, [isEdit, device]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -19,53 +30,52 @@ const AddDeviceModal = ({ onClose, onSave }) => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!formData.name.trim()) {
-      alert("Device name is required");
-      return;
-    }
+  if (!formData.name.trim()) {
+    alert("Device name is required");
+    return;
+  }
 
-    //  Chuẩn hóa tên trước khi gửi (lowercase + trim)
-    const normalizedData = {
-      ...formData,
-      name: formData.name.trim().toLowerCase(),
-    };
+  setLoading(true);
+  try {
+    const url = isEdit
+      ? `http://localhost:8080/api/admin/devices/${device.id}`
+      : "http://localhost:8080/api/admin/devices";
 
-    setLoading(true);
-    try {
-      const response = await fetch("http://localhost:8080/api/admin/devices", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(normalizedData),
-      });
+    const method = isEdit ? "PUT" : "POST";
 
-      if (!response.ok) {
-        throw new Error("Failed to save device");
-      }
+    const response = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
 
-      const savedDevice = await response.json();
+    
+if (!response.ok) {
+    const errorText = await response.text();
+    alert(errorText.includes("Device name already exists")
+        ? "Tên thiết bị đã tồn tại. Vui lòng chọn tên khác."
+        : "Có lỗi xảy ra. Vui lòng thử lại.");
+    return;
+}
 
-      // Gọi callback để cập nhật danh sách thiết bị
-      if (onSave) {
-        onSave(savedDevice);
-      }
 
-      onClose(); // Đóng modal
-    } catch (error) {
-      console.error("Error saving device:", error);
-      alert("Error saving device. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    await response.json();
+    if (onSave) onSave();
+    onClose();
+  } catch (error) {
+    console.error("Error saving device:", error);
+    alert("Error saving device. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="modal-overlay">
       <div className="modal-content large">
-        <h2>Add Device</h2>
+        <h2>{isEdit ? "Edit Device" : "Add Device"}</h2>
         <form onSubmit={handleSubmit} className="device-form">
           {/* Device Name */}
           <label>Device Name</label>
@@ -104,7 +114,7 @@ const AddDeviceModal = ({ onClose, onSave }) => {
           {/* Actions */}
           <div className="modal-actions">
             <button type="submit" className="btn-save" disabled={loading}>
-              {loading ? "Saving..." : "Save"}
+              {loading ? "Saving..." : isEdit ? "Update" : "Save"}
             </button>
             <button type="button" className="btn-cancel" onClick={onClose}>
               Cancel
