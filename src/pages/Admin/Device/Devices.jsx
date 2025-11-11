@@ -19,6 +19,8 @@ const Devices = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const location = useLocation();
   const inputRef = useRef(null);
+  const [sortBy, setSortBy] = useState("name");
+const [direction, setDirection] = useState("asc");
 
   const API_URL = "http://localhost:8080/api/admin/devices";
 
@@ -35,7 +37,7 @@ const Devices = () => {
   // Load danh sách thiết bị từ backend
   const loadDevices = async () => {
     try {
-      const res = await fetch(API_URL);
+      const res = await fetch(`${API_URL}?sortBy=${sortBy}&direction=${direction}`);
       if (!res.ok) throw new Error("Failed to fetch devices");
       const data = await res.json();
       setDevices(data);
@@ -76,7 +78,17 @@ const Devices = () => {
     }
   };
 
-  // ✅ Hàm Edit Device
+  const handleSort = (field) => {
+  if (sortBy === field) {
+    setDirection(direction === "asc" ? "desc" : "asc");
+  } else {
+    setSortBy(field);
+    setDirection("asc");
+  }
+  loadDevices();
+};
+
+  //  Hàm Edit Device
   const handleEditDevice = (id) => {
     const deviceToEdit = devices.find((d) => d.id === id);
     if (!deviceToEdit) return;
@@ -156,7 +168,31 @@ const Devices = () => {
                 </ul>
               )}
             </div>
-            <button className="device-sort-dropdown">Sort by Name</button>
+            <div className="sort-container">
+  <label className="sort-label">Sort by:</label>
+  <select
+    className="sort-select"
+    value={sortBy}
+    onChange={(e) => {
+      setSortBy(e.target.value);
+      setDirection("asc");
+      loadDevices();
+    }}
+  >
+    <option value="name">Name</option>
+    <option value="active">Status</option>
+    <option value="quantity">Quantity</option>
+  </select>
+  <button
+    className="sort-direction-btn"
+    onClick={() => {
+      setDirection(direction === "asc" ? "desc" : "asc");
+      loadDevices();
+    }}
+  >
+    {direction === "asc" ? "↑ Asc" : "↓ Desc"}
+  </button>
+</div>
             <button
               className="device-btn-add"
               onClick={() => {
