@@ -212,7 +212,7 @@ const AuthMiddleware = ({ children }) => {
           setDebugInfo("Navigating to dashboard...");
           //   triggerSuccess(`Welcome, you have logged in successfully`);
           setIsLoading(false);
-          navigate("/dashboard", { replace: true });
+          navigate("/dashboardUser", { replace: true });
         })
         .catch((error) => {
           console.error("Error fetching user info:", error);
