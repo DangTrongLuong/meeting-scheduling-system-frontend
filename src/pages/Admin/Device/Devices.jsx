@@ -6,6 +6,7 @@ import NavBar from "../../../components/NavBar";
 import SideBarAdmin from "../../../components/SideBarAdmin";
 import AddDeviceModal from "./AddDeviceModal";
 import Swal from "sweetalert2";
+import { Trash2 } from "lucide-react";
 
 const Devices = () => {
   const [devices, setDevices] = useState([]);
@@ -35,6 +36,7 @@ const Devices = () => {
       const res = await fetch(API_URL);
       if (!res.ok) throw new Error("Failed to fetch devices");
       const data = await res.json();
+      
       setDevices(data);
     } catch (err) {
       console.error("Error fetching devices:", err);
@@ -46,40 +48,6 @@ const Devices = () => {
     loadDevices();
   }, []);
 
-  const handleAddDevice = async (device) => {
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(device),
-      });
-
-      if (res.ok) {
-        const newDevice = await res.json();
-        setDevices((prevDevices) => {
-          const normalizedName = newDevice.name.trim().toLowerCase();
-          const existingIndex = prevDevices.findIndex(
-            (d) => d.name.trim().toLowerCase() === normalizedName
-          );
-
-          if (existingIndex !== -1) {
-            const updatedDevices = [...prevDevices];
-            updatedDevices[existingIndex] = newDevice;
-            return updatedDevices;
-          } else {
-            return [...prevDevices, newDevice];
-          }
-        });
-
-        setShowModal(false);
-      } else {
-        alert("Failed to add device");
-      }
-    } catch (err) {
-      console.error("Error adding device:", err);
-      alert("Error adding device. Please try again.");
-    }
-  };
 
   const handleDeleteDevice = async (id) => {
     const result = await Swal.fire({
@@ -192,7 +160,11 @@ const Devices = () => {
           {showModal && (
             <AddDeviceModal
               onClose={() => setShowModal(false)}
-              onSave={handleAddDevice}
+              
+              onSave={() => {
+                loadDevices(); 
+              }}
+
             />
           )}
 
@@ -226,7 +198,7 @@ const Devices = () => {
                           className="btn-delete"
                           onClick={() => handleDeleteDevice(d.id)}
                         >
-                          ❌
+                          <Trash2 size={20} />
                         </button>
                       </td>
                     </tr>
