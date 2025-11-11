@@ -137,7 +137,7 @@ export default function LoginPage() {
           if (role === "ADMIN") {
             window.location.href = "/dashboardAdmin";
           } else {
-            window.location.href = "/dashboard";
+            window.location.href = "/dashboardUser";
           }
         },
       });

@@ -1,3 +1,9 @@
+.content-container-profile {
+  display: flex;
+  justify-content: center;
+  align-self: center;
+  margin-top: 20px;
+}
 .main-container-profile {
   width: 1200px;
   max-width: 1200px;
