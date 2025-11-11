@@ -27,6 +27,33 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.fc .fc-button-group .fc-button {
+  color: #1a73e8;
+  border: 0.5px solid gray;
+}
+
+.fc .fc-button.fc-button-active {
+  color: white;
+  background-color: #1a73e8 !important;
+}
+
+.fc .fc-button:not(.fc-button-active) {
+  color: #086ff7;
+  background-color: transparent;
+}
+
+.fc .fc-button:hover {
+  background-color: #e3f2fd;
+}
+
+.fc-toolbar-title {
+  color: #127cf5;
+}
+
+.fc-timegrid-slot-label {
+  color: #555;
+}
+
 .navbar-left {
   display: flex;
   align-items: center;

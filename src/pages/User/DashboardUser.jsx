@@ -6,6 +6,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import viLocale from "@fullcalendar/core/locales/vi";
 import "../../styles/DashboardUser.css";
 import NavBar from "../../components/NavBar";
+import SideBarUser from "../../components/SideBarUser";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { toast, ToastContainer } from "react-toastify";
@@ -266,7 +267,13 @@ export default function DashboardUser() {
     return rooms.filter((r) => !booked.includes(r.id));
   };
 
+  const [activeMenuItem, setActiveMenuItem] = useState("meetting");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleMenuClick = (itemId) => {
+    setActiveMenuItem(itemId);
+  };
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
@@ -274,6 +281,7 @@ export default function DashboardUser() {
   const closeSidebar = () => {
     setSidebarOpen(false);
   };
+
   return (
     <div className="my-project-container">
       <ToastContainer
@@ -290,12 +298,18 @@ export default function DashboardUser() {
       <NavBar onToggleSidebar={toggleSidebar} />
 
       <div className="main-content">
+        <SideBarUser
+          activeItem={activeMenuItem}
+          onItemClick={handleMenuClick}
+          isOpen={sidebarOpen}
+          onClose={closeSidebar}
+        />
         <div className="navbar-right">
           <button
             className="meeting-btn"
             onClick={() => setShowNewEventModal(true)}
           >
-            + Đặt phòng
+            + Create a meeting
           </button>
         </div>
         <div className="main-inner-calender">
@@ -303,7 +317,7 @@ export default function DashboardUser() {
             <FullCalendar
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
               initialView="dayGridMonth"
-              locale={viLocale}
+              locale="en"
               events={events}
               dateClick={handleDateClick}
               headerToolbar={{
@@ -323,9 +337,9 @@ export default function DashboardUser() {
             </div>
 
             {/* Thông tin phòng */}
-            <h3 className="sidebar-title">Thông tin phòng</h3>
+            <h3 className="sidebar-title">Room Information</h3>
             <div className="room-box">
-              <h4 className="room-box-title">Phòng đã đặt hôm nay</h4>
+              <h4 className="room-box-title">Rooms Booked Today</h4>
               <ul className="room-list">
                 {getBookedRooms().map((roomId, i) => {
                   const room = rooms.find((r) => r.id === roomId);
@@ -340,12 +354,12 @@ export default function DashboardUser() {
                   );
                 })}
                 {getBookedRooms().length === 0 && (
-                  <li className="room-item">Chưa có phòng nào được đặt</li>
+                  <li className="room-item">No rooms booked yet</li>
                 )}
               </ul>
 
               <h4 className="room-box-title" style={{ marginTop: 16 }}>
-                Phòng trống hôm nay
+                Available Rooms Today
               </h4>
               <ul className="room-list">
                 {getAvailableRooms().map((room, i) => (
@@ -360,7 +374,7 @@ export default function DashboardUser() {
               </ul>
 
               <h4 className="room-box-title" style={{ marginTop: 16 }}>
-                Danh sách phòng
+                All Rooms
               </h4>
               <ul className="room-list">
                 {rooms.map((room, i) => (

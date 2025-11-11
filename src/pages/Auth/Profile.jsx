@@ -384,7 +384,7 @@ const ProfileContent = () => {
     <>
       <ToastContainer position="top-right" style={{ marginTop: "60px" }} />
 
-      <div className="container-profile">
+      <div className="my-project-container">
         <NavBar />
         <div id="global-progress-bar" className="progress-bar"></div>
         <div className="content-container-profile">
