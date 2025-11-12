@@ -194,7 +194,7 @@ export default function DashboardUser() {
         description: newEventData.description || "",
       };
 
-      const response = await fetch("/api/users/meetings", {
+      const response = await fetch("/api/meetings/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
