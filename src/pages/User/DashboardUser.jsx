@@ -180,7 +180,11 @@ export default function DashboardUser() {
 
     try {
       const token =
-        localStorage.getItem("token") || sessionStorage.getItem("token");
+        localStorage.getItem("accessToken");
+      
+      const username =
+        localStorage.getItem("userName");
+       
 
       // Combine date and time to create ISO strings
       const startDateTime = `${newEventData.date}T${newEventData.startTime}:00`;
@@ -194,14 +198,15 @@ export default function DashboardUser() {
         description: newEventData.description || "",
       };
 
-      const response = await fetch("/api/meetings/create", {
+      const response = await fetch("http://localhost:8080/api/meetings/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
+          createdBy: `${username}`,
         },
         body: JSON.stringify(meetingData),
-      });
+      })
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -396,10 +401,10 @@ export default function DashboardUser() {
       {showNewEventModal && (
         <div className="modal" onClick={() => setShowNewEventModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3 className="modal-title">Đặt phòng họp mới</h3>
+            <h3 className="modal-title">Book a room</h3>
             <div className="modal-body">
               <div className="form-group">
-                <label className="label">Tiêu đề cuộc họp:</label>
+                <label className="label">Title:</label>
                 <input
                   type="text"
                   className="input"
@@ -413,7 +418,7 @@ export default function DashboardUser() {
               </div>
 
               <div className="form-group">
-                <label className="label">Mô tả (tùy chọn):</label>
+                <label className="label">Description (optional):</label>
                 <textarea
                   className="input"
                   rows="3"
@@ -430,7 +435,7 @@ export default function DashboardUser() {
               </div>
 
               <div className="form-group">
-                <label className="label">Mời Email:</label>
+                <label className="label">Invite users (Emails):</label>
                 <textarea
                   className="input"
                   rows="2"
@@ -447,7 +452,7 @@ export default function DashboardUser() {
               </div>
 
               <div className="form-group">
-                <label className="label">Ngày:</label>
+                <label className="label">Date:</label>
                 <input
                   type="date"
                   className="input"
@@ -461,7 +466,7 @@ export default function DashboardUser() {
               </div>
 
               <div className="form-group">
-                <label className="label">Phòng:</label>
+                <label className="label">Room:</label>
                 <select
                   className="select"
                   value={newEventData.room}
@@ -479,7 +484,7 @@ export default function DashboardUser() {
               </div>
 
               <div className="form-group">
-                <label className="label">Thời gian bắt đầu:</label>
+                <label className="label">Time Start:</label>
                 <select
                   className="select"
                   value={newEventData.startTime}
@@ -500,7 +505,7 @@ export default function DashboardUser() {
               </div>
 
               <div className="form-group">
-                <label className="label">Thời gian kết thúc:</label>
+                <label className="label">Time End:</label>
                 <select
                   className="select"
                   value={newEventData.endTime}
@@ -533,7 +538,7 @@ export default function DashboardUser() {
                 onClick={() => setShowNewEventModal(false)}
                 disabled={loading}
               >
-                Hủy
+                Cancel
               </button>
             </div>
           </div>
