@@ -135,9 +135,9 @@ export default function LoginPage() {
         autoClose: 1000,
         onClose: () => {
           if (role === "ADMIN") {
-            window.location.href = "/dashboardAdmin";
+            window.location.href = "/admin/dashboash";
           } else {
-            window.location.href = "/dashboardUser";
+            window.location.href = "/user/meeting-schedule";
           }
         },
       });
@@ -299,7 +299,7 @@ export default function LoginPage() {
             <div className="login-form-footer">
               Forgot password?{" "}
               <a href="/forgot_password" onClick={handleForgotPasswordClick}>
-                Clich here !
+                Click here !
               </a>
             </div>
             <div className="login-form-footer">

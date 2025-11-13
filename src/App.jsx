@@ -39,7 +39,7 @@ function App() {
             element={<AuthMiddleware>{null}</AuthMiddleware>}
           />
           <Route
-            path="/dashboardUser"
+            path="/user/meeting-schedule"
             element={
               <AuthMiddleware>
                 <DashboardUser />
@@ -55,7 +55,7 @@ function App() {
             }
           />
           <Route
-            path="/dashboardAdmin"
+            path="/admin/dashboash"
             element={
               <AuthMiddleware>
                 <DashboardAdmin />

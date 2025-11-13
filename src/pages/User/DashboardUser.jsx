@@ -309,7 +309,7 @@ const usernameNoAccent = username
       />
       <NavBar onToggleSidebar={toggleSidebar} />
 
-      <div className="main-content">
+      <div className="main-content-user">
         <SideBarUser
           activeItem={activeMenuItem}
           onItemClick={handleMenuClick}
