@@ -185,6 +185,11 @@ export default function DashboardUser() {
       const username =
         localStorage.getItem("userName");
        
+        
+const usernameNoAccent = username
+  .normalize("NFD") 
+  .replace(/[\u0300-\u036f]/g, "");
+
 
       // Combine date and time to create ISO strings
       const startDateTime = `${newEventData.date}T${newEventData.startTime}:00`;
@@ -199,14 +204,17 @@ export default function DashboardUser() {
       };
 
       const response = await fetch("http://localhost:8080/api/meetings/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          createdBy: `${username}`,
-        },
-        body: JSON.stringify(meetingData),
-      })
+      method: "POST",
+     headers: {
+    "Content-Type": "application/json",
+     Authorization: `Bearer ${token}`,
+     createdBy: `${usernameNoAccent}`
+    },
+    body: JSON.stringify({
+    ...meetingData,
+    createdBy: username, // gửi trong body
+    }),
+  });
 
       if (!response.ok) {
         const errorData = await response.json();
