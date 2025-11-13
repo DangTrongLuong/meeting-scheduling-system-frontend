@@ -30,8 +30,7 @@ export default function DashboardUser() {
   ];
 
   const rooms = [
-    { id: "101", name: "Phòng 101", color: "#3498db" },
-    { id: "202", name: "Phòng 202", color: "#e74c3c" },
+        { id: "202", name: "Phòng 202", color: "#e74c3c" },
     { id: "303", name: "Phòng 303", color: "#2ecc71" },
     { id: "404", name: "Phòng 404", color: "#f39c12" },
   ];
@@ -41,13 +40,13 @@ export default function DashboardUser() {
   const [events, setEvents] = useState([
     {
       id: "1",
-      title: "Họp team - Phòng 101",
+      title: "Họp team - Phòng 1",
       start: "2025-11-06T09:00:00",
       end: "2025-11-06T10:30:00",
       backgroundColor: "#3498db",
       borderColor: "#2980b9",
       extendedProps: {
-        room: "101",
+        room: "1",
         organizer: "QT",
         participants: ["HT", "LT"],
       },
