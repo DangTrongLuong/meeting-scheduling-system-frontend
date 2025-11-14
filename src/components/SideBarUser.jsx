@@ -32,7 +32,7 @@ const SideBarUser = ({ activeItem, onItemClick, isOpen, onClose }) => {
     {
       id: "message",
       icon: MessageSquare,
-      label: "Devices",
+      label: "Chat",
       hasSubmenu: true,
       path: "/chat-message",
     },

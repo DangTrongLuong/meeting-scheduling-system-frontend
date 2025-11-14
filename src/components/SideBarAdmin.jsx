@@ -7,6 +7,7 @@ import {
   LogOut,
   BedDouble,
   Monitor,
+  Server,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../styles/SideBarAdmin.css";
@@ -40,14 +41,21 @@ const SideBarAdmin = ({ activeItem, onItemClick, isOpen, onClose }) => {
       hasSubmenu: true,
       path: "/managementRooms",
     },
-
     {
-      id: "users",
-      icon: User,
-      label: "Users",
+      id: "device-room",
+      icon: Server,
+      label: "Device Room",
       hasSubmenu: true,
-      path: "/managementsUsers",
+      path: "/deviceRoom",
     },
+
+    // {
+    //   id: "users",
+    //   icon: User,
+    //   label: "Users",
+    //   hasSubmenu: true,
+    //   path: "/managementsUsers",
+    // },
   ];
 
   useEffect(() => {

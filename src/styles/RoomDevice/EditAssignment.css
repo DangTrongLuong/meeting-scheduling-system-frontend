@@ -1,0 +1,432 @@
+/* Edit Assignment Wrapper */
+.edit-assignment-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Header */
+.edit-assignment-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 40px;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.edit-assignment-h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #093765;
+  font-weight: 600;
+}
+
+.edit-assignment-btn-back {
+  padding: 8px 12px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-assignment-btn-back:hover {
+  background-color: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+}
+
+/* Loading State */
+.edit-assignment-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  font-size: 18px;
+  color: #666;
+}
+
+/* Form Container */
+.edit-assignment-container {
+  background-color: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.edit-assignment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* Form Section */
+.edit-assignment-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.edit-assignment-section:last-of-type {
+  border-bottom: none;
+}
+
+.edit-assignment-section h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #093765;
+  margin: 0;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #007bff;
+  display: inline-block;
+}
+
+/* Form Group */
+.edit-assignment-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.edit-assignment-group label {
+  font-weight: 500;
+  color: #093765;
+  font-size: 14px;
+}
+
+.edit-assignment-required {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.edit-assignment-input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.edit-assignment-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  background-color: #f8fbff;
+  color: #093765;
+}
+
+.edit-assignment-input.error {
+  border-color: #dc3545;
+  background-color: #fff5f5;
+}
+
+.edit-assignment-input.error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.edit-assignment-error {
+  color: #dc3545;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.edit-assignment-hint {
+  color: #666;
+  font-size: 12px;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* Form Row (2 columns) */
+.edit-assignment-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* Select Styling */
+select.edit-assignment-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+/* Searchable Select */
+.searchable-select-wrapper {
+  position: relative;
+}
+
+.searchable-select-input {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  color: #333;
+}
+
+.searchable-select-input:hover {
+  border-color: #007bff;
+  background-color: #f8fbff;
+}
+
+.searchable-select-input .chevron {
+  transition: transform 0.3s ease;
+  color: #666;
+}
+
+.searchable-select-input .chevron.open {
+  transform: rotate(180deg);
+}
+
+.searchable-select-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.searchable-select-search {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.searchable-select-search:focus {
+  outline: none;
+  background-color: #f8fbff;
+}
+
+.searchable-select-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.searchable-select-options li {
+  padding: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.searchable-select-options li:hover:not(.no-results) {
+  background-color: #f8fbff;
+}
+
+.searchable-select-options li.selected {
+  background-color: #e7f3ff;
+  border-left: 4px solid #007bff;
+  padding-left: 8px;
+}
+
+.searchable-select-options li.no-results {
+  padding: 20px;
+  text-align: center;
+  color: #999;
+  cursor: default;
+}
+
+.option-name {
+  font-weight: 500;
+  color: #093765;
+  margin-bottom: 4px;
+}
+
+.option-detail {
+  font-size: 12px;
+  color: #666;
+}
+
+/* Form Actions */
+.edit-assignment-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.edit-assignment-btn-submit,
+.edit-assignment-btn-cancel {
+  padding: 12px 32px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.edit-assignment-btn-submit {
+  background-color: #28a745;
+  color: white;
+  min-width: 150px;
+}
+
+.edit-assignment-btn-submit:hover:not(:disabled) {
+  background-color: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.edit-assignment-btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.edit-assignment-btn-cancel {
+  background-color: #6c757d;
+  color: white;
+  min-width: 150px;
+}
+
+.edit-assignment-btn-cancel:hover {
+  background-color: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+/* Responsive Tablet */
+@media (max-width: 768px) {
+  .edit-assignment-wrapper {
+    padding: 15px;
+  }
+
+  .edit-assignment-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .edit-assignment-h1 {
+    font-size: 24px;
+  }
+
+  .edit-assignment-container {
+    padding: 20px;
+  }
+
+  .edit-assignment-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .edit-assignment-btn-submit,
+  .edit-assignment-btn-cancel {
+    width: 100%;
+  }
+}
+
+/* Responsive Mobile */
+@media (max-width: 480px) {
+  .edit-assignment-wrapper {
+    padding: 10px;
+  }
+
+  .edit-assignment-header {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+  }
+
+  .edit-assignment-h1 {
+    font-size: 20px;
+  }
+
+  .edit-assignment-btn-back {
+    padding: 6px 10px;
+  }
+
+  .edit-assignment-container {
+    padding: 15px;
+    border-radius: 8px;
+  }
+
+  .edit-assignment-section {
+    gap: 15px;
+    padding-bottom: 15px;
+  }
+
+  .edit-assignment-section h2 {
+    font-size: 16px;
+  }
+
+  .edit-assignment-group {
+    gap: 6px;
+  }
+
+  .edit-assignment-group label {
+    font-size: 13px;
+  }
+
+  .edit-assignment-input {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  .searchable-select-input {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  .searchable-select-dropdown {
+    max-height: 250px;
+  }
+
+  .searchable-select-options li {
+    padding: 10px;
+  }
+
+  .edit-assignment-actions {
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .edit-assignment-btn-submit,
+  .edit-assignment-btn-cancel {
+    padding: 10px 20px;
+    font-size: 13px;
+    min-width: auto;
+    width: 100%;
+  }
+
+  .edit-assignment-error {
+    font-size: 11px;
+  }
+
+  .edit-assignment-hint {
+    font-size: 11px;
+  }
+}

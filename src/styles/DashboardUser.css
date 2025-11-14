@@ -15,9 +15,10 @@
 }
 
 .calendar-container {
-  padding: 16px;
-  width: 1400px;
-  max-width: 80%;
+  margin-left: -20px;
+  width: 1300px;
+  max-width: 75%;
+  margin-right: 20px;
   overflow: auto;
 }
 

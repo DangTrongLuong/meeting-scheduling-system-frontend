@@ -1,6 +1,7 @@
 /* src/pages/VerifyPage.css */
 .verify-page-container {
   min-height: 95vh;
+  width: 100vw;
 
   display: flex;
   align-items: center;

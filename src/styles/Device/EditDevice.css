@@ -1,0 +1,414 @@
+/* Edit Device Wrapper */
+.edit-device-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Header */
+.edit-device-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 50px;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.edit-device-h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #093765;
+  font-weight: 600;
+}
+
+.edit-device-btn-back {
+  padding: 8px 12px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-device-btn-back:hover {
+  background-color: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+}
+
+/* Loading State */
+.edit-device-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  font-size: 18px;
+  color: #666;
+}
+
+/* Form Container */
+.edit-device-container {
+  background-color: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.edit-device-form {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* Form Section */
+.edit-device-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.edit-device-section:last-of-type {
+  border-bottom: none;
+}
+
+.edit-device-section h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #093765;
+  margin: 0;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #007bff;
+  display: inline-block;
+}
+
+/* Image Upload */
+.edit-device-image-upload {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+.edit-device-upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  width: 100%;
+  max-width: 400px;
+  min-height: 300px;
+  border: 2px dashed #ddd;
+  border-radius: 12px;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 30px;
+}
+
+.edit-device-upload-label:hover {
+  border-color: #007bff;
+  background-color: #e7f3ff;
+}
+
+.edit-device-upload-label svg {
+  color: #007bff;
+}
+
+.edit-device-upload-label span {
+  color: #093765;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.edit-device-upload-hint {
+  color: #999 !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+}
+
+.edit-device-image-preview {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  height: 400px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.edit-device-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.edit-device-remove-image {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  background-color: rgba(220, 53, 69, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.edit-device-remove-image:hover {
+  background-color: #c82333;
+  transform: scale(1.1);
+}
+
+/* Form Group */
+.edit-device-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.edit-device-group label {
+  font-weight: 500;
+  color: #093765;
+  font-size: 14px;
+}
+
+.edit-device-required {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.edit-device-input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.edit-device-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  background-color: #f8fbff;
+  color: #093765;
+}
+
+.edit-device-input::placeholder {
+  color: #093765;
+}
+
+/* Error Styles */
+.edit-device-input.error {
+  border-color: #dc3545;
+  background-color: #fff5f5;
+}
+
+.edit-device-input.error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.edit-device-error {
+  color: #dc3545;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+/* Form Row (2 columns) */
+.edit-device-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* Select Styling */
+select.edit-device-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+/* Form Actions */
+.edit-device-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.edit-device-btn-submit,
+.edit-device-btn-cancel {
+  padding: 12px 32px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.edit-device-btn-submit {
+  background-color: #28a745;
+  color: white;
+  min-width: 150px;
+}
+
+.edit-device-btn-submit:hover:not(:disabled) {
+  background-color: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.edit-device-btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.edit-device-btn-cancel {
+  background-color: #6c757d;
+  color: white;
+  min-width: 150px;
+}
+
+.edit-device-btn-cancel:hover {
+  background-color: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+/* Responsive Tablet */
+@media (max-width: 768px) {
+  .edit-device-wrapper {
+    padding: 15px;
+  }
+
+  .edit-device-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .edit-device-h1 {
+    font-size: 24px;
+  }
+
+  .edit-device-container {
+    padding: 20px;
+  }
+
+  .edit-device-row {
+    grid-template-columns: 1fr;
+  }
+
+  .edit-device-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .edit-device-btn-submit,
+  .edit-device-btn-cancel {
+    width: 100%;
+  }
+}
+
+/* Responsive Mobile */
+@media (max-width: 480px) {
+  .edit-device-wrapper {
+    padding: 10px;
+  }
+
+  .edit-device-header {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+  }
+
+  .edit-device-h1 {
+    font-size: 20px;
+  }
+
+  .edit-device-btn-back {
+    padding: 6px 10px;
+  }
+
+  .edit-device-container {
+    padding: 15px;
+    border-radius: 8px;
+  }
+
+  .edit-device-section {
+    gap: 15px;
+    padding-bottom: 15px;
+  }
+
+  .edit-device-section h2 {
+    font-size: 16px;
+  }
+
+  .edit-device-image-upload {
+    min-height: 250px;
+  }
+
+  .edit-device-upload-label {
+    min-height: 250px;
+    padding: 20px;
+  }
+
+  .edit-device-image-preview {
+    height: 300px;
+  }
+
+  .edit-device-group {
+    gap: 6px;
+  }
+
+  .edit-device-group label {
+    font-size: 13px;
+  }
+
+  .edit-device-input {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  .edit-device-row {
+    gap: 15px;
+  }
+
+  .edit-device-actions {
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .edit-device-btn-submit,
+  .edit-device-btn-cancel {
+    padding: 10px 20px;
+    font-size: 13px;
+    min-width: auto;
+    width: 100%;
+  }
+
+  .edit-device-error {
+    font-size: 11px;
+  }
+}

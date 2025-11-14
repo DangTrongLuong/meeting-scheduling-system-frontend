@@ -1,5 +1,5 @@
 .sidebar-user {
-  width: 300px;
+  width: 275px;
   background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
   height: calc(100vh - 70px);
   position: fixed;
@@ -106,7 +106,7 @@
 
 .menu-label-user {
   flex: 1;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   color: #093765;
   transition: all 0.3s ease;

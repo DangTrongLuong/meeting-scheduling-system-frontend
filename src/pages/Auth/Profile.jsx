@@ -392,7 +392,14 @@ const ProfileContent = () => {
             <div className="profile-container-cover">
               <div className="cover-image">
                 <img
-                  src={backgroundUrl}
+                  key={backgroundUrl}
+                  src={
+                    backgroundUrl
+                      ? backgroundUrl.startsWith("http")
+                        ? backgroundUrl
+                        : `http://localhost:8080${backgroundUrl}`
+                      : ""
+                  }
                   className="cover-img"
                   id="cover-img"
                   ref={coverImgRef}
