@@ -30,8 +30,7 @@ export default function DashboardUser() {
   ];
 
   const rooms = [
-    { id: "101", name: "Phòng 101", color: "#3498db" },
-    { id: "202", name: "Phòng 202", color: "#e74c3c" },
+        { id: "202", name: "Phòng 202", color: "#e74c3c" },
     { id: "303", name: "Phòng 303", color: "#2ecc71" },
     { id: "404", name: "Phòng 404", color: "#f39c12" },
   ];
@@ -41,13 +40,13 @@ export default function DashboardUser() {
   const [events, setEvents] = useState([
     {
       id: "1",
-      title: "Họp team - Phòng 101",
+      title: "Họp team - Phòng 1",
       start: "2025-11-06T09:00:00",
       end: "2025-11-06T10:30:00",
       backgroundColor: "#3498db",
       borderColor: "#2980b9",
       extendedProps: {
-        room: "101",
+        room: "1",
         organizer: "QT",
         participants: ["HT", "LT"],
       },
@@ -180,7 +179,16 @@ export default function DashboardUser() {
 
     try {
       const token =
-        localStorage.getItem("token") || sessionStorage.getItem("token");
+        localStorage.getItem("accessToken");
+      
+      const username =
+        localStorage.getItem("userName");
+       
+        
+const usernameNoAccent = username
+  .normalize("NFD") 
+  .replace(/[\u0300-\u036f]/g, "");
+
 
       // Combine date and time to create ISO strings
       const startDateTime = `${newEventData.date}T${newEventData.startTime}:00`;
@@ -194,14 +202,18 @@ export default function DashboardUser() {
         description: newEventData.description || "",
       };
 
-      const response = await fetch("/api/users/meetings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(meetingData),
-      });
+      const response = await fetch("http://localhost:8080/api/meetings/create", {
+      method: "POST",
+     headers: {
+    "Content-Type": "application/json",
+     Authorization: `Bearer ${token}`,
+     createdBy: `${usernameNoAccent}`
+    },
+    body: JSON.stringify({
+    ...meetingData,
+    createdBy: username, // gửi trong body
+    }),
+  });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -297,7 +309,7 @@ export default function DashboardUser() {
       />
       <NavBar onToggleSidebar={toggleSidebar} />
 
-      <div className="main-content">
+      <div className="main-content-user">
         <SideBarUser
           activeItem={activeMenuItem}
           onItemClick={handleMenuClick}
@@ -396,10 +408,10 @@ export default function DashboardUser() {
       {showNewEventModal && (
         <div className="modal" onClick={() => setShowNewEventModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3 className="modal-title">Đặt phòng họp mới</h3>
+            <h3 className="modal-title">Book a room</h3>
             <div className="modal-body">
               <div className="form-group">
-                <label className="label">Tiêu đề cuộc họp:</label>
+                <label className="label">Title:</label>
                 <input
                   type="text"
                   className="input"
@@ -413,7 +425,7 @@ export default function DashboardUser() {
               </div>
 
               <div className="form-group">
-                <label className="label">Mô tả (tùy chọn):</label>
+                <label className="label">Description (optional):</label>
                 <textarea
                   className="input"
                   rows="3"
@@ -430,7 +442,7 @@ export default function DashboardUser() {
               </div>
 
               <div className="form-group">
-                <label className="label">Mời Email:</label>
+                <label className="label">Invite users (Emails):</label>
                 <textarea
                   className="input"
                   rows="2"
@@ -447,7 +459,7 @@ export default function DashboardUser() {
               </div>
 
               <div className="form-group">
-                <label className="label">Ngày:</label>
+                <label className="label">Date:</label>
                 <input
                   type="date"
                   className="input"
@@ -461,7 +473,7 @@ export default function DashboardUser() {
               </div>
 
               <div className="form-group">
-                <label className="label">Phòng:</label>
+                <label className="label">Room:</label>
                 <select
                   className="select"
                   value={newEventData.room}
@@ -479,7 +491,7 @@ export default function DashboardUser() {
               </div>
 
               <div className="form-group">
-                <label className="label">Thời gian bắt đầu:</label>
+                <label className="label">Time Start:</label>
                 <select
                   className="select"
                   value={newEventData.startTime}
@@ -500,7 +512,7 @@ export default function DashboardUser() {
               </div>
 
               <div className="form-group">
-                <label className="label">Thời gian kết thúc:</label>
+                <label className="label">Time End:</label>
                 <select
                   className="select"
                   value={newEventData.endTime}
@@ -533,7 +545,7 @@ export default function DashboardUser() {
                 onClick={() => setShowNewEventModal(false)}
                 disabled={loading}
               >
-                Hủy
+                Cancel
               </button>
             </div>
           </div>

@@ -25,7 +25,7 @@ const SideBarUser = ({ activeItem, onItemClick, isOpen, onClose }) => {
     {
       id: "meetting",
       icon: Calendar,
-      label: "Meeting Scheduler",
+      label: "Schedule",
       hasSubmenu: true,
       path: "/dashboardUser",
     },
@@ -130,19 +130,22 @@ const SideBarUser = ({ activeItem, onItemClick, isOpen, onClose }) => {
                 className={`menu-item-user ${isActive ? "active" : ""}`}
                 onClick={() => handleItemClick(item.id, item.path)}
               >
-                <Icon size={20} className="menu-icon-user" />
-                <span className="menu-label-user">{item.label}</span>
-                {item.hasSubmenu && (
-                  <ChevronRight size={16} className="menu-chevron-user" />
-                )}
+                <div className="div-menu-user-icon">
+                  <Icon className="menu-icon-user" />
+                </div>
+                <div className="div-menu-label-user">
+                  <span className="menu-label-user">{item.label}</span>
+                  {item.hasSubmenu && (
+                    <ChevronRight size={16} className="menu-chevron-user" />
+                  )}
+                </div>
               </div>
             );
           })}
         </div>
-        <div className="btn-logout">
-          <button className="logout-btn" onClick={handleLogout}>
-            <LogOut size={16} />
-            <span>Logout</span>
+        <div className="btn-logout-user">
+          <button className="logout-btn-user" onClick={handleLogout}>
+            {/* <LogOut size={25} /> */}Logout
           </button>
         </div>
       </aside>
