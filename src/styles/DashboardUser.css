@@ -156,6 +156,30 @@
   margin-top: 45px;
   font-weight: 500;
 }
+.meeting-btn-list{
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 45px;
+  font-weight: 500;
+
+}
+.meeting-btn-invite{
+  background-color: #ffc107;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 45px;
+  font-weight: 500;
+
+}
 
 .mail-icon {
   font-size: 24px;
