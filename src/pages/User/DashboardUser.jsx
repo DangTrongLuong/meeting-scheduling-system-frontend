@@ -318,11 +318,24 @@ const usernameNoAccent = username
         />
         <div className="navbar-right">
           <button
+            className="meeting-btn-list"
+            //onClick={() => setShowNewEventModal(true)}
+          >
+            + List of created meeting rooms
+          </button>
+                    <button
+            className="meeting-btn-invite"
+            //onClick={() => setShowNewEventModal(true)}
+          >
+            + List of invited meeting rooms
+          </button>
+          <button
             className="meeting-btn"
             onClick={() => setShowNewEventModal(true)}
           >
             + Create a meeting
           </button>
+
         </div>
         <div className="main-inner-calender">
           <div className="calendar-container">
