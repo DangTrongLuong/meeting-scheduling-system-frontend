@@ -1,0 +1,121 @@
+.meeting-room-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+.meeting-room-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 50px;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e0e0e0;
+}
+.meeting-room-h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #093765;
+  font-weight: 600;
+}
+.meeting-room-btn-back {
+  padding: 8px 12px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.meeting-room-container {
+  background-color: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+.meeting-room-form {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+.meeting-room-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.meeting-room-section:last-of-type {
+  border-bottom: none;
+}
+.meeting-room-section h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #093765;
+  margin: 0;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #007bff;
+  display: inline-block;
+}
+.meeting-room-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.meeting-room-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.meeting-room-group label {
+  font-weight: 600;
+  color: #333;
+}
+.meeting-room-input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 15px;
+}
+.meeting-room-input:focus {
+  outline: 1px solid #007bff;
+}
+.meeting-room-error {
+  color: #dc3545;
+  font-size: 13px;
+}
+.meeting-room-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+}
+.meeting-room-btn-submit,
+.meeting-room-btn-cancel {
+  padding: 12px 32px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.meeting-room-btn-submit {
+  background-color: #28a745;
+  color: white;
+  min-width: 150px;
+}
+.meeting-room-btn-cancel {
+  background-color: #6c757d;
+  color: white;
+  min-width: 150px;
+}
+.meeting-room-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  font-size: 18px;
+  color: #666;
+}

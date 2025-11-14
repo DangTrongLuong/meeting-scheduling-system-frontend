@@ -236,6 +236,7 @@ const AuthMiddleware = ({ children }) => {
       <div
         style={{
           display: "flex",
+          width: "100vw",
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",

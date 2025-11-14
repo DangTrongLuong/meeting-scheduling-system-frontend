@@ -2,57 +2,45 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import "../../../styles/Device/Devices.css";
+import "../../../styles/Room/Rooms.css";
 import NavBar from "../../../components/NavBar";
 import SideBarAdmin from "../../../components/SideBarAdmin";
 import { Edit, Trash2 } from "lucide-react";
 
-const Devices = () => {
+const Rooms = () => {
   const navigate = useNavigate();
-  const [devices, setDevices] = useState([]);
+  const [rooms, setRooms] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeMenuItem, setActiveMenuItem] = useState("devices");
+  const [activeMenuItem, setActiveMenuItem] = useState("management-rooms");
   const [sortBy, setSortBy] = useState("name");
   const [direction, setDirection] = useState("asc");
   const location = useLocation();
 
-  const API_URL = "http://localhost:8080/api/admin/devices";
+  const API_URL = "http://localhost:8080/api/admin/rooms";
   const token = localStorage.getItem("accessToken");
 
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
-    deviceId: null,
-    deviceName: "",
+    roomId: null,
+    roomName: "",
   });
   const [deleting, setDeleting] = useState(false);
 
   const openDeleteModal = (id, name) => {
-    setDeleteModal({
-      isOpen: true,
-      deviceId: id,
-      deviceName: name,
-    });
+    setDeleteModal({ isOpen: true, roomId: id, roomName: name });
   };
 
   const closeDeleteModal = () => {
-    setDeleteModal({
-      isOpen: false,
-      deviceId: null,
-      deviceName: "",
-    });
+    setDeleteModal({ isOpen: false, roomId: null, roomName: "" });
   };
 
   useEffect(() => {
-    const pathToItem = {
-      "/devices": "devices",
-      "/rooms": "rooms",
-      "/room-devices": "room-devices",
-    };
-    setActiveMenuItem(pathToItem[location.pathname] || "devices");
+    const pathToItem = { "/rooms": "management-rooms" };
+    setActiveMenuItem(pathToItem[location.pathname] || "management-rooms");
   }, [location.pathname]);
 
-  const loadDevices = async () => {
+  const loadRooms = async () => {
     try {
       const res = await fetch(
         `${API_URL}?sortBy=${sortBy}&direction=${direction}`,
@@ -60,43 +48,39 @@ const Devices = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      if (!res.ok) throw new Error("Failed to load devices");
+      if (!res.ok) throw new Error("Failed to load rooms");
       const data = await res.json();
-
-      setDevices(data);
+      setRooms(data);
     } catch (err) {
-      toast.error(err.message || "Cannot load devices");
+      toast.error(err.message || "Cannot load rooms");
     }
   };
 
   useEffect(() => {
-    loadDevices();
+    loadRooms();
   }, [sortBy, direction]);
 
   const confirmDelete = async () => {
-    const { deviceId } = deleteModal;
+    const { roomId } = deleteModal;
     setDeleting(true);
-
     try {
-      const res = await fetch(`${API_URL}/${deviceId}`, {
+      const res = await fetch(`${API_URL}/${roomId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-
       if (!res.ok) throw new Error("Delete failed");
-
-      setDevices((prev) => prev.filter((d) => d.id !== deviceId));
-      toast.success("Device deleted successfully");
-      closeDeleteModal();
+      setRooms((prev) => prev.filter((r) => r.id !== roomId));
+      toast.success("Room deleted successfully!");
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err.message || "Failed to delete room");
     } finally {
       setDeleting(false);
+      closeDeleteModal();
     }
   };
 
-  const filteredDevices = devices.filter((d) =>
-    d.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredRooms = rooms.filter((r) =>
+    r.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleMenuClick = (itemId) => {
@@ -123,27 +107,28 @@ const Devices = () => {
       />
       <div className="main-layout">
         <main className="main-content">
-          <h1 className="device-management">Device Management</h1>
+          <h1 className="meeting-room-management">Meeting Room Management</h1>
 
-          <div className="device-controls">
-            <div className="device-search-wrapper">
+          <div className="meeting-room-controls">
+            <div className="meeting-room-search-wrapper">
               <input
                 type="text"
-                placeholder="Search devices name..."
+                placeholder="Search rooms..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="device-search-input"
+                className="meeting-room-search-input"
               />
             </div>
             <div className="sort-container">
+              <label className="sort-label">Sort by:</label>
               <select
                 className="sort-select"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
               >
                 <option value="name">Name</option>
-                <option value="status">Status</option>
-                <option value="totalQuantity">Quantity</option>
+                <option value="location">Location</option>
+                <option value="capacity">Capacity</option>
               </select>
               <button
                 className="sort-direction-btn"
@@ -155,70 +140,50 @@ const Devices = () => {
               </button>
             </div>
             <button
-              className="device-btn-add"
-              onClick={() => navigate("/createDevice")}
+              className="meeting-room-btn-add"
+              onClick={() => navigate("/addRoom")}
             >
-              + Add Device
+              + Add Room
             </button>
           </div>
 
-          <div className="device-summary">Total: {filteredDevices.length}</div>
+          <div className="meeting-room-summary">
+            Total: {filteredRooms.length} / {rooms.length}
+          </div>
 
-          <div className="device-list">
-            {filteredDevices.length === 0 ? (
-              <p className="device-no-data">No devices found</p>
+          <div className="meeting-room-list">
+            {filteredRooms.length === 0 ? (
+              <p className="meeting-room-no-data">No rooms found</p>
             ) : (
-              <table className="device-table">
+              <table className="meeting-room-table">
                 <thead>
                   <tr>
                     <th>Id</th>
-                    <th>Image</th>
                     <th>Name</th>
-                    <th>Total</th>
-                    <th>Available</th>
-                    <th>Status</th>
+                    <th>Location</th>
+                    <th>Capacity</th>
                     <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredDevices.map((d) => (
-                    <tr key={d.id}>
-                      <td>{d.id}</td>
-                      <td>
-                        {d.imagePath ? (
-                          <img
-                            src={`http://localhost:8080${d.imagePath}`}
-                            alt={d.name}
-                            className="device-image-preview"
-                          />
-                        ) : (
-                          "—"
-                        )}
-                      </td>
-                      <td>{d.name}</td>
-                      <td>{d.totalQuantity}</td>
-                      <td>{d.availableQuantity}</td>
-                      <td>
-                        <span
-                          className={`status-badge ${d.status.toLowerCase()}`}
-                        >
-                          {d.status}
-                        </span>
-                      </td>
+                  {filteredRooms.map((r) => (
+                    <tr key={r.id}>
+                      <td>{r.id}</td>
+                      <td>{r.name}</td>
+                      <td>{r.location}</td>
+                      <td>{r.capacity}</td>
                       <td>
                         <button
                           className="btn-edit"
-                          onClick={() => {
-                            navigate(`/editDevice/${d.id}`);
-                          }}
-                          title="Edit device"
+                          onClick={() => navigate(`/editRoom/${r.id}`)}
+                          title="Edit room"
                         >
                           <Edit size={18} />
                         </button>
                         <button
                           className="btn-delete"
-                          onClick={() => openDeleteModal(d.id, d.name)}
-                          title="Delete device"
+                          onClick={() => openDeleteModal(r.id, r.name)}
+                          title="Delete room"
                         >
                           <Trash2 size={18} />
                         </button>
@@ -237,7 +202,7 @@ const Devices = () => {
                   <h2>Confirm Delete</h2>
                   <p>
                     Are you sure you want to delete{" "}
-                    <strong>{deleteModal.deviceName}</strong>?
+                    <strong>{deleteModal.roomName}</strong>?
                   </p>
                   <p className="delete-modal-warning">
                     This action cannot be undone.
@@ -268,4 +233,4 @@ const Devices = () => {
   );
 };
 
-export default Devices;
+export default Rooms;
