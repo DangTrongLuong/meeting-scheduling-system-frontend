@@ -11,6 +11,7 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
 
 export default function DashboardUser() {
   const calendarRef = useRef(null);
@@ -29,11 +30,29 @@ export default function DashboardUser() {
     { name: "V", icon: "👤", color: "#1abc9c" },
   ];
 
-  const rooms = [
-        { id: "202", name: "Phòng 202", color: "#e74c3c" },
-    { id: "303", name: "Phòng 303", color: "#2ecc71" },
-    { id: "404", name: "Phòng 404", color: "#f39c12" },
-  ];
+  // const rooms = [
+  //   { id: "202", name: "Phòng 202", color: "#e74c3c" },
+  //   { id: "303", name: "Phòng 303", color: "#2ecc71" },
+  //   { id: "404", name: "Phòng 404", color: "#f39c12" },
+  // ];
+  const [rooms, setRooms] = useState([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+
+    axios
+      .get("http://localhost:8080/api/admin/rooms", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        setRooms(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching rooms:", error);
+      });
+  }, []);
 
   const [currentTime, setCurrentTime] = useState("");
   const [showMore, setShowMore] = useState(false);
@@ -178,17 +197,13 @@ export default function DashboardUser() {
     setLoading(true);
 
     try {
-      const token =
-        localStorage.getItem("accessToken");
-      
-      const username =
-        localStorage.getItem("userName");
-       
-        
-const usernameNoAccent = username
-  .normalize("NFD") 
-  .replace(/[\u0300-\u036f]/g, "");
+      const token = localStorage.getItem("accessToken");
 
+      const username = localStorage.getItem("userName");
+
+      const usernameNoAccent = username
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
 
       // Combine date and time to create ISO strings
       const startDateTime = `${newEventData.date}T${newEventData.startTime}:00`;
@@ -202,18 +217,21 @@ const usernameNoAccent = username
         description: newEventData.description || "",
       };
 
-      const response = await fetch("http://localhost:8080/api/meetings/create", {
-      method: "POST",
-     headers: {
-    "Content-Type": "application/json",
-     Authorization: `Bearer ${token}`,
-     createdBy: `${usernameNoAccent}`
-    },
-    body: JSON.stringify({
-    ...meetingData,
-    createdBy: username, // gửi trong body
-    }),
-  });
+      const response = await fetch(
+        "http://localhost:8080/api/meetings/create",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            createdBy: `${usernameNoAccent}`,
+          },
+          body: JSON.stringify({
+            ...meetingData,
+            createdBy: username, // gửi trong body
+          }),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -380,7 +398,7 @@ const usernameNoAccent = username
                       className="room-dot"
                       style={{ backgroundColor: room.color }}
                     ></span>
-                    {room.name}
+                    {i + 1}. {room.name}
                   </li>
                 ))}
               </ul>
@@ -395,7 +413,7 @@ const usernameNoAccent = username
                       className="room-dot"
                       style={{ backgroundColor: room.color }}
                     ></span>
-                    {room.name}
+                    {i + 1}. {room.name}
                   </li>
                 ))}
               </ul>

@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
+
 import Register from "./pages/Auth/Register.jsx";
 import LoginPage from "./pages/Auth/Login.jsx";
 import DashboardUser from "./pages/User/DashboardUser.jsx";
