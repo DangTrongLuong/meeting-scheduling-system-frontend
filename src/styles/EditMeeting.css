@@ -1,0 +1,70 @@
+.edit-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.edit-modal-content {
+  background: #fff;
+  width: 500px;
+  padding: 22px;
+  border-radius: 10px;
+  animation: fadeIn 0.2s ease;
+}
+
+.edit-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 18px;
+}
+
+.edit-body label {
+  display: block;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+.edit-input {
+  width: 100%;
+  padding: 8px 10px;
+  margin-top: 6px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.edit-footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.edit-save {
+  background: #3498db;
+  border: none;
+  padding: 10px 16px;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.edit-cancel {
+  background: #bbb;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
