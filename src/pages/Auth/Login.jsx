@@ -135,7 +135,7 @@ export default function LoginPage() {
         autoClose: 1000,
         onClose: () => {
           if (role === "ADMIN") {
-            window.location.href = "/admin/dashboash";
+            window.location.href = "/admin/dashboard";
           } else {
             window.location.href = "/user/meeting-schedule";
           }

@@ -111,7 +111,7 @@ function App() {
             }
           />
           <Route
-            path="/admin/dashboash"
+            path="/admin/dashboard"
             element={
               <AuthMiddleware>
                 <DashboardAdmin />
@@ -153,14 +153,14 @@ function App() {
               </AuthMiddleware>
             }
           />
-<Route
-  path="/user/edit-meeting/:id"
-  element={
-    <AuthMiddleware>
-      <EditMeeting />
-    </AuthMiddleware>
-  }
-/>
+          <Route
+            path="/user/edit-meeting/:id"
+            element={
+              <AuthMiddleware>
+                <EditMeeting />
+              </AuthMiddleware>
+            }
+          />
         </Routes>
       </UserProvider>
     </Router>

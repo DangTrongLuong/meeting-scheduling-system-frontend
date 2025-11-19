@@ -25,7 +25,7 @@ const SideBarAdmin = ({ activeItem, onItemClick, isOpen, onClose }) => {
       icon: Home,
       label: "Home",
       hasSubmenu: true,
-      path: "/dashboardAdmin",
+      path: "/admin/dashboard",
     },
     {
       id: "devices",
