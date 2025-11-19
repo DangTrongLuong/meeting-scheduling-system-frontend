@@ -3,7 +3,7 @@ import NavBar from "../../components/NavBar";
 import SideBarAdmin from "../../components/SideBarAdmin";
 import { Book, User, Package, BarChart3 } from "lucide-react";
 import axios from "axios";
-import "../../styles/DashboardAdmin.css";
+import "../../styles/Admin/DashboardAdmin.css";
 
 const DashboardAdmin = () => {
   const [activeMenuItem, setActiveMenuItem] = useState("home");

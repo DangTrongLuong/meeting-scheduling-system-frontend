@@ -4,12 +4,13 @@
   height: 100%;
   padding: 10px 0;
 }
+
 .main-content-user {
   flex: 1;
-  margin-left: 150px !important;
+  margin-left: 100px !important;
   min-height: calc(100vh - 70px);
   padding: 20px 40px;
-  margin: 0;
+  margin-top: 50px;
   position: relative;
   background-color: #ffffff;
 }
@@ -28,7 +29,6 @@
   width: 100%;
   max-width: 82%;
   overflow: auto;
-  margin-right: 90px;
 }
 
 .fc {
@@ -62,6 +62,21 @@
 
 .fc-timegrid-slot-label {
   color: #555;
+}
+
+.fc-dayGridMonth-view .fc-daygrid-day-frame {
+  min-height: 110px;
+}
+
+.fc-dayGridMonth-view .fc-daygrid-event {
+  font-size: 12px;
+  padding: 4px;
+}
+
+.fc-dayGridMonth-view .fc-event:hover {
+  background-color: #ececec !important;
+  color: #2e2e2e;
+  cursor: pointer;
 }
 
 .navbar-left {
@@ -149,36 +164,48 @@
   background-color: #28a745;
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 10px 16px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-  margin-top: 45px;
   font-weight: 500;
+  transition: background-color 0.2s;
 }
-.meeting-btn-list{
+
+.meeting-btn:hover {
+  background-color: #218838;
+}
+
+.meeting-btn-list {
   background-color: #dc3545;
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 10px 16px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-  margin-top: 45px;
   font-weight: 500;
-
+  transition: background-color 0.2s;
 }
-.meeting-btn-invite{
+
+.meeting-btn-list:hover {
+  background-color: #c82333;
+}
+
+.meeting-btn-invite {
   background-color: #ffc107;
-  color: white;
+  color: #333;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 10px 16px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-  margin-top: 45px;
   font-weight: 500;
+  transition: background-color 0.2s;
+}
 
+.meeting-btn-invite:hover {
+  background-color: #ffb500;
 }
 
 .mail-icon {
@@ -200,7 +227,6 @@
 }
 
 /* Layout */
-
 .content {
   display: flex;
   width: 100%;
@@ -212,22 +238,22 @@
   position: relative;
   right: 0;
   top: 20px;
-  width: 320px;
+  width: auto;
   background: #f8f8f8;
   padding: 20px;
   border-right: 1px solid #ddd;
   overflow-y: auto;
 }
 
-/* Lịch nhỏ không có box */
+/* Mini Calendar */
 .mini-calendar {
   margin-bottom: 30px;
 }
 
 .react-calendar {
   width: 100%;
-  border: none; /* bỏ viền */
-  background: transparent; /* bỏ nền */
+  border: none;
+  background: transparent;
   font-size: 11px;
 }
 
@@ -251,7 +277,7 @@
   border-radius: 50%;
 }
 
-/* Tiêu đề sidebar */
+/* Sidebar */
 .sidebar-title {
   font-size: 18px;
   font-weight: bold;
@@ -299,142 +325,7 @@
   overflow: auto;
 }
 
-/* Modal */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-}
-
-.modal-content {
-  background-color: #fff;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow: auto;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-}
-
-.modal-title {
-  margin: 0;
-  padding: 20px 24px;
-  border-bottom: 1px solid #eee;
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-}
-
-.modal-body {
-  padding: 24px;
-}
-
-.modal-footer {
-  padding: 16px 24px;
-  border-top: 1px solid #eee;
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-
-.close-btn {
-  padding: 8px 20px;
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.delete-btn {
-  padding: 8px 20px;
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.create-btn {
-  padding: 8px 20px;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-/* Form */
-.form-group {
-  margin-bottom: 16px;
-}
-
-.label {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
-}
-
-.input,
-.select {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  box-sizing: border-box;
-}
-
-.input:disabled,
-.select:disabled {
-  background-color: #f5f5f5;
-  color: #999;
-  cursor: not-allowed;
-}
-
-textarea.input {
-  resize: vertical;
-  min-height: 80px;
-  font-family: inherit;
-}
-
-.create-btn:disabled,
-.close-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Participants */
-.participant-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.checkbox {
-  cursor: pointer;
-}
-/* Responsive cho màn hình nhỏ (điện thoại) */
+/* Responsive */
 @media (max-width: 768px) {
   .main-inner-calender {
     flex-direction: column;
@@ -478,11 +369,13 @@ textarea.input {
     font-size: 14px;
   }
 
-  .meeting-btn {
-    width: 100%;
-    margin-top: 20px;
+  .meeting-btn,
+  .meeting-btn-list,
+  .meeting-btn-invite {
+    width: auto;
+    margin-top: 8px;
     font-size: 13px;
-    padding: 6px 12px;
+    padding: 8px 12px;
   }
 
   .profile-circle {
@@ -520,39 +413,5 @@ textarea.input {
   .room-item {
     font-size: 12px;
     gap: 6px;
-  }
-
-  .modal-content {
-    width: 95%;
-    max-width: 400px;
-    padding: 12px;
-  }
-
-  .modal-title {
-    font-size: 16px;
-    padding: 12px;
-  }
-
-  .modal-body {
-    padding: 16px;
-  }
-
-  .modal-footer {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .create-btn,
-  .close-btn,
-  .delete-btn {
-    width: 100%;
-    font-size: 13px;
-    padding: 6px 12px;
-  }
-
-  .input,
-  .select {
-    font-size: 13px;
-    padding: 6px 10px;
   }
 }
