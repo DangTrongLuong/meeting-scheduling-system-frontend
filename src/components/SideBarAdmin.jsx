@@ -10,7 +10,7 @@ import {
   Server,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import "../styles/SideBarAdmin.css";
+import "../styles/Admin/SideBarAdmin.css";
 import "../styles/ProgressBar.css";
 
 const SideBarAdmin = ({ activeItem, onItemClick, isOpen, onClose }) => {

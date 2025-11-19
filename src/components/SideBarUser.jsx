@@ -11,8 +11,8 @@ import {
   PhoneCall,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import "../styles/SideBarAdmin.css";
-import "../styles/SideBarUser.css";
+import "../styles/Admin/SideBarAdmin.css";
+import "../styles/User/SideBarUser.css";
 import "../styles/ProgressBar.css";
 
 const SideBarUser = ({ activeItem, onItemClick, isOpen, onClose }) => {
