@@ -279,6 +279,22 @@
   transition: all 0.3s ease;
   box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
 }
+.detail-event-cancel-btn {
+  padding: 10px 24px;
+  background-color: #fd7e14; /* Cam cảnh báo */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(253, 126, 20, 0.3);
+}
+
+.detail-event-cancel-btn:hover {
+  background-color: #e96b0c; /* Cam đậm hơn khi hover */
+}
 
 .detail-event-update-btn:hover:not(:disabled) {
   background-color: #0056b3;

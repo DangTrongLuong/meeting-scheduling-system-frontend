@@ -245,6 +245,14 @@ export default function DetailEvent({
                 Update
               </button>
               <button
+                className="detail-event-cancel-btn"
+                onClick={() => {
+                  toast.info("Update feature coming soon!");
+                }}
+              >
+                Cancel
+              </button>
+              <button
                 className="detail-event-delete-btn"
                 onClick={handleDeleteClick}
                 disabled={isDeleting}
