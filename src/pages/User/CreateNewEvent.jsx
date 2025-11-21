@@ -5,6 +5,7 @@ import axios from "axios";
 import "../../styles/User/CreateNewEvent.css";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import Select from "react-select";
 
 export default function CreateNewEvent({
   isOpen,
@@ -377,6 +378,32 @@ export default function CreateNewEvent({
               </ul>
             </div>
           )}
+
+
+          {/* Borrow Devices */}
+{/* Borrow Devices */}
+<div className="create-event-form-group">
+  <label className="create-event-label">Borrow Devices</label>
+  <Select
+    isMulti
+    options={allDevices.map(device => ({
+      value: device.id,
+      label: device.name
+    }))}
+    value={formData.borrowedDevices.map(id => {
+      const device = allDevices.find(d => d.id === id);
+      return device ? { value: device.id, label: device.name } : null;
+    }).filter(Boolean)}
+    onChange={(selectedOptions) => {
+      const selectedIds = selectedOptions.map(option => option.value);
+      setFormData({ ...formData, borrowedDevices: selectedIds });
+    }}
+    placeholder="Search and select devices..."
+    isDisabled={loading}
+    classNamePrefix="react-select"
+  />
+</div>
+
 
           {/* Start Time */}
           <div className="create-event-form-group">

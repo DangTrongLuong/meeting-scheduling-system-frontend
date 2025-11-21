@@ -427,3 +427,32 @@
     width: 100%;
   }
 }
+
+.react-select__control {
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  min-height: 40px;
+}
+
+.react-select__multi-value {
+  background-color: #e6f0ff;
+  color: #333;
+}
+
+.react-select__option--is-focused {
+  background-color: #f0f0f0;
+}
+
+.react-select__option--is-selected {
+  background-color: #007bff;
+  color: white;
+}
+
+
+.react-select__placeholder {
+  color: #666;           /* Màu chữ */
+  font-size: 14px;       /* Kích thước chữ */
+  font-style: italic;    /* Kiểu chữ */
+  padding-left: 4px;     /* Khoảng cách bên trái */
+}
+

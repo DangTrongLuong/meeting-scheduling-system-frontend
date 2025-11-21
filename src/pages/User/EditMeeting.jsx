@@ -58,7 +58,7 @@ export default function EditMeeting({ meetingId, onClose, rooms }) {
       const endDT = `${meetingData.date}T${meetingData.endTime}:00`;
 
       const response = await fetch(
-        `http://localhost:8080/api/meetings/update/${meetingId}`,
+        `http://localhost:8080/api/meetings/${meetingId}`,
         {
           method: "PUT",
           headers: {
