@@ -5,6 +5,8 @@ import LoginPage from "./pages/Auth/Login.jsx";
 import DashboardUser from "./pages/User/DashboardUser.jsx";
 import EditMeeting from "./pages/User/EditMeeting.jsx";
 import Profile from "./pages/Auth/Profile.jsx";
+import HomePage from "./pages/HomePage/HomePage.jsx";
+import LoadingScreen from "./pages/HomePage/LoadingScreen.jsx";
 
 import Room from "./pages/Admin/Room/Rooms.jsx";
 import AddRoom from "./pages/Admin/Room/AddRoom.jsx";
@@ -14,7 +16,6 @@ import RoomDevices from "./pages/Admin/RoomDevice/RoomDevices.jsx";
 import AddRoomDevice from "./pages/Admin/RoomDevice/AssignDevice.jsx";
 import EditAssignment from "./pages/Admin/RoomDevice/EditAssignment.jsx";
 
-import CalendarPage from "./pages/CalendarPage.jsx";
 import VerifyPage from "./pages/Verify/VerifyPage.jsx";
 import ForgotPasswordPage from "./pages/Auth/ForgotPassword.jsx";
 import DashboardAdmin from "./pages/Admin/DashboardAdmin.jsx";
@@ -33,6 +34,8 @@ function App() {
         <Routes>
           {/* Auth routes */}
           <Route path="/register" element={<Register />} />
+          <Route path="/homepage" element={<HomePage />} />
+          <Route path="/redirecting" element={<LoadingScreen />} />
           <Route path="/" element={<LoginPage />} />
           <Route path="/verify" element={<VerifyPage />} />
           <Route path="/forgot_password" element={<ForgotPasswordPage />} />
@@ -145,14 +148,6 @@ function App() {
             }
           />
 
-          <Route
-            path="/calendar"
-            element={
-              <AuthMiddleware>
-                <CalendarPage />
-              </AuthMiddleware>
-            }
-          />
           <Route
             path="/user/edit-meeting/:id"
             element={

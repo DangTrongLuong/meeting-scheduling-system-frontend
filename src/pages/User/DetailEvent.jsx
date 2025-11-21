@@ -24,14 +24,14 @@ export default function DetailEvent({
     event?.creator?.id === currentUserId ||
     event?.creatorId === currentUserId;
 
-  useEffect(() => {
-    if (event) {
-      console.log("Event details:", event);
-      console.log("Current User ID:", currentUserId);
-      console.log("Creator ID:", event.creator?.id || event.creatorId);
-      console.log("isCreator flag:", event.isCreator);
-    }
-  }, [event, currentUserId]);
+  // useEffect(() => {
+  //   if (event) {
+  //     console.log("Event details:", event);
+  //     console.log("Current User ID:", currentUserId);
+  //     console.log("Creator ID:", event.creator?.id || event.creatorId);
+  //     console.log("isCreator flag:", event.isCreator);
+  //   }
+  // }, [event, currentUserId]);
 
   useEffect(() => {
     if (!event) return;
