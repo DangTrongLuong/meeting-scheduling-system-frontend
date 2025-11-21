@@ -15,12 +15,17 @@ import axios from "axios";
 import CreateNewEvent from "./CreateNewEvent";
 import DetailEvent from "./DetailEvent";
 
+
 export default function DashboardUser() {
   const calendarRef = useRef(null);
 
   const [rooms, setRooms] = useState([]);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
+  //
+  const [filterMode, setFilterMode] = useState("all"); 
+  //
+  const [selectedDate, setSelectedDate] = useState(null); 
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -34,6 +39,21 @@ export default function DashboardUser() {
   const [currentTime, setCurrentTime] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeMenuItem, setActiveMenuItem] = useState("meetting");
+  // Lọc sự kiện dựa trên filterMode
+  const getFilteredEvents = () => {
+  const userId = localStorage.getItem("userId");
+  if (filterMode === "created") {
+    return events.filter(e => e.extendedProps.creatorId === userId);
+  } else if (filterMode === "invited") {
+    return events.filter(
+      e =>
+        e.extendedProps.creatorId !== userId &&
+        e.extendedProps.participants.includes(localStorage.getItem("userEmail"))
+    );
+  }
+  return events; // all events
+};
+
 
   // Fetch rooms
   useEffect(() => {
@@ -246,23 +266,24 @@ export default function DashboardUser() {
         />
 
         <div className="navbar-right">
-          <button
-            className="meeting-btn-list"
-            onClick={() => {
-              toast.info("This feature will be updated soon!");
-            }}
-          >
-            + Booked Rooms List
-          </button>
+<button
+  className="meeting-btn-list"
+  onClick={() => {
+    setFilterMode(prev => (prev === "created" ? "all" : "created"));
+  }}
+>
+  + Booked Rooms List
+</button>
 
-          <button
-            className="meeting-btn-invite"
-            onClick={() => {
-              toast.info("This feature will be updated soon!");
-            }}
-          >
-            + Invited Rooms List
-          </button>
+<button
+  className="meeting-btn-invite"
+  onClick={() => {
+    setFilterMode(prev => (prev === "invited" ? "all" : "invited"));
+  }}
+>
+  + Invited Rooms List
+</button>
+
 
           <button
             className="meeting-btn"
@@ -279,7 +300,8 @@ export default function DashboardUser() {
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
               initialView="timeGridWeek"
               locale="en-EN"
-              events={events}
+              //
+              events={getFilteredEvents()}
               eventClick={handleEventClick}
               headerToolbar={{
                 left: "prev,next today",
@@ -329,15 +351,59 @@ export default function DashboardUser() {
                   startTime: timeStr,
                   endTime: endTimeStr,
                 });
+                
 
                 setShowCreateModal(true);
+                
               }}
+        dayCellClassNames={(arg) => {
+  if (!selectedDate) return [];
+  const sel = new Date(selectedDate);
+  const cell = new Date(arg.date);
+
+  // So sánh ngày được chọn với ngày của ô lịch
+  if (
+    sel.getFullYear() === cell.getFullYear() &&
+    sel.getMonth() === cell.getMonth() &&
+    sel.getDate() === cell.getDate()
+  ) {
+    return ["fc-selected-date"];
+  }
+  return [];
+}}
+
+              
             />
           </div>
 
           <aside className="sidebar-user-calender">
             <div className="mini-calendar">
-              <Calendar value={new Date()} locale="en-EN" />
+              // Đồng bộ lịch nhỏ với lịch lớn
+             <Calendar
+  value={selectedDate || new Date()}
+  onClickDay={(date) => {
+    setSelectedDate(date);
+
+    // Đồng bộ lịch to
+    if (calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi();
+      calendarApi.gotoDate(date);
+    }
+  }}
+  tileClassName={({ date, view }) => {
+    if (view === "month") {
+      const today = new Date();
+      if (date.toDateString() === today.toDateString()) {
+        return "calendar-today"; // màu vàng dậm
+      }
+      if (selectedDate && date.toDateString() === selectedDate.toDateString()) {
+        return "calendar-selected"; // màu xanh dương
+      }
+    }
+    return null;
+  }}
+/>
+              <div className="current-time">{currentTime}</div>
             </div>
 
             {/* Thông tin phòng */}
