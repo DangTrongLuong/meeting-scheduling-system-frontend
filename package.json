@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^41.4.2",
+    "@ckeditor/ckeditor5-font": "^47.2.0",
     "@ckeditor/ckeditor5-react": "^11.0.0",
     "@fortawesome/free-regular-svg-icons": "^7.1.0",
     "@fortawesome/free-solid-svg-icons": "^7.1.0",

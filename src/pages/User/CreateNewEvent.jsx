@@ -197,13 +197,17 @@ export default function CreateNewEvent({
         }
       );
 
-      await axios.post("https://n8n.quanliduan-pms.site/webhook/send-email", {
-        ...meetingData,
-        meetingId: response.data.data?.meetingId,
-        createdBy: userName,
-        createdByEmail: userEmail,
-        roomName: roomName,
-      });
+      try {
+        await axios.post("https://n8n.quanliduan-pms.site/webhook/send-email", {
+          ...meetingData,
+          meetingId: response.data.data?.meetingId,
+          createdBy: userName,
+          createdByEmail: userEmail,
+          roomName: roomName,
+        });
+      } catch (emailError) {
+        console.error("Error sending email:", emailError);
+      }
 
       toast.success("Meeting booked successfully!");
       setTimeout(() => {
@@ -283,6 +287,9 @@ export default function CreateNewEvent({
                     "link",
                     "bulletedList",
                     "numberedList",
+                    "|",
+                    "fontColor",
+                    "fontBackgroundColor",
                     "|",
                     "outdent",
                     "indent",
