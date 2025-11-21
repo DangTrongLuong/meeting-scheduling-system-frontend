@@ -415,3 +415,17 @@
     gap: 6px;
   }
 }
+.calendar-today {
+  background-color: #ffd700 !important; /* vàng đậm */
+}
+
+.calendar-selected {
+  background-color: #007bff !important;
+  color: white !important;
+}
+.fc-selected-date {
+  background-color: #007bff !important;
+  color: white !important;
+}
+
+
