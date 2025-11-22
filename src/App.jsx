@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Register from "./pages/Auth/Register.jsx";
 import LoginPage from "./pages/Auth/Login.jsx";
 import DashboardUser from "./pages/User/DashboardUser.jsx";
-import EditMeeting from "./pages/User/EditMeeting.jsx";
 import Profile from "./pages/Auth/Profile.jsx";
 import HomePage from "./pages/HomePage/HomePage.jsx";
 import LoadingScreen from "./pages/HomePage/LoadingScreen.jsx";
@@ -144,15 +143,6 @@ function App() {
             element={
               <AuthMiddleware>
                 <EditDevice />
-              </AuthMiddleware>
-            }
-          />
-
-          <Route
-            path="/user/edit-meeting/:id"
-            element={
-              <AuthMiddleware>
-                <EditMeeting />
               </AuthMiddleware>
             }
           />

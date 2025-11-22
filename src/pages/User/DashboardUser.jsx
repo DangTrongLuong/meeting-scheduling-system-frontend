@@ -14,6 +14,7 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import CreateNewEvent from "./CreateNewEvent";
 import DetailEvent from "./DetailEvent";
+import EditEvent from "./EditEvent";
 
 
 export default function DashboardUser() {
@@ -29,19 +30,32 @@ export default function DashboardUser() {
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [openDetail, setOpenDetail] = useState(false);
+
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [preFillData, setPreFillData] = useState({
     date: "",
     startTime: "07:00",
     endTime: "07:30",
   });
-
+  //
+  const [showEdit, setShowEdit] = useState(false);
+  //
   const [currentTime, setCurrentTime] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeMenuItem, setActiveMenuItem] = useState("meetting");
+  const [miniCalendarKey, setMiniCalendarKey] = useState(0); // key để re-render React Calendar
+  const handleTodayClick = () => {
+  const calendarApi = calendarRef.current.getApi();
+  calendarApi.today();              // FullCalendar lớn về hôm nay
+  const today = new Date();
+  setSelectedDate(today);           // Mini calendar highlight today
+  setMiniCalendarKey(today.getTime()); // Buộc mini calendar re-render
+};
   // Lọc sự kiện dựa trên filterMode
   const getFilteredEvents = () => {
   const userId = localStorage.getItem("userId");
+
   if (filterMode === "created") {
     return events.filter(e => e.extendedProps.creatorId === userId);
   } else if (filterMode === "invited") {
@@ -52,6 +66,10 @@ export default function DashboardUser() {
     );
   }
   return events; // all events
+};
+const handleEditClick = (event) => {
+  setSelectedEvent(event);// set sự kiện sẽ edit
+  setShowEdit(true);     // mở modal EditEvent
 };
 
 
@@ -129,7 +147,12 @@ export default function DashboardUser() {
       };
     });
   };
-
+  const handleUpdateEvent = (updatedEvent) => {
+  setEvents(prevEvents =>
+    prevEvents.map(ev => ev.id === updatedEvent.id ? updatedEvent : ev)
+  );
+  setShowEdit(false);
+};
   // Fetch meetings lần đầu
   useEffect(() => {
     const fetchMeetings = async () => {
@@ -153,7 +176,6 @@ export default function DashboardUser() {
         console.error("Error fetching meetings:", error);
       }
     };
-
     fetchMeetings();
   }, []);
 
@@ -295,117 +317,103 @@ export default function DashboardUser() {
 
         <div className="main-inner-calender">
           <div className="calendar-container">
-            <FullCalendar
-              ref={calendarRef}
-              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-              initialView="timeGridWeek"
-              locale="en-EN"
-              //
-              events={getFilteredEvents()}
-              eventClick={handleEventClick}
-              headerToolbar={{
-                left: "prev,next today",
-                center: "title",
-                right: "dayGridMonth,timeGridWeek,timeGridDay",
-              }}
-              slotMinTime="07:00:00"
-              slotMaxTime="24:00:00"
-              slotDuration="00:30:00"
-              slotLabelInterval="01:00"
-              height="100%"
-              contentHeight="auto"
-              selectable={true}
-              selectMirror={true}
-              dayMaxEvents={true}
-              aspectRatio={2.5}
-              dateClick={(arg) => {
-                const clickedDate = arg.date;
-
-                // Format ngày
-                const dateStr = clickedDate.toISOString().split("T")[0];
-
-                // Format giờ
-                const hours = clickedDate
-                  .getHours()
-                  .toString()
-                  .padStart(2, "0");
-                const minutes = clickedDate
-                  .getMinutes()
-                  .toString()
-                  .padStart(2, "0");
-                const timeStr = `${hours}:${minutes}`;
-
-                // Tính endTime = start + 30 phút
-                let endHour = clickedDate.getHours();
-                let endMinute = clickedDate.getMinutes() + 30;
-                if (endMinute >= 60) {
-                  endHour += 1;
-                  endMinute -= 60;
-                }
-                const endTimeStr = `${endHour
-                  .toString()
-                  .padStart(2, "0")}:${endMinute.toString().padStart(2, "0")}`;
-
-                setPreFillData({
-                  date: dateStr,
-                  startTime: timeStr,
-                  endTime: endTimeStr,
-                });
-                
-
-                setShowCreateModal(true);
-                
-              }}
-        dayCellClassNames={(arg) => {
-  if (!selectedDate) return [];
-  const sel = new Date(selectedDate);
-  const cell = new Date(arg.date);
-
-  // So sánh ngày được chọn với ngày của ô lịch
-  if (
-    sel.getFullYear() === cell.getFullYear() &&
-    sel.getMonth() === cell.getMonth() &&
-    sel.getDate() === cell.getDate()
-  ) {
-    return ["fc-selected-date"];
-  }
-  return [];
-}}
-
-              
-            />
+<FullCalendar
+  ref={calendarRef}
+  plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+  initialView="timeGridWeek"
+  locale="en-EN"
+  events={getFilteredEvents()}
+  eventClick={handleEventClick}
+  headerToolbar={{
+    left: "prev,next customtoday",
+    center: "title",
+    right: "dayGridMonth,timeGridWeek,timeGridDay",
+  }}
+  customButtons={{
+    customtoday: {
+      text: "Today",
+      click: handleTodayClick,
+    },
+  }}
+  slotMinTime="07:00:00"
+  slotMaxTime="24:00:00"
+  slotDuration="00:30:00"
+  slotLabelInterval="01:00"
+  height="100%"
+  contentHeight="auto"
+  selectable={true}
+  selectMirror={true}
+  dayMaxEvents={true}
+  aspectRatio={2.5}
+  dateClick={(arg) => {
+    const clickedDate = arg.date;
+    setSelectedDate(clickedDate);
+    const dateStr = clickedDate.toISOString().split("T")[0];
+    const hours = clickedDate.getHours().toString().padStart(2, "0");
+    const minutes = clickedDate.getMinutes().toString().padStart(2, "0");
+    const timeStr = `${hours}:${minutes}`;
+    let endHour = clickedDate.getHours();
+    let endMinute = clickedDate.getMinutes() + 30;
+    if (endMinute >= 60) {
+      endHour += 1;
+      endMinute -= 60;
+    }
+    const endTimeStr = `${endHour.toString().padStart(2, "0")}:${endMinute
+      .toString()
+      .padStart(2, "0")}`;
+    setPreFillData({ date: dateStr, startTime: timeStr, endTime: endTimeStr });
+    setShowCreateModal(true);
+  }}
+  dayCellClassNames={(arg) => {
+    if (!selectedDate) return [];
+    const sel = new Date(selectedDate);
+    const cell = new Date(arg.date);
+    if (
+      sel.getFullYear() === cell.getFullYear() &&
+      sel.getMonth() === cell.getMonth() &&
+      sel.getDate() === cell.getDate()
+    ) {
+      return ["fc-selected-date"];
+    }
+    return [];
+  }}
+/>
           </div>
 
-          <aside className="sidebar-user-calender">
-            <div className="mini-calendar">
-              // Đồng bộ lịch nhỏ với lịch lớn
-             <Calendar
+<aside className="sidebar-user-calender">
+  <div className="mini-calendar">
+
+<Calendar
+  key={miniCalendarKey} // 🔑 Buộc re-render khi Today nhấn
   value={selectedDate || new Date()}
   onClickDay={(date) => {
     setSelectedDate(date);
 
-    // Đồng bộ lịch to
+    // Đồng bộ FullCalendar lớn
     if (calendarRef.current) {
       const calendarApi = calendarRef.current.getApi();
       calendarApi.gotoDate(date);
     }
   }}
+  onActiveStartDateChange={({ activeStartDate }) => {
+    if (calendarRef.current && activeStartDate) {
+      const calendarApi = calendarRef.current.getApi();
+      calendarApi.gotoDate(activeStartDate);
+    }
+  }}
   tileClassName={({ date, view }) => {
     if (view === "month") {
       const today = new Date();
-      if (date.toDateString() === today.toDateString()) {
-        return "calendar-today"; // màu vàng dậm
-      }
-      if (selectedDate && date.toDateString() === selectedDate.toDateString()) {
+      if (date.toDateString() === today.toDateString()) return "calendar-today"; // màu vàng
+      if (selectedDate && date.toDateString() === selectedDate.toDateString())
         return "calendar-selected"; // màu xanh dương
-      }
     }
     return null;
   }}
 />
-              <div className="current-time">{currentTime}</div>
-            </div>
 
+<div className="current-time">{currentTime}</div>
+           </div>
             {/* Thông tin phòng */}
             <h3 className="sidebar-title">Room Information</h3>
             <div className="room-box">
@@ -479,8 +487,18 @@ export default function DashboardUser() {
         event={selectedEvent}
         rooms={rooms}
         onDelete={handleDeleteSuccess}
+        onEdit={handleEditClick}
         loading={loading}
       />
+      <EditEvent
+  isOpen={showEdit}
+  onClose={() => setShowEdit(false)}
+  event={selectedEvent}
+  rooms={rooms}
+  onUpdate={handleUpdateEvent}
+
+/>
+
     </div>
   );
 }
