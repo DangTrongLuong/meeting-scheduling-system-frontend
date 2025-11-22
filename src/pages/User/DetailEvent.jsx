@@ -5,13 +5,14 @@ import "../../styles/User/DetailEvent.css";
 import axios from "axios";
 import DeleteConfirmation from "./DeleteConfirmation";
 
+
 export default function DetailEvent({
   isOpen,
   onClose,
   event,
   rooms,
   onDelete,
-  onUpdate,
+  onEdit,
   loading,
 }) {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -236,14 +237,12 @@ export default function DetailEvent({
         <div className="detail-event-modal-footer">
           {isCreator ? (
             <>
-              <button
-                className="detail-event-update-btn"
-                onClick={() => {
-                  toast.info("Update feature coming soon!");
-                }}
-              >
-                Update
-              </button>
+<button
+  className="detail-event-update-btn"
+  onClick={() => onEdit(event)} 
+>
+  Update
+</button>
               <button
                 className="detail-event-cancel-btn"
                 onClick={() => {
