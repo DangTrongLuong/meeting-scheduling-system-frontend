@@ -380,6 +380,8 @@ const ProfileContent = () => {
     }
   };
 
+  const authProvider = localStorage.getItem("authProvider");
+
   return (
     <>
       <ToastContainer position="top-right" style={{ marginTop: "60px" }} />
@@ -471,13 +473,17 @@ const ProfileContent = () => {
                       Edit Picture
                     </button>
 
-                    <button
-                      id="change-password-btn"
-                      className="edit-btn"
-                      onClick={() => setShowPasswordModal(true)}
-                    >
-                      Change Password
-                    </button>
+                   
+{authProvider !== "GOOGLE" && (
+  <button
+    id="change-password-btn"
+    className="edit-btn"
+    onClick={() => setShowPasswordModal(true)}
+  >
+    Change Password
+  </button>
+)}
+
                   </div>
                   {showPasswordModal && (
                     <div className="modal-overlay-profile">

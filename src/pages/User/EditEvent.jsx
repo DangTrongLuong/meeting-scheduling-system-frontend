@@ -43,7 +43,10 @@ export default function EditEvent({
 
       if (event.start instanceof Date) {
         startDate = event.start.toISOString().split("T")[0];
-        startTime = `${event.start.getHours().toString().padStart(2, "0")}:${event.start
+        startTime = `${event.start
+          .getHours()
+          .toString()
+          .padStart(2, "0")}:${event.start
           .getMinutes()
           .toString()
           .padStart(2, "0")}`;
@@ -53,7 +56,10 @@ export default function EditEvent({
       }
 
       if (event.end instanceof Date) {
-        endTime = `${event.end.getHours().toString().padStart(2, "0")}:${event.end
+        endTime = `${event.end
+          .getHours()
+          .toString()
+          .padStart(2, "0")}:${event.end
           .getMinutes()
           .toString()
           .padStart(2, "0")}`;
@@ -88,9 +94,7 @@ export default function EditEvent({
 
   const fetchRoomDevices = async (roomId) => {
     try {
-      const response = await axios.get(
-        `http://localhost:8080/api/meetings/rooms/${roomId}/devices`
-      );
+      const response = await axios.get(`/api/meetings/rooms/${roomId}/devices`);
       setRoomDevices(response.data || []);
     } catch (err) {
       console.error("Error fetching room devices:", err);
@@ -99,9 +103,7 @@ export default function EditEvent({
 
   const fetchAllDevices = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:8080/api/meetings/devices/active"
-      );
+      const response = await axios.get("/api/meetings/devices/active");
       setAllDevices(response.data || []);
     } catch (err) {
       console.error("Error fetching devices:", err);
@@ -114,7 +116,7 @@ export default function EditEvent({
     if (value.length > 3) {
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/meetings/users/search?email=${value}`
+          `/api/meetings/users/search?email=${value}`
         );
         setSearchResults(response.data || []);
       } catch (err) {
@@ -213,23 +215,34 @@ export default function EditEvent({
         participants: formData.participants.filter((p) => p.email),
         borrowedDevices: formData.borrowedDevices.filter((d) => d.deviceId),
       };
- const userId = localStorage.getItem("userId");
+      const userId = localStorage.getItem("userId");
 
+      const response = await axios.put(
+        `/api/meetings/${event.id}`,
+        updateData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // JWT token
+            userId: userId,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-const response = await axios.put(
-  `http://localhost:8080/api/meetings/${event.id}`,
-  updateData,
-  {
-    headers: {
-      Authorization: `Bearer ${token}`, // JWT token
-      "Content-Type": "application/json",
-    },
-  }
-);
+      onUpdate({
+        id: event.id,
+        title: formData.title,
+        start: startDateTime,
+        end: endDateTime,
+        roomId: formData.roomId,
+        roomName:
+          rooms.find((r) => r.id === formData.roomId)?.name || event.roomName,
+        description: formData.description,
+        participants: formData.participants.filter((p) => p.email),
+        borrowedDevices: formData.borrowedDevices.filter((d) => d.deviceId),
+        status: event.status,
+      });
 
-
-      toast.success("Meeting updated!");
-      onUpdate(updateData);
       onClose();
     } catch (err) {
       toast.error(err.response?.data?.message || "Update failed");
@@ -242,7 +255,8 @@ const response = await axios.put(
 
   return (
     <div className="edit-event-modal" onClick={onClose}>
-      <ToastContainer position="top-right" autoClose={1200} />
+      {/* {isOpen && <ToastContainer position="top-right" autoClose={1200} />} */}
+
       <div
         className="edit-event-modal-content"
         onClick={(e) => e.stopPropagation()}
@@ -428,7 +442,9 @@ const response = await axios.put(
 
           {/* Borrow Devices */}
           <div className="edit-event-form-group">
-            <label className="edit-event-label">Borrow Devices (Optional)</label>
+            <label className="edit-event-label">
+              Borrow Devices (Optional)
+            </label>
 
             {/* React-Select Multi */}
             <Select
@@ -440,7 +456,9 @@ const response = await axios.put(
               value={formData.borrowedDevices
                 .map((d) => {
                   const found = allDevices.find((x) => x.id === d.deviceId);
-                  return found ? { value: found.id, label: found.device.name } : null;
+                  return found
+                    ? { value: found.id, label: found.device.name }
+                    : null;
                 })
                 .filter(Boolean)}
               onChange={(selectedOptions) => {
@@ -448,7 +466,9 @@ const response = await axios.put(
                   const exists = formData.borrowedDevices.find(
                     (d) => d.deviceId === op.value
                   );
-                  return exists ? exists : { deviceId: op.value, quantity: 1, notes: "" };
+                  return exists
+                    ? exists
+                    : { deviceId: op.value, quantity: 1, notes: "" };
                 });
                 setFormData({ ...formData, borrowedDevices: selectedDevices });
               }}
@@ -491,7 +511,11 @@ const response = await axios.put(
                     min={1}
                     value={device.quantity}
                     onChange={(e) =>
-                      handleDeviceChange(idx, "quantity", parseInt(e.target.value))
+                      handleDeviceChange(
+                        idx,
+                        "quantity",
+                        parseInt(e.target.value)
+                      )
                     }
                     style={{ width: "80px", padding: "8px" }}
                     disabled={loading}
