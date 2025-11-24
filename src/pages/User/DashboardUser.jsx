@@ -25,6 +25,8 @@ export default function DashboardUser() {
   const [toastMessage, setToastMessage] = useState("");
   //
   const [filterMode, setFilterMode] = useState("all");
+  const [filterRoomId, setFilterRoomId] = useState(null);
+
   //
   const [selectedDate, setSelectedDate] = useState(null);
 
@@ -53,22 +55,34 @@ export default function DashboardUser() {
     setMiniCalendarKey(today.getTime()); // Buộc mini calendar re-render
   };
   // Lọc sự kiện dựa trên filterMode
-  const getFilteredEvents = () => {
-    const userId = localStorage.getItem("userId");
+const getFilteredEvents = () => {
+  const userId = localStorage.getItem("userId");
 
-    if (filterMode === "created") {
-      return events.filter((e) => e.extendedProps.creatorId === userId);
-    } else if (filterMode === "invited") {
-      return events.filter(
-        (e) =>
-          e.extendedProps.creatorId !== userId &&
-          e.extendedProps.participants.includes(
-            localStorage.getItem("userEmail")
-          )
-      );
-    }
-    return events; // all events
-  };
+  let filtered = events;
+
+  // Lọc theo filter created/invited
+  if (filterMode === "created") {
+    filtered = filtered.filter((e) => e.extendedProps.creatorId === userId);
+  } else if (filterMode === "invited") {
+    filtered = filtered.filter(
+      (e) =>
+        e.extendedProps.creatorId !== userId &&
+        e.extendedProps.participants.includes(
+          localStorage.getItem("userEmail")
+        )
+    );
+  }
+
+  // Lọc theo phòng nếu người dùng chọn trong "Available Rooms Today"
+  if (filterRoomId) {
+    filtered = filtered.filter(
+      (e) => e.extendedProps.roomId === filterRoomId
+    );
+  }
+
+  return filtered;
+};
+
   const handleEditClick = (event) => {
     setSelectedEvent(event); // set sự kiện sẽ edit
     setShowEdit(true); // mở modal EditEvent
@@ -401,7 +415,7 @@ export default function DashboardUser() {
           <aside className="sidebar-user-calender">
             <div className="mini-calendar">
               <Calendar
-                key={miniCalendarKey} // 🔑 Buộc re-render khi Today nhấn
+                key={miniCalendarKey} //re-render khi Today nhấn
                 value={selectedDate || new Date()}
                 onClickDay={(date) => {
                   setSelectedDate(date);
@@ -461,15 +475,32 @@ export default function DashboardUser() {
                 Available Rooms Today
               </h4>
               <ul className="room-list">
-                {getAvailableRooms().map((room, i) => (
-                  <li key={i} className="room-item">
-                    <span
-                      className="room-dot"
-                      style={{ backgroundColor: "#28a745" }}
-                    ></span>
-                    {room.name}
-                  </li>
-                ))}
+{getAvailableRooms().map((room, i) => (
+  <li
+    key={i}
+    className="room-item"
+    onClick={() => {
+      // Nếu nhấn lại thì bỏ filter thôi 
+      if (filterRoomId === room.id) {
+        setFilterRoomId(null);
+      } else {
+        setFilterRoomId(room.id);
+      }
+    }}
+    style={{
+      cursor: "pointer",
+      fontWeight: filterRoomId === room.id ? "bold" : "normal",
+      color: filterRoomId === room.id ? "#127cf5" : "inherit",
+    }}
+  >
+    <span
+      className="room-dot"
+      style={{ backgroundColor: "#28a745" }}
+    ></span>
+    {room.name}
+  </li>
+))}
+
               </ul>
 
               <h4 className="room-box-title" style={{ marginTop: 16 }}>
