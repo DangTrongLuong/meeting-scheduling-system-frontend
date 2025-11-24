@@ -67,7 +67,7 @@ export default function CreateNewEvent({
   const fetchAllDevices = async () => {
     try {
       const response = await axios.get(
-        'http://localhost:8080/api/meetings/devices/active'
+        "http://localhost:8080/api/meetings/devices/active"
       );
       setAllDevices(response.data || []);
     } catch (error) {
@@ -379,35 +379,40 @@ export default function CreateNewEvent({
             </div>
           )}
 
-
           {/* Borrow Devices */}
-{/* Borrow Devices */}
-<div className="create-event-form-group">
-  <label className="create-event-label">Borrow Devices</label>
-  <Select
-    isMulti
-    options={allDevices.map(d => ({
-      value: d.id,              // id của room-device mapping
-      label: d.device.name       // đúng đường dẫn tới tên thiết bị
-    }))}
-    value={formData.borrowedDevices.map(d => {
-      const found = allDevices.find(x => x.id === d.deviceId);
-      return found ? { value: found.id, label: found.device.name } : null;
-    }).filter(Boolean)}
-    onChange={(selectedOptions) => {
-      const selectedDevices = selectedOptions.map(op => {
-        const exists = formData.borrowedDevices.find(d => d.deviceId === op.value);
-        return exists ? exists : { deviceId: op.value, quantity: 1, notes: "" };
-      });
-      setFormData({ ...formData, borrowedDevices: selectedDevices });
-    }}
-    placeholder="Search and select devices..."
-    isDisabled={loading}
-    classNamePrefix="react-select"
-  />
-</div>
-
-
+          {/* Borrow Devices */}
+          <div className="create-event-form-group">
+            <label className="create-event-label">Borrow Devices</label>
+            <Select
+              isMulti
+              options={allDevices.map((d) => ({
+                value: d.id, // id của room-device mapping
+                label: d.device.name, // đúng đường dẫn tới tên thiết bị
+              }))}
+              value={formData.borrowedDevices
+                .map((d) => {
+                  const found = allDevices.find((x) => x.id === d.deviceId);
+                  return found
+                    ? { value: found.id, label: found.device.name }
+                    : null;
+                })
+                .filter(Boolean)}
+              onChange={(selectedOptions) => {
+                const selectedDevices = selectedOptions.map((op) => {
+                  const exists = formData.borrowedDevices.find(
+                    (d) => d.deviceId === op.value
+                  );
+                  return exists
+                    ? exists
+                    : { deviceId: op.value, quantity: 1, notes: "" };
+                });
+                setFormData({ ...formData, borrowedDevices: selectedDevices });
+              }}
+              placeholder="Search and select devices..."
+              isDisabled={loading}
+              classNamePrefix="react-select"
+            />
+          </div>
 
           {/* Start Time */}
           <div className="create-event-form-group">
