@@ -135,7 +135,7 @@ const getFilteredEvents = () => {
 
       return {
         id: m.id,
-        title: `${m.title} - ${m.room.name}`,
+        title: `${m.title}`,
         start: m.startTime,
         end: m.endTime,
         backgroundColor,
