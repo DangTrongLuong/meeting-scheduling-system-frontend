@@ -220,6 +220,8 @@ const HomePage = () => {
                 </li>
                 <li>
                   <a>Partners</a>
+                  </li>
+                <li>
                   <a>News</a>
                 </li>
               </ul>

@@ -9,6 +9,7 @@ import {
   Calendar,
   MessageSquare,
   PhoneCall,
+  Search,   
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Admin/SideBarAdmin.css";
@@ -43,6 +44,13 @@ const SideBarUser = ({ activeItem, onItemClick, isOpen, onClose }) => {
       hasSubmenu: true,
       path: "/call",
     },
+    {
+      id: "search",
+      icon: Search,
+      label: "Search",
+      hasSubmenu: true,
+      path: "/search",
+    }
   ];
 
   useEffect(() => {
