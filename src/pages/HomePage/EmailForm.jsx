@@ -23,7 +23,7 @@ export default function EmailForm() {
       });
 
       if (response.data === true) {
-        navigate("/redirecting");
+        navigate("/redirecting", { state: { email } });
       } else {
         setError("Email is incorrect or does not exist");
       }
@@ -36,7 +36,13 @@ export default function EmailForm() {
     <div className="email-form">
       {!loading ? (
         <div className="email-container-check">
-          <div className="check-email">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit();
+            }}
+            className="check-email"
+          >
             <div className="email-input-wrapper">
               <span className="email-icon">📧</span>
               <input
@@ -48,10 +54,11 @@ export default function EmailForm() {
                 required
               />
             </div>
-            <button onClick={handleSubmit} className="submit-btn">
+            <button type="submit" className="submit-btn">
               Continue
             </button>
-          </div>
+          </form>
+
           <div>{error && <p className="error-text">{error}</p>}</div>
         </div>
       ) : (

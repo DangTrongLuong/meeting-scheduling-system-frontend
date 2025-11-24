@@ -59,11 +59,14 @@
   text-decoration: underline;
 }
 
+.homepage-title {
+}
+
 /* Hero Section */
 .hero-section {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 4rem 2rem;
+  padding: 2rem 2rem;
 }
 
 .hero-grid {
