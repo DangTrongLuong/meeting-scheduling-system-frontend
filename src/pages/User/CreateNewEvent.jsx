@@ -22,7 +22,7 @@ export default function CreateNewEvent({
     startTime: "07:00",
     endTime: "07:30",
     roomId: "",
-    participants: [{ email: "", role: "REQUIRED" }],
+    participants: [],
     borrowedDevices: [],
   });
 
@@ -178,7 +178,7 @@ export default function CreateNewEvent({
         startTime: startDateTime,
         endTime: endDateTime,
         roomId: formData.roomId,
-        participants: formData.participants.filter((p) => p.email),
+        participants: formData.participants,
         borrowedDevices: formData.borrowedDevices.filter((d) => d.deviceId),
       };
 
