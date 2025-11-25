@@ -21,6 +21,7 @@
     "@fullcalendar/interaction": "^6.1.19",
     "@fullcalendar/react": "^6.1.19",
     "@fullcalendar/timegrid": "^6.1.19",
+    "@stomp/stompjs": "^7.2.1",
     "axios": "^1.13.2",
     "lucide-react": "^0.552.0",
     "react": "^19.1.1",
@@ -32,6 +33,7 @@
     "react-router-dom": "^7.9.5",
     "react-select": "^5.10.2",
     "react-toastify": "^11.0.5",
+    "sockjs-client": "^1.6.1",
     "sweetalert2": "^11.26.3"
   },
   "devDependencies": {

@@ -420,12 +420,10 @@
 }
 
 .calendar-selected {
-  background-color: #007bff !important;
-  color: white !important;
+  background-color: #e4e4e4 !important;
+  color: rgb(0, 0, 0) !important;
 }
 .fc-selected-date {
-  background-color: #007bff !important;
+  background-color: #f0f0f0 !important;
   color: white !important;
 }
-
-

@@ -1,0 +1,13 @@
+.user-management-sp {
+  font-size: 32px;
+  font-weight: 600;
+  color: #093765;
+  margin-bottom: 20px;
+  margin-top: 50px;
+}
+.user-management-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
