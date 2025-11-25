@@ -22,7 +22,7 @@ export default function EditEvent({
     startTime: "07:00",
     endTime: "07:30",
     roomId: "",
-    participants: [{ email: "", role: "REQUIRED" }],
+    participants: [],
     borrowedDevices: [],
   });
 
@@ -74,8 +74,10 @@ export default function EditEvent({
         startTime: startTime,
         endTime: endTime,
         roomId: event.roomId || "",
-        participants: event.participants || [{ email: "", role: "REQUIRED" }],
-        borrowedDevices: event.borrowedDevices || [],
+        //participants: event.participants || [],
+        //borrowedDevices: event.borrowedDevices || [],
+        participants: Array.isArray(event.participants) ? event.participants : [],
+        borrowedDevices: Array.isArray(event.borrowedDevices) ? event.borrowedDevices : [],
       });
     }
   }, [event]);
@@ -91,7 +93,7 @@ export default function EditEvent({
   useEffect(() => {
     fetchAllDevices();
   }, []);
-
+  
   const fetchRoomDevices = async (roomId) => {
     try {
       const response = await axios.get(`/api/meetings/rooms/${roomId}/devices`);
@@ -127,14 +129,27 @@ export default function EditEvent({
     }
   };
 
+
   const addParticipant = (user) => {
-    const newParticipants = [
-      ...formData.participants,
-      { email: user.email, role: "REQUIRED" },
-    ];
-    setFormData({ ...formData, participants: newParticipants });
+  const emailNorm = user.email.toLowerCase().trim();
+  const exists = formData.participants.some(
+    (p) => p.email?.toLowerCase().trim() === emailNorm
+  );
+  if (exists) {
+    // ví dụ: toast.info("Email này đã có trong danh sách.");
     setSearchEmail("");
     setSearchResults([]);
+    return;
+  }
+
+  const newParticipants = [
+    ...formData.participants,
+    { email: user.email, role: "REQUIRED" },
+  ];
+  setFormData({ ...formData, participants: newParticipants });
+  setSearchEmail("");
+  setSearchResults([]);
+
   };
 
   const removeParticipant = (index) => {
