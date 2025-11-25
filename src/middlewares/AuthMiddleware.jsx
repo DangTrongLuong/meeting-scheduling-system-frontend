@@ -107,8 +107,13 @@ const AuthMiddleware = ({ children }) => {
       }
 
       // Kiểm tra quyền truy cập admin
-      if (location.pathname.startsWith("/admin") && role !== "ADMIN") {
-        console.log("Access denied: Admin role required");
+
+      if (
+        location.pathname.startsWith("/admin") &&
+        role !== "ADMIN" &&
+        role !== "SUPERADMIN"
+      ) {
+        console.log("Access denied: Admin or SuperAdmin role required");
         navigate("/", { replace: true });
         return;
       }

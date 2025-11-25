@@ -19,6 +19,7 @@ const SideBarAdmin = ({ activeItem, onItemClick, isOpen, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const sidebarRef = useRef(null);
+  const role = localStorage.getItem("role");
 
   const menuItems = [
     {
@@ -57,13 +58,17 @@ const SideBarAdmin = ({ activeItem, onItemClick, isOpen, onClose }) => {
       path: "/admin/meeting-management",
     },
 
-    // {
-    //   id: "users",
-    //   icon: User,
-    //   label: "Users",
-    //   hasSubmenu: true,
-    //   path: "/managementsUsers",
-    // },
+    ...(role === "SUPERADMIN"
+      ? [
+          {
+            id: "users-management",
+            icon: User,
+            label: "Users",
+            hasSubmenu: true,
+            path: "/admin/managementUsers",
+          },
+        ]
+      : []),
   ];
 
   useEffect(() => {

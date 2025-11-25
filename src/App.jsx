@@ -15,6 +15,8 @@ import RoomDevices from "./pages/Admin/RoomDevice/RoomDevices.jsx";
 import AddRoomDevice from "./pages/Admin/RoomDevice/AssignDevice.jsx";
 import EditAssignment from "./pages/Admin/RoomDevice/EditAssignment.jsx";
 
+import UserManagement from "./pages/Admin/UserManagement/UserManagement.jsx";
+
 import VerifyPage from "./pages/Verify/VerifyPage.jsx";
 import ForgotPasswordPage from "./pages/Auth/ForgotPassword.jsx";
 import DashboardAdmin from "./pages/Admin/DashboardAdmin.jsx";
@@ -143,6 +145,15 @@ function App() {
             element={
               <AuthMiddleware>
                 <EditDevice />
+              </AuthMiddleware>
+            }
+          />
+
+          <Route
+            path="/admin/managementUsers"
+            element={
+              <AuthMiddleware>
+                <UserManagement />
               </AuthMiddleware>
             }
           />
