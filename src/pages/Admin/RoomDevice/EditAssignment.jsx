@@ -85,7 +85,7 @@ const EditAssignment = () => {
     } catch (err) {
       console.error("Error loading:", err);
       toast.error(err.message || "Failed to load assignment data");
-      navigate("/deviceRoom");
+      navigate("/admin/deviceRoom");
     }
   };
 
@@ -235,7 +235,7 @@ const EditAssignment = () => {
 
       toast.success("Assignment updated successfully!");
       setTimeout(() => {
-        navigate("/deviceRoom");
+        navigate("/admin/deviceRoom");
       }, 1500);
     } catch (err) {
       console.error("Catch Error:", err);
@@ -246,7 +246,7 @@ const EditAssignment = () => {
   };
 
   const handleCancel = () => {
-    navigate("/deviceRoom");
+    navigate("/admin/deviceRoom");
   };
 
   const toggleSidebar = () => {

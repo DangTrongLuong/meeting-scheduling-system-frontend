@@ -10,6 +10,7 @@ import { login } from "../../context/AuthContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import axios from "axios";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -22,6 +23,12 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState({ email: false, password: false });
   const [showPassword, setShowPassword] = useState(false);
+
+  // 2FA Authenticator
+  const [show2FAModal, setShow2FAModal] = useState(false);
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [totpCode, setTotpCode] = useState("");
+  const [isSettingUp2FA, setIsSettingUp2FA] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -113,51 +120,90 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setGeneralError("");
-
-    // Validate both fields
-    const emailError = validateEmail(email);
-    const passwordError = validatePassword(password);
-
-    setEmailError(emailError);
-    setPasswordError(passwordError);
-    setTouched({ email: true, password: true });
-
-    if (emailError || passwordError) {
-      return;
-    }
-
     setLoading(true);
+    setShow2FAModal(false);
+    setQrCodeUrl("");
+    setTotpCode("");
+    setIsSettingUp2FA(false);
 
     try {
-      const result = await login(email.trim(), password);
-      const role = localStorage.getItem("role");
-      toast.success("Login successfully!", {
-        autoClose: 1000,
-        onClose: () => {
-          if (role === "ADMIN") {
-            window.location.href = "/admin/dashboard";
-          } else {
-            window.location.href = "/user/meeting-schedule";
-          }
-        },
+      const response = await axios.post("/api/auth/login", {
+        email: email.trim(),
+        password,
       });
+
+      const result = response.data.data;
+
+      localStorage.setItem("accessToken", result.accessToken);
+      localStorage.setItem("jwtToken", result.accessToken);
+      localStorage.setItem(
+        "tokenExpiresAt",
+        Date.now() + result.expiresIn * 1000
+      );
+      localStorage.setItem("userId", result.id);
+      localStorage.setItem("userEmail", result.email);
+      localStorage.setItem("userName", result.name || "User");
+      localStorage.setItem(
+        "avatarUrl",
+        result.avatarUrl || "/uploads/avatars/user-avatar.png"
+      );
+      localStorage.setItem("role", result.role || "USER");
+      localStorage.setItem(
+        "created_at",
+        result.createdAt || new Date().toISOString().split("T")[0]
+      );
+      localStorage.setItem("backgroundUrl", result.backgroundUrl || null);
+      localStorage.setItem("authProvider", "LOCAL");
+      window.dispatchEvent(new Event("storage"));
+
+      toast.success("Login successful!");
+      setTimeout(() => {
+        navigate(
+          result.role === "ADMIN"
+            ? "/admin/dashboard"
+            : "/user/meeting-schedule",
+          { replace: true }
+        );
+      }, 1200);
     } catch (error) {
-      console.error("Login error:", error);
+      if (error.response) {
+        const status = error.response.status;
+        const data = error.response.data;
 
-      const msg = error.message.toLowerCase();
-      let errorMessage = "Login failed. Please try again.";
+        // 2FA REQUIRED → hiện modal
+        if (
+          status === 428 ||
+          (data?.message && data.message.toLowerCase().includes("2fa"))
+        ) {
+          setShow2FAModal(true);
 
-      if (msg.includes("not activated") || msg.includes("activate")) {
-        errorMessage =
-          "Account not activated. Please check your email to verify.";
-      } else if (msg.includes("invalid email or password")) {
-        errorMessage = "Invalid email or password. Please try again.";
-      } else if (msg.includes("no response")) {
-        errorMessage = "No response from server. Please check your network.";
+          try {
+            const res = await axios.post("/api/auth/2fa/setup", null, {
+              params: { email: email.trim() },
+            });
+            setQrCodeUrl(res.data.qrCode);
+            setIsSettingUp2FA(true);
+          } catch {
+            setIsSettingUp2FA(false);
+          }
+          setLoading(false);
+          return;
+        }
+
+        // Các lỗi khác
+        const msg = data?.message || "Login failed";
+        if (msg.includes("not activated")) {
+          setGeneralError("Account not activated. Please check your email!");
+        } else if (msg.includes("Invalid email or password")) {
+          setGeneralError("Invalid email or password");
+        } else {
+          setGeneralError(msg);
+        }
+      } else {
+        setGeneralError("Cannot connect to server");
       }
 
-      setGeneralError(errorMessage);
-      toast.error(errorMessage);
+      toast.error("Login failed");
     } finally {
       setLoading(false);
     }
@@ -311,6 +357,162 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+      {show2FAModal && (
+        <div
+          className="modal-overlay"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: "rgba(0,0,0,0.7)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            className="modal-2fa"
+            style={{
+              background: "#fff",
+              padding: "25px 30px",
+              borderRadius: "12px",
+              width: "400px",
+              textAlign: "center",
+              boxShadow: "0 6px 20px rgba(0,0,0,0.3)",
+            }}
+          >
+            <h2>Two-Factor Authentication Required</h2>
+
+            {isSettingUp2FA && qrCodeUrl && (
+              <>
+                <p>Scan with Google Authenticator:</p>
+                <img
+                  src={qrCodeUrl}
+                  alt="2FA QR Code"
+                  style={{ width: "220px", margin: "15px 0" }}
+                />
+                <p>
+                  <strong>Or enter manually if you cannot scan</strong>
+                </p>
+              </>
+            )}
+
+            <input
+              type="text"
+              maxLength="6"
+              placeholder="Enter 6-digit code"
+              value={totpCode}
+              onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ""))}
+              style={{
+                width: "100%",
+                padding: "10px 0",
+                fontSize: "18px",
+                textAlign: "center",
+                borderRadius: "8px",
+                border: "1px solid #ccc",
+                margin: "15px 0",
+                letterSpacing: "5px",
+                outline: "none",
+                transition: "border-color 0.2s",
+              }}
+              onFocus={(e) => (e.target.style.borderColor = "#007bff")}
+              onBlur={(e) => (e.target.style.borderColor = "#ccc")}
+            />
+
+            <div
+              style={{ display: "flex", gap: "10px", justifyContent: "center" }}
+            >
+              <button
+                onClick={async () => {
+                  if (totpCode.length !== 6) {
+                    toast.error("Please enter a full 6-digit code");
+                    return;
+                  }
+
+                  try {
+                    if (isSettingUp2FA) {
+                      await axios.post("/api/auth/2fa/verify-setup", null, {
+                        params: { email: email.trim(), code: totpCode },
+                      });
+                    }
+
+                    const res = await axios.post("/api/auth/verify-2fa", {
+                      email: email.trim(),
+                      code: totpCode,
+                    });
+
+                    const result = res.data.data;
+
+                    localStorage.setItem("accessToken", result.accessToken);
+                    localStorage.setItem("jwtToken", result.accessToken);
+                    localStorage.setItem("userId", result.id);
+                    localStorage.setItem("userEmail", result.email);
+                    localStorage.setItem("userName", result.name || "User");
+                    localStorage.setItem(
+                      "tokenExpiresAt",
+                      Date.now() + result.expiresIn * 1000
+                    );
+                    localStorage.setItem(
+                      "avatarUrl",
+                      result.avatarUrl || "/uploads/avatars/user-avatar.png"
+                    );
+                    localStorage.setItem("role", result.role || "USER");
+                    localStorage.setItem(
+                      "backgroundUrl",
+                      result.backgroundUrl || null
+                    );
+                    localStorage.setItem(
+                      "authProvider",
+                      result.authProvider || "LOCAL"
+                    );
+
+                    toast.success("Login successful!");
+                    setTimeout(() => {
+                      navigate(
+                        result.role === "ADMIN"
+                          ? "/admin/dashboard"
+                          : "/user/meeting-schedule",
+                        { replace: true }
+                      );
+                    }, 1200);
+                  } catch (err) {
+                    toast.error("Invalid or expired code");
+                  }
+                }}
+                className="login-form-button"
+                disabled={totpCode.length !== 6}
+                style={{
+                  padding: "8px 15px",
+                  fontSize: "14px",
+                  borderRadius: "6px",
+                  cursor: totpCode.length === 6 ? "pointer" : "not-allowed",
+                }}
+              >
+                Verify
+              </button>
+
+              <button
+                onClick={() => {
+                  setShow2FAModal(false);
+                  setLoading(false);
+                }}
+                style={{
+                  background: "#ccc",
+                  padding: "8px 15px",
+                  fontSize: "14px",
+                  borderRadius: "6px",
+                }}
+                className="login-form-button"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

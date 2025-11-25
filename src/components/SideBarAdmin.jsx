@@ -8,6 +8,7 @@ import {
   BedDouble,
   Monitor,
   Server,
+  Calendar,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Admin/SideBarAdmin.css";
@@ -32,21 +33,28 @@ const SideBarAdmin = ({ activeItem, onItemClick, isOpen, onClose }) => {
       icon: Monitor,
       label: "Devices",
       hasSubmenu: true,
-      path: "/devices",
+      path: "/admin/devices",
     },
     {
       id: "management-rooms",
       icon: BedDouble,
       label: "Rooms",
       hasSubmenu: true,
-      path: "/managementRooms",
+      path: "/admin/managementRooms",
     },
     {
       id: "device-room",
       icon: Server,
       label: "Device Room",
       hasSubmenu: true,
-      path: "/deviceRoom",
+      path: "/admin/deviceRoom",
+    },
+    {
+      id: "meetting-management",
+      icon: Calendar,
+      label: "Meeting",
+      hasSubmenu: true,
+      path: "/admin/meeting-management",
     },
 
     // {

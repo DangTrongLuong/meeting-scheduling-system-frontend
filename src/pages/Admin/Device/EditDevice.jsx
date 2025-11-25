@@ -49,7 +49,7 @@ const EditDevice = () => {
       setPageLoading(false);
     } catch (err) {
       toast.error(err.message || "Failed to load device data");
-      navigate("/devices");
+      navigate("/admin/devices");
     }
   };
 
@@ -147,7 +147,7 @@ const EditDevice = () => {
   };
 
   const handleCancel = () => {
-    navigate("/devices");
+    navigate("/admin/devices");
   };
 
   const toggleSidebar = () => {

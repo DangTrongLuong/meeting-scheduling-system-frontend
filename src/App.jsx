@@ -41,7 +41,7 @@ function App() {
 
           {/* Protected routes */}
           <Route
-            path="/managementRooms"
+            path="/admin/managementRooms"
             element={
               <AuthMiddleware>
                 <Room />
@@ -49,7 +49,7 @@ function App() {
             }
           />
           <Route
-            path="/addRoom"
+            path="/admin/addRoom"
             element={
               <AuthMiddleware>
                 <AddRoom />
@@ -58,7 +58,7 @@ function App() {
           />
 
           <Route
-            path="/editRoom/:id"
+            path="/admin/editRoom/:id"
             element={
               <AuthMiddleware>
                 <EditRoom />
@@ -67,7 +67,7 @@ function App() {
           />
 
           <Route
-            path="/deviceRoom"
+            path="/admin/deviceRoom"
             element={
               <AuthMiddleware>
                 <RoomDevices />
@@ -75,7 +75,7 @@ function App() {
             }
           />
           <Route
-            path="/addRoomDevice"
+            path="/admin/addRoomDevice"
             element={
               <AuthMiddleware>
                 <AddRoomDevice />
@@ -84,7 +84,7 @@ function App() {
           />
 
           <Route
-            path="/editAssignment/:id"
+            path="/admin/editAssignment/:id"
             element={
               <AuthMiddleware>
                 <EditAssignment />
@@ -121,7 +121,7 @@ function App() {
             }
           />
           <Route
-            path="/devices"
+            path="/admin/devices"
             element={
               <AuthMiddleware>
                 <Devices />
@@ -130,7 +130,7 @@ function App() {
           />
 
           <Route
-            path="/createDevice"
+            path="/admin/createDevice"
             element={
               <AuthMiddleware>
                 <AddDevice />
@@ -139,7 +139,7 @@ function App() {
           />
 
           <Route
-            path="/editDevice/:id"
+            path="/admin/editDevice/:id"
             element={
               <AuthMiddleware>
                 <EditDevice />
