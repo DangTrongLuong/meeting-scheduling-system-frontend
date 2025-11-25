@@ -68,6 +68,14 @@ const ProfileContent = () => {
   const coverImgRef = useRef(null);
   const removeCoverBtnRef = useRef(null);
 
+  const [show2FASetup, setShow2FASetup] = useState(false);
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [twoFASecret, setTwoFASecret] = useState("");
+  const [totpCode, setTotpCode] = useState("");
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [loading2FA, setLoading2FA] = useState(false);
+  const [show2faConfirmModal, setShow2faConfirmModal] = useState(false);
+
   const validatePassword = (passwordValue) => {
     if (!passwordValue) {
       return "New password is required";
@@ -121,6 +129,88 @@ const ProfileContent = () => {
       fetchUserInfo(userId);
     }
   }, []);
+
+  useEffect(() => {
+    const check2FAStatus = async () => {
+      try {
+        const response = await axios.get("/api/auth/2fa/status", {
+          params: { email: userEmail },
+        });
+        setTwoFactorEnabled(response.data.twoFactorEnabled);
+      } catch (err) {
+        console.log("Cannot load 2FA status");
+      }
+    };
+    if (userEmail) {
+      check2FAStatus();
+    }
+  }, [userEmail]);
+
+  // Thêm hàm để bắt đầu setup 2FA
+  const handleEnable2FA = async () => {
+    setLoading2FA(true);
+    setTotpCode("");
+    try {
+      const response = await axios.post("/api/auth/2fa/setup", null, {
+        params: { email: userEmail },
+      });
+      setQrCodeUrl(response.data.qrCode);
+      setTwoFASecret(response.data.secret);
+      setShow2FASetup(true);
+      toast.info("Please scan QR code with Google Authenticator");
+    } catch (error) {
+      toast.error("Failed to generate 2FA QR code");
+      console.error(error);
+    } finally {
+      setLoading2FA(false);
+    }
+  };
+
+  // Thêm hàm để verify 2FA
+  const handleVerify2FA = async () => {
+    if (totpCode.length !== 6) {
+      toast.error("Please enter a 6-digit code");
+      return;
+    }
+
+    try {
+      const response = await axios.post("/api/auth/2fa/verify-setup", null, {
+        params: { email: userEmail, code: totpCode },
+      });
+
+      if (response.data.success) {
+        setTwoFactorEnabled(true);
+        setShow2FASetup(false);
+        setQrCodeUrl("");
+        setTwoFASecret("");
+        setTotpCode("");
+        toast.success("2FA enabled successfully!");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Invalid code");
+    }
+  };
+
+  // Thêm hàm để disable 2FA
+  const handleConfirmDisable2FA = async () => {
+    try {
+      const response = await axios.post("/api/auth/2fa/disable", null, {
+        params: { email: userEmail },
+      });
+      const res = response.data;
+
+      if (res === "2FA disabled") {
+        setTwoFactorEnabled(false);
+        toast.success("2FA disabled successfully", { autoClose: 1200 });
+      } else {
+        toast.error("Failed to disable 2FA", { autoClose: 1200 });
+      }
+    } catch (error) {
+      toast.error("Failed to disable 2FA", error, { autoClose: 1200 });
+    } finally {
+      setShow2faConfirmModal(false);
+    }
+  };
 
   useEffect(() => {
     updateDOM();
@@ -473,17 +563,35 @@ const ProfileContent = () => {
                       Edit Picture
                     </button>
 
-                   
-{authProvider !== "GOOGLE" && (
-  <button
-    id="change-password-btn"
-    className="edit-btn"
-    onClick={() => setShowPasswordModal(true)}
-  >
-    Change Password
-  </button>
-)}
-
+                    {authProvider !== "GOOGLE" && (
+                      <>
+                        <button
+                          id="change-password-btn"
+                          className="edit-btn"
+                          onClick={() => setShowPasswordModal(true)}
+                        >
+                          Change Password
+                        </button>
+                        {!twoFactorEnabled ? (
+                          <button
+                            id="enable-2fa-btn"
+                            className="edit-btn"
+                            onClick={handleEnable2FA}
+                            disabled={loading2FA}
+                          >
+                            {loading2FA ? "Loading..." : "Enable 2FA"}
+                          </button>
+                        ) : (
+                          <button
+                            id="disable-2fa-btn"
+                            className="edit-btn disable-btn"
+                            onClick={() => setShow2faConfirmModal(true)}
+                          >
+                            Disable 2FA
+                          </button>
+                        )}
+                      </>
+                    )}
                   </div>
                   {showPasswordModal && (
                     <div className="modal-overlay-profile">
@@ -754,6 +862,78 @@ const ProfileContent = () => {
           </div>
         )}
 
+        {show2faConfirmModal && (
+          <div
+            className="modal-2fa-confirm-overlay"
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              background: "rgba(0,0,0,0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+            }}
+          >
+            <div
+              className="modal-2fa-confirm"
+              style={{
+                background: "#fff",
+                padding: "20px 25px",
+                borderRadius: "10px",
+                width: "320px",
+                textAlign: "center",
+                boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+              }}
+            >
+              <p style={{ fontSize: "16px", marginBottom: "20px" }}>
+                Are you sure you want to disable 2FA?
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: "10px",
+                }}
+              >
+                <button
+                  className="btn-2fa-confirm-yes"
+                  style={{
+                    padding: "8px 16px",
+                    fontSize: "14px",
+                    borderRadius: "6px",
+                    background: "#d9534f",
+                    color: "#fff",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                  onClick={handleConfirmDisable2FA}
+                >
+                  Yes
+                </button>
+                <button
+                  className="btn-2fa-confirm-cancel"
+                  style={{
+                    padding: "8px 16px",
+                    fontSize: "14px",
+                    borderRadius: "6px",
+                    background: "#ccc",
+                    color: "#333",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setShow2faConfirmModal(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {showConfirmForm && (
           <div className="modal">
             <div className="modal-content-confirm">
@@ -774,6 +954,99 @@ const ProfileContent = () => {
           </div>
         )}
       </div>
+
+      {show2FASetup && (
+        <div className="modal-overlay-profile-2fa">
+          <div className="modal-content-profile-2fa">
+            <h2>Setup Two-Factor Authentication</h2>
+
+            <p style={{ marginBottom: "20px", textAlign: "center" }}>
+              Scan this QR code with Google Authenticator or similar app:
+            </p>
+
+            <div className="qr-code-secret">
+              {qrCodeUrl && (
+                <div style={{ textAlign: "center", marginBottom: "20px" }}>
+                  <img
+                    src={qrCodeUrl}
+                    alt="2FA QR Code"
+                    style={{
+                      width: "250px",
+                      border: "2px solid #ddd",
+                      padding: "10px",
+                    }}
+                  />
+                </div>
+              )}
+
+              <div>
+                <p style={{ textAlign: "center", marginBottom: "10px" }}>
+                  <strong>Or enter this key manually:</strong>
+                </p>
+                <div
+                  style={{
+                    textAlign: "center",
+
+                    padding: "10px",
+                    marginBottom: "20px",
+                    wordBreak: "break-all",
+                    fontSize: "14px",
+                    fontFamily: "monospace",
+                  }}
+                >
+                  {twoFASecret}
+                </div>
+              </div>
+            </div>
+
+            <p style={{ marginBottom: "15px" }}>
+              Enter the 6-digit code from your authenticator app:
+            </p>
+
+            <input
+              type="text"
+              maxLength="6"
+              placeholder="000000"
+              value={totpCode}
+              onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ""))}
+              style={{
+                width: "100%",
+                padding: "12px",
+                fontSize: "18px",
+                textAlign: "center",
+                marginBottom: "20px",
+                border: "2px solid #ddd",
+                borderRadius: "4px",
+              }}
+            />
+
+            <div className="modal-buttons-profile">
+              <button
+                type="button"
+                onClick={() => {
+                  setShow2FASetup(false);
+                  setQrCodeUrl("");
+                  setTwoFASecret("");
+                  setTotpCode("");
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleVerify2FA}
+                disabled={totpCode.length !== 6}
+                style={{
+                  opacity: totpCode.length === 6 ? 1 : 0.6,
+                  cursor: totpCode.length === 6 ? "pointer" : "not-allowed",
+                }}
+              >
+                Verify & Enable
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

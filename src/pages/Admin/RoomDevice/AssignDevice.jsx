@@ -146,7 +146,7 @@ const AssignDevice = () => {
 
       toast.success("Device assigned successfully!");
       setTimeout(() => {
-        navigate("/deviceRoom");
+        navigate("/admin/deviceRoom");
       }, 1200);
     } catch (err) {
       toast.error(err.message || "Network error");
@@ -155,7 +155,7 @@ const AssignDevice = () => {
     }
   };
 
-  const handleCancel = () => navigate("/deviceRoom");
+  const handleCancel = () => navigate("/admin/deviceRoom");
 
   const handleMenuClick = (itemId) => {
     setActiveMenuItem(itemId);

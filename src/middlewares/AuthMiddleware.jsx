@@ -229,7 +229,7 @@ const AuthMiddleware = ({ children }) => {
     }
 
     checkAuth();
-  }, [location.pathname, navigate]);
+  }, [location.pathname, location.search, navigate]);
 
   if (location.pathname === "/loginSuccess") {
     return (

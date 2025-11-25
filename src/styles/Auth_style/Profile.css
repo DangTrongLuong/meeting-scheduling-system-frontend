@@ -432,6 +432,33 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
+.modal-overlay-profile-2fa {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  margin-top: 30px;
+}
+.modal-content-profile-2fa {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  width: 90%;
+  height: 630px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+.qr-code-secret {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .modal-content-profile h2 {
   margin-bottom: 20px;
 }
@@ -480,6 +507,25 @@
 .modal-buttons-confirm-change button:last-child {
   background-color: #007bff;
   color: white;
+}
+
+.modal-content-profile input[type="text"] {
+  width: 100%;
+  padding: 12px;
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 20px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  letter-spacing: 4px;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+}
+
+.modal-content-profile input[type="text"]:focus {
+  outline: none;
+  border-color: #4464f2;
+  box-shadow: 0 0 8px rgba(68, 100, 242, 0.2);
 }
 
 /* Responsive Design */
@@ -597,6 +643,21 @@
   .btn-confirm {
     padding: 10px 16px;
     font-size: 13px;
+  }
+
+  .modal-content-profile-2fa {
+    overflow-y: scroll;
+  }
+  .modal-content-profile-2fa h2 {
+    width: 100%;
+    font-size: 16px;
+  }
+  .modal-content-profile-2fa p {
+    font-size: 14px;
+  }
+  .qr-code-secret {
+    display: flex;
+    flex-direction: column;
   }
 }
 

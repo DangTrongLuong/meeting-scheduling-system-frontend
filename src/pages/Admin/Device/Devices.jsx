@@ -45,9 +45,9 @@ const Devices = () => {
 
   useEffect(() => {
     const pathToItem = {
-      "/devices": "devices",
-      "/rooms": "rooms",
-      "/room-devices": "room-devices",
+      "/admin/devices": "devices",
+      "/admin/managementRooms": "management-rooms",
+      "/admin/deviceRoom": "device-room",
     };
     setActiveMenuItem(pathToItem[location.pathname] || "devices");
   }, [location.pathname]);
@@ -156,7 +156,7 @@ const Devices = () => {
             </div>
             <button
               className="device-btn-add"
-              onClick={() => navigate("/createDevice")}
+              onClick={() => navigate("/admin/createDevice")}
             >
               + Add Device
             </button>
@@ -209,7 +209,7 @@ const Devices = () => {
                         <button
                           className="btn-edit"
                           onClick={() => {
-                            navigate(`/editDevice/${d.id}`);
+                            navigate(`/admin/editDevice/${d.id}`);
                           }}
                           title="Edit device"
                         >

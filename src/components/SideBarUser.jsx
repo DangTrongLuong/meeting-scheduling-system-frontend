@@ -9,7 +9,7 @@ import {
   Calendar,
   MessageSquare,
   PhoneCall,
-  Search,   
+  Search,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Admin/SideBarAdmin.css";
@@ -28,7 +28,7 @@ const SideBarUser = ({ activeItem, onItemClick, isOpen, onClose }) => {
       icon: Calendar,
       label: "Schedule",
       hasSubmenu: true,
-      path: "/dashboardUser",
+      path: "/user/meeting-schedule",
     },
     {
       id: "message",
@@ -50,7 +50,7 @@ const SideBarUser = ({ activeItem, onItemClick, isOpen, onClose }) => {
       label: "Search",
       hasSubmenu: true,
       path: "/search",
-    }
+    },
   ];
 
   useEffect(() => {

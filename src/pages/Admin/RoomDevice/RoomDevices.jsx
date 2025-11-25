@@ -5,7 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "../../../styles/RoomDevice/RoomDevices.css";
 import NavBar from "../../../components/NavBar";
 import SideBarAdmin from "../../../components/SideBarAdmin";
-import { Trash2, Edit } from "lucide-react";
+import { Trash2, Edit, ChevronDown } from "lucide-react";
 
 const RoomDevices = () => {
   const navigate = useNavigate();
@@ -22,13 +22,34 @@ const RoomDevices = () => {
   });
   const [deleting, setDeleting] = useState(false);
 
+  // Sort dropdown states
+  const [sortRoomOpen, setSortRoomOpen] = useState(false);
+  const [sortStatusOpen, setSortStatusOpen] = useState(false);
+  const [selectedRooms, setSelectedRooms] = useState([]);
+  const [selectedStatuses, setSelectedStatuses] = useState([]);
+  const [roomSearchTerm, setRoomSearchTerm] = useState("");
+  const [statusSearchTerm, setStatusSearchTerm] = useState("");
+
   const API_URL = "http://localhost:8080/api/admin/room-devices";
   const token = localStorage.getItem("accessToken");
 
   useEffect(() => {
-    const pathToItem = { "/deviceRoom": "device-room" };
+    const pathToItem = { "/admin/deviceRoom": "device-room" };
     setActiveMenuItem(pathToItem[location.pathname] || "device-room");
   }, [location.pathname]);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest(".sort-dropdown-wrapper")) {
+        setSortRoomOpen(false);
+        setSortStatusOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const loadAssignments = async () => {
     try {
@@ -75,12 +96,46 @@ const RoomDevices = () => {
   };
 
   const handleEdit = (id) => {
-    navigate(`/editAssignment/${id}`);
+    navigate(`/admin/editAssignment/${id}`);
   };
 
-  const filteredAssignments = assignments.filter((a) =>
-    a.roomName.toLowerCase().includes(searchTerm.toLowerCase())
+  // Get unique rooms and statuses for dropdown
+  const uniqueRooms = [...new Set(assignments.map((a) => a.roomName))].sort();
+  const uniqueStatuses = [...new Set(assignments.map((a) => a.status))].sort();
+
+  // Filter rooms and statuses based on search
+  const filteredRooms = uniqueRooms.filter((room) =>
+    room.toLowerCase().includes(roomSearchTerm.toLowerCase())
   );
+
+  const filteredRoomStatuses = uniqueStatuses.filter((status) =>
+    status.toLowerCase().includes(statusSearchTerm.toLowerCase())
+  );
+
+  const toggleRoomSelection = (room) => {
+    setSelectedRooms((prev) =>
+      prev.includes(room) ? prev.filter((r) => r !== room) : [...prev, room]
+    );
+  };
+
+  const toggleStatusSelection = (status) => {
+    setSelectedStatuses((prev) =>
+      prev.includes(status)
+        ? prev.filter((s) => s !== status)
+        : [...prev, status]
+    );
+  };
+
+  const filteredAssignments = assignments.filter((a) => {
+    const matchesSearch = a.roomName
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesRoom =
+      selectedRooms.length === 0 || selectedRooms.includes(a.roomName);
+    const matchesStatus =
+      selectedStatuses.length === 0 || selectedStatuses.includes(a.status);
+    return matchesSearch && matchesRoom && matchesStatus;
+  });
 
   const handleMenuClick = (itemId) => {
     setActiveMenuItem(itemId);
@@ -92,6 +147,12 @@ const RoomDevices = () => {
 
   const closeSidebar = () => {
     setSidebarOpen(false);
+  };
+
+  const clearAllFilters = () => {
+    setSelectedRooms([]);
+    setSelectedStatuses([]);
+    setSearchTerm("");
   };
 
   return (
@@ -118,13 +179,141 @@ const RoomDevices = () => {
                 className="room-device-search-input"
               />
             </div>
+
+            {/* Sort by Room Dropdown */}
+            <div className="sort-dropdown-wrapper">
+              <button
+                className="sort-dropdown-btn sort-room-btn"
+                onClick={() => setSortRoomOpen(!sortRoomOpen)}
+              >
+                Sort by Room
+                <ChevronDown
+                  size={18}
+                  className={`sort-dropdown-icon ${
+                    sortRoomOpen ? "sort-dropdown-icon-open" : ""
+                  }`}
+                />
+              </button>
+              {sortRoomOpen && (
+                <div className="sort-dropdown-menu sort-room-dropdown">
+                  <div className="sort-dropdown-search">
+                    <input
+                      type="text"
+                      placeholder="Search room..."
+                      className="sort-dropdown-search-input"
+                      value={roomSearchTerm}
+                      onChange={(e) => setRoomSearchTerm(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                  <div className="sort-dropdown-list">
+                    {filteredRooms.length > 0 ? (
+                      filteredRooms.map((room) => (
+                        <label
+                          key={room}
+                          className="sort-dropdown-item sort-room-item"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedRooms.includes(room)}
+                            onChange={() => toggleRoomSelection(room)}
+                            className="sort-dropdown-checkbox"
+                          />
+                          <span className="sort-dropdown-label-text">
+                            {room}
+                          </span>
+                        </label>
+                      ))
+                    ) : (
+                      <p className="sort-dropdown-empty">No rooms found</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Sort by Status Dropdown */}
+            <div className="sort-dropdown-wrapper">
+              <button
+                className="sort-dropdown-btn sort-status-btn"
+                onClick={() => setSortStatusOpen(!sortStatusOpen)}
+              >
+                Sort by Status
+                <ChevronDown
+                  size={18}
+                  className={`sort-dropdown-icon ${
+                    sortStatusOpen ? "sort-dropdown-icon-open" : ""
+                  }`}
+                />
+              </button>
+              {sortStatusOpen && (
+                <div className="sort-dropdown-menu sort-status-dropdown">
+                  <div className="sort-dropdown-list">
+                    {uniqueStatuses.length > 0 ? (
+                      uniqueStatuses.map((status) => (
+                        <label
+                          key={status}
+                          className="sort-dropdown-item sort-status-item"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedStatuses.includes(status)}
+                            onChange={() => toggleStatusSelection(status)}
+                            className="sort-dropdown-checkbox"
+                          />
+                          <span className="sort-dropdown-label-text">
+                            {status}
+                          </span>
+                        </label>
+                      ))
+                    ) : (
+                      <p className="sort-dropdown-empty">No statuses</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <button
               className="room-device-btn-add"
-              onClick={() => navigate("/addRoomDevice")}
+              onClick={() => navigate("/admin/addRoomDevice")}
             >
               + Assign Device
             </button>
           </div>
+
+          {/* Active Filters Display */}
+          {(selectedRooms.length > 0 || selectedStatuses.length > 0) && (
+            <div className="active-filters-container">
+              <div className="active-filters">
+                {selectedRooms.map((room) => (
+                  <span key={room} className="active-filter-tag">
+                    {room}
+                    <button
+                      className="active-filter-remove"
+                      onClick={() => toggleRoomSelection(room)}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+                {selectedStatuses.map((status) => (
+                  <span key={status} className="active-filter-tag">
+                    {status}
+                    <button
+                      className="active-filter-remove"
+                      onClick={() => toggleStatusSelection(status)}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <button className="clear-filters-btn" onClick={clearAllFilters}>
+                Clear all
+              </button>
+            </div>
+          )}
 
           <div className="room-device-summary">
             Total Assignments: {filteredAssignments.length}
@@ -167,15 +356,6 @@ const RoomDevices = () => {
                         >
                           <Edit size={18} />
                         </button>
-                        {/* <button
-                          className="btn-delete"
-                          onClick={() =>
-                            openDeleteModal(a.id, a.roomName, a.deviceName)
-                          }
-                          title="Delete assignment"
-                        >
-                          <Trash2 size={18} />
-                        </button> */}
                       </td>
                     </tr>
                   ))}
