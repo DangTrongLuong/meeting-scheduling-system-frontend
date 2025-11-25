@@ -472,7 +472,7 @@ export default function LoginPage() {
                     toast.success("Login successful!");
                     setTimeout(() => {
                       navigate(
-                        result.role === "ADMIN"
+                        result.role === "ADMIN" || result.role === "SUPERADMIN"
                           ? "/admin/dashboard"
                           : "/user/meeting-schedule",
                         { replace: true }
