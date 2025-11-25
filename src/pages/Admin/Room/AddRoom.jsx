@@ -62,7 +62,7 @@ const AddRoom = () => {
 
       toast.success("Room added successfully!");
       setTimeout(() => {
-        navigate("/managementRooms");
+        navigate("/admin/managementRooms");
       }, 1200);
     } catch (err) {
       toast.error(err.message || "Failed to add room");
@@ -71,7 +71,7 @@ const AddRoom = () => {
     }
   };
 
-  const handleCancel = () => navigate("/managementRooms");
+  const handleCancel = () => navigate("/admin/managementRooms");
 
   const handleMenuClick = (itemId) => {
     setActiveMenuItem(itemId);

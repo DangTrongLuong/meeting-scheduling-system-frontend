@@ -1,6 +1,6 @@
 /* Room Device Management */
 .room-device-management {
-  font-size: 28px;
+  font-size: 30px;
   color: #093765;
   font-weight: 600;
   margin: 50px 0 20px 0;
@@ -12,17 +12,19 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 25px;
+  flex-wrap: wrap;
 }
 
 .room-device-search-wrapper {
   flex: 1;
   position: relative;
+  min-width: 200px;
 }
 
 .room-device-search-input {
   width: 100%;
   padding: 12px 16px;
-  border: 2px solid #d0d0d0;
+  border: 1px solid #d0d0d0;
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.3s ease;
@@ -30,8 +32,204 @@
 
 .room-device-search-input:focus {
   outline: none;
+  border-color: #398fe6;
+}
+
+/* Sort Dropdown Wrapper */
+.sort-dropdown-wrapper {
+  position: relative;
+}
+
+.sort-dropdown-btn {
+  padding: 12px 16px;
+  background-color: #ffffff;
+  color: #333;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.sort-dropdown-btn:hover {
+  border-color: #3392f2;
+}
+
+.sort-dropdown-icon {
+  transition: transform 0.3s ease;
+}
+
+.sort-dropdown-icon-open {
+  transform: rotate(180deg);
+}
+
+/* Sort Dropdown Menu */
+.sort-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  background: white;
+  border: 2px solid #d0d0d0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+  min-width: 220px;
+  max-width: 280px;
+  animation: slideDown 0.2s ease;
+}
+
+.sort-room-dropdown {
+  left: 0;
+}
+
+.sort-status-dropdown {
+  left: 0;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Sort Dropdown Search */
+.sort-dropdown-search {
+  padding: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.sort-dropdown-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.sort-dropdown-search-input:focus {
+  outline: none;
   border-color: #093765;
-  box-shadow: 0 0 0 3px rgba(9, 55, 101, 0.1);
+  box-shadow: 0 0 0 2px rgba(9, 55, 101, 0.1);
+}
+
+/* Sort Dropdown List */
+.sort-dropdown-list {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.sort-dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  user-select: none;
+}
+
+.sort-room-item:hover {
+  background-color: #f8f9fa;
+}
+
+.sort-status-item:hover {
+  background-color: #f8f9fa;
+}
+
+.sort-dropdown-checkbox {
+  width: 18px;
+  height: 18px;
+  margin-right: 10px;
+  cursor: pointer;
+  accent-color: #093765;
+}
+
+.sort-dropdown-label-text {
+  font-size: 14px;
+  color: #333;
+  flex: 1;
+}
+
+.sort-dropdown-empty {
+  padding: 20px;
+  text-align: center;
+  color: #999;
+  font-size: 13px;
+  margin: 0;
+}
+
+/* Active Filters Display */
+.active-filters-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 12px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.active-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.active-filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: #093765;
+  color: white;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.active-filter-remove {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0;
+  line-height: 1;
+  transition: opacity 0.2s ease;
+}
+
+.active-filter-remove:hover {
+  opacity: 0.7;
+}
+
+.clear-filters-btn {
+  padding: 6px 14px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.clear-filters-btn:hover {
+  background-color: #c82333;
+  transform: translateY(-1px);
 }
 
 .room-device-btn-add {
@@ -44,6 +242,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   white-space: nowrap;
+  font-size: 14px;
 }
 
 .room-device-btn-add:hover {
@@ -126,6 +325,22 @@
   color: #856404;
 }
 
+.status-badge.returned {
+  background-color: #fff7cc;
+  color: #c59a00;
+  border: 1px solid #e6c200;
+}
+
+.status-badge.in_use {
+  background-color: #3bb273;
+  color: #fff;
+}
+
+.status-badge.damaged {
+  background-color: #e74c3c;
+  color: #fff;
+}
+
 /* Action Buttons */
 .btn-edit,
 .btn-delete {
@@ -164,21 +379,6 @@
   box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
-.status-badge.returned {
-  background-color: #fff7cc;
-  color: #c59a00;
-  border: 1px solid #e6c200;
-}
-
-.status-badge.in_use {
-  background-color: #3bb273;
-  color: #fff;
-}
-
-.status-badge.damaged {
-  background-color: #e74c3c;
-  color: #fff;
-}
 /* No Data */
 .room-device-no-data {
   padding: 60px 20px;
@@ -302,11 +502,44 @@
   }
 
   .room-device-search-wrapper {
-    order: 2;
+    order: 3;
+    min-width: 100%;
+  }
+
+  .sort-dropdown-wrapper {
+    flex: 1;
+    min-width: 100%;
+  }
+
+  .sort-dropdown-btn {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .sort-dropdown-menu {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 250px;
+    max-width: 90vw;
   }
 
   .room-device-btn-add {
     order: 1;
+    width: 100%;
+  }
+
+  .active-filters-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .active-filters {
+    width: 100%;
+  }
+
+  .clear-filters-btn {
     width: 100%;
   }
 
@@ -342,9 +575,27 @@
     font-size: 13px;
   }
 
+  .sort-dropdown-btn {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
   .room-device-btn-add {
     padding: 10px 16px;
     font-size: 13px;
+  }
+
+  .sort-dropdown-menu {
+    min-width: 200px;
+  }
+
+  .active-filters {
+    gap: 6px;
+  }
+
+  .active-filter-tag {
+    padding: 4px 8px;
+    font-size: 12px;
   }
 
   .room-device-table {

@@ -42,7 +42,7 @@ const EditRoom = () => {
       setPageLoading(false);
     } catch (err) {
       toast.error(err.message || "Failed to load room data");
-      navigate("/rooms");
+      navigate("/admin/managementRooms");
     }
   };
 
@@ -97,7 +97,7 @@ const EditRoom = () => {
     }
   };
 
-  const handleCancel = () => navigate("/managementRooms");
+  const handleCancel = () => navigate("/admin/managementRooms");
 
   const handleMenuClick = (itemId) => {
     setActiveMenuItem(itemId);

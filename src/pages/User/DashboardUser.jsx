@@ -16,17 +16,19 @@ import CreateNewEvent from "./CreateNewEvent";
 import DetailEvent from "./DetailEvent";
 import EditEvent from "./EditEvent";
 
-
 export default function DashboardUser() {
   const calendarRef = useRef(null);
 
   const [rooms, setRooms] = useState([]);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
   //
-  const [filterMode, setFilterMode] = useState("all"); 
+  const [filterMode, setFilterMode] = useState("all");
+  const [filterRoomId, setFilterRoomId] = useState(null);
+
   //
-  const [selectedDate, setSelectedDate] = useState(null); 
+  const [selectedDate, setSelectedDate] = useState(null);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -46,32 +48,45 @@ export default function DashboardUser() {
   const [activeMenuItem, setActiveMenuItem] = useState("meetting");
   const [miniCalendarKey, setMiniCalendarKey] = useState(0); // key để re-render React Calendar
   const handleTodayClick = () => {
-  const calendarApi = calendarRef.current.getApi();
-  calendarApi.today();              // FullCalendar lớn về hôm nay
-  const today = new Date();
-  setSelectedDate(today);           // Mini calendar highlight today
-  setMiniCalendarKey(today.getTime()); // Buộc mini calendar re-render
-};
+    const calendarApi = calendarRef.current.getApi();
+    calendarApi.today(); // FullCalendar lớn về hôm nay
+    const today = new Date();
+    setSelectedDate(today); // Mini calendar highlight today
+    setMiniCalendarKey(today.getTime()); // Buộc mini calendar re-render
+  };
   // Lọc sự kiện dựa trên filterMode
-  const getFilteredEvents = () => {
+const getFilteredEvents = () => {
   const userId = localStorage.getItem("userId");
 
+  let filtered = events;
+
+  // Lọc theo filter created/invited
   if (filterMode === "created") {
-    return events.filter(e => e.extendedProps.creatorId === userId);
+    filtered = filtered.filter((e) => e.extendedProps.creatorId === userId);
   } else if (filterMode === "invited") {
-    return events.filter(
-      e =>
+    filtered = filtered.filter(
+      (e) =>
         e.extendedProps.creatorId !== userId &&
-        e.extendedProps.participants.includes(localStorage.getItem("userEmail"))
+        e.extendedProps.participants.includes(
+          localStorage.getItem("userEmail")
+        )
     );
   }
-  return events; // all events
-};
-const handleEditClick = (event) => {
-  setSelectedEvent(event);// set sự kiện sẽ edit
-  setShowEdit(true);     // mở modal EditEvent
+
+  // Lọc theo phòng nếu người dùng chọn trong "Available Rooms Today"
+  if (filterRoomId) {
+    filtered = filtered.filter(
+      (e) => e.extendedProps.roomId === filterRoomId
+    );
+  }
+
+  return filtered;
 };
 
+  const handleEditClick = (event) => {
+    setSelectedEvent(event); // set sự kiện sẽ edit
+    setShowEdit(true); // mở modal EditEvent
+  };
 
   // Fetch rooms
   useEffect(() => {
@@ -120,7 +135,7 @@ const handleEditClick = (event) => {
 
       return {
         id: m.id,
-        title: `${m.title} - ${m.room.name}`,
+        title: `${m.title}`,
         start: m.startTime,
         end: m.endTime,
         backgroundColor,
@@ -147,12 +162,20 @@ const handleEditClick = (event) => {
       };
     });
   };
+
   const handleUpdateEvent = (updatedEvent) => {
-  setEvents(prevEvents =>
-    prevEvents.map(ev => ev.id === updatedEvent.id ? updatedEvent : ev)
-  );
-  setShowEdit(false);
-};
+    setEvents((prevEvents) =>
+      prevEvents.map((ev) =>
+        ev.id === updatedEvent.id ? { ...ev, ...updatedEvent } : ev
+      )
+    );
+    setSelectedEvent((prev) => ({ ...prev, ...updatedEvent }));
+
+    setShowEdit(false);
+    setShowDetailModal(true);
+    setToastMessage("Meeting updated successfully!");
+  };
+
   // Fetch meetings lần đầu
   useEffect(() => {
     const fetchMeetings = async () => {
@@ -267,7 +290,7 @@ const handleEditClick = (event) => {
     <div className="my-project-container">
       <ToastContainer
         position="top-right"
-        autoClose={3000}
+        autoClose={1200}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
@@ -288,24 +311,23 @@ const handleEditClick = (event) => {
         />
 
         <div className="navbar-right">
-<button
-  className="meeting-btn-list"
-  onClick={() => {
-    setFilterMode(prev => (prev === "created" ? "all" : "created"));
-  }}
->
-  + Booked Rooms List
-</button>
+          <button
+            className="meeting-btn-list"
+            onClick={() => {
+              setFilterMode((prev) => (prev === "created" ? "all" : "created"));
+            }}
+          >
+            + Booked Rooms List
+          </button>
 
-<button
-  className="meeting-btn-invite"
-  onClick={() => {
-    setFilterMode(prev => (prev === "invited" ? "all" : "invited"));
-  }}
->
-  + Invited Rooms List
-</button>
-
+          <button
+            className="meeting-btn-invite"
+            onClick={() => {
+              setFilterMode((prev) => (prev === "invited" ? "all" : "invited"));
+            }}
+          >
+            + Invited Rooms List
+          </button>
 
           <button
             className="meeting-btn"
@@ -317,103 +339,116 @@ const handleEditClick = (event) => {
 
         <div className="main-inner-calender">
           <div className="calendar-container">
-<FullCalendar
-  ref={calendarRef}
-  plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-  initialView="timeGridWeek"
-  locale="en-EN"
-  events={getFilteredEvents()}
-  eventClick={handleEventClick}
-  headerToolbar={{
-    left: "prev,next customtoday",
-    center: "title",
-    right: "dayGridMonth,timeGridWeek,timeGridDay",
-  }}
-  customButtons={{
-    customtoday: {
-      text: "Today",
-      click: handleTodayClick,
-    },
-  }}
-  slotMinTime="07:00:00"
-  slotMaxTime="24:00:00"
-  slotDuration="00:30:00"
-  slotLabelInterval="01:00"
-  height="100%"
-  contentHeight="auto"
-  selectable={true}
-  selectMirror={true}
-  dayMaxEvents={true}
-  aspectRatio={2.5}
-  dateClick={(arg) => {
-    const clickedDate = arg.date;
-    setSelectedDate(clickedDate);
-    const dateStr = clickedDate.toISOString().split("T")[0];
-    const hours = clickedDate.getHours().toString().padStart(2, "0");
-    const minutes = clickedDate.getMinutes().toString().padStart(2, "0");
-    const timeStr = `${hours}:${minutes}`;
-    let endHour = clickedDate.getHours();
-    let endMinute = clickedDate.getMinutes() + 30;
-    if (endMinute >= 60) {
-      endHour += 1;
-      endMinute -= 60;
-    }
-    const endTimeStr = `${endHour.toString().padStart(2, "0")}:${endMinute
-      .toString()
-      .padStart(2, "0")}`;
-    setPreFillData({ date: dateStr, startTime: timeStr, endTime: endTimeStr });
-    setShowCreateModal(true);
-  }}
-  dayCellClassNames={(arg) => {
-    if (!selectedDate) return [];
-    const sel = new Date(selectedDate);
-    const cell = new Date(arg.date);
-    if (
-      sel.getFullYear() === cell.getFullYear() &&
-      sel.getMonth() === cell.getMonth() &&
-      sel.getDate() === cell.getDate()
-    ) {
-      return ["fc-selected-date"];
-    }
-    return [];
-  }}
-/>
+            <FullCalendar
+              ref={calendarRef}
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+              initialView="timeGridWeek"
+              locale="en-EN"
+              events={getFilteredEvents()}
+              eventClick={handleEventClick}
+              headerToolbar={{
+                left: "prev,next customtoday",
+                center: "title",
+                right: "dayGridMonth,timeGridWeek,timeGridDay",
+              }}
+              customButtons={{
+                customtoday: {
+                  text: "Today",
+                  click: handleTodayClick,
+                },
+              }}
+              slotMinTime="07:00:00"
+              slotMaxTime="24:00:00"
+              slotDuration="00:30:00"
+              slotLabelInterval="01:00"
+              height="100%"
+              contentHeight="auto"
+              selectable={true}
+              selectMirror={true}
+              dayMaxEvents={true}
+              aspectRatio={2.5}
+              dateClick={(arg) => {
+                const clickedDate = arg.date;
+                setSelectedDate(clickedDate);
+                const dateStr = clickedDate.toISOString().split("T")[0];
+                const hours = clickedDate
+                  .getHours()
+                  .toString()
+                  .padStart(2, "0");
+                const minutes = clickedDate
+                  .getMinutes()
+                  .toString()
+                  .padStart(2, "0");
+                const timeStr = `${hours}:${minutes}`;
+                let endHour = clickedDate.getHours();
+                let endMinute = clickedDate.getMinutes() + 30;
+                if (endMinute >= 60) {
+                  endHour += 1;
+                  endMinute -= 60;
+                }
+                const endTimeStr = `${endHour
+                  .toString()
+                  .padStart(2, "0")}:${endMinute.toString().padStart(2, "0")}`;
+                setPreFillData({
+                  date: dateStr,
+                  startTime: timeStr,
+                  endTime: endTimeStr,
+                });
+                setShowCreateModal(true);
+              }}
+              dayCellClassNames={(arg) => {
+                if (!selectedDate) return [];
+                const sel = new Date(selectedDate);
+                const cell = new Date(arg.date);
+                if (
+                  sel.getFullYear() === cell.getFullYear() &&
+                  sel.getMonth() === cell.getMonth() &&
+                  sel.getDate() === cell.getDate()
+                ) {
+                  return ["fc-selected-date"];
+                }
+                return [];
+              }}
+            />
           </div>
 
-<aside className="sidebar-user-calender">
-  <div className="mini-calendar">
+          <aside className="sidebar-user-calender">
+            <div className="mini-calendar">
+              <Calendar
+                key={miniCalendarKey} //re-render khi Today nhấn
+                value={selectedDate || new Date()}
+                onClickDay={(date) => {
+                  setSelectedDate(date);
 
-<Calendar
-  key={miniCalendarKey} // 🔑 Buộc re-render khi Today nhấn
-  value={selectedDate || new Date()}
-  onClickDay={(date) => {
-    setSelectedDate(date);
+                  // Đồng bộ FullCalendar lớn
+                  if (calendarRef.current) {
+                    const calendarApi = calendarRef.current.getApi();
+                    calendarApi.gotoDate(date);
+                  }
+                }}
+                onActiveStartDateChange={({ activeStartDate }) => {
+                  if (calendarRef.current && activeStartDate) {
+                    const calendarApi = calendarRef.current.getApi();
+                    calendarApi.gotoDate(activeStartDate);
+                  }
+                }}
+                tileClassName={({ date, view }) => {
+                  if (view === "month") {
+                    const today = new Date();
+                    if (date.toDateString() === today.toDateString())
+                      return "calendar-today"; // màu vàng
+                    if (
+                      selectedDate &&
+                      date.toDateString() === selectedDate.toDateString()
+                    )
+                      return "calendar-selected"; // màu xanh dương
+                  }
+                  return null;
+                }}
+              />
 
-    // Đồng bộ FullCalendar lớn
-    if (calendarRef.current) {
-      const calendarApi = calendarRef.current.getApi();
-      calendarApi.gotoDate(date);
-    }
-  }}
-  onActiveStartDateChange={({ activeStartDate }) => {
-    if (calendarRef.current && activeStartDate) {
-      const calendarApi = calendarRef.current.getApi();
-      calendarApi.gotoDate(activeStartDate);
-    }
-  }}
-  tileClassName={({ date, view }) => {
-    if (view === "month") {
-      const today = new Date();
-      if (date.toDateString() === today.toDateString()) return "calendar-today"; // màu vàng
-      if (selectedDate && date.toDateString() === selectedDate.toDateString())
-        return "calendar-selected"; // màu xanh dương
-    }
-    return null;
-  }}
-/>
-
-<div className="current-time">{currentTime}</div>
-           </div>
+              <div className="current-time">{currentTime}</div>
+            </div>
             {/* Thông tin phòng */}
             <h3 className="sidebar-title">Room Information</h3>
             <div className="room-box">
@@ -440,15 +475,32 @@ const handleEditClick = (event) => {
                 Available Rooms Today
               </h4>
               <ul className="room-list">
-                {getAvailableRooms().map((room, i) => (
-                  <li key={i} className="room-item">
-                    <span
-                      className="room-dot"
-                      style={{ backgroundColor: "#28a745" }}
-                    ></span>
-                    {room.name}
-                  </li>
-                ))}
+{getAvailableRooms().map((room, i) => (
+  <li
+    key={i}
+    className="room-item"
+    onClick={() => {
+      // Nếu nhấn lại thì bỏ filter thôi 
+      if (filterRoomId === room.id) {
+        setFilterRoomId(null);
+      } else {
+        setFilterRoomId(room.id);
+      }
+    }}
+    style={{
+      cursor: "pointer",
+      fontWeight: filterRoomId === room.id ? "bold" : "normal",
+      color: filterRoomId === room.id ? "#127cf5" : "inherit",
+    }}
+  >
+    <span
+      className="room-dot"
+      style={{ backgroundColor: "#28a745" }}
+    ></span>
+    {room.name}
+  </li>
+))}
+
               </ul>
 
               <h4 className="room-box-title" style={{ marginTop: 16 }}>
@@ -489,16 +541,15 @@ const handleEditClick = (event) => {
         onDelete={handleDeleteSuccess}
         onEdit={handleEditClick}
         loading={loading}
+        toastMessage={toastMessage}
       />
       <EditEvent
-  isOpen={showEdit}
-  onClose={() => setShowEdit(false)}
-  event={selectedEvent}
-  rooms={rooms}
-  onUpdate={handleUpdateEvent}
-
-/>
-
+        isOpen={showEdit}
+        onClose={() => setShowEdit(false)}
+        event={selectedEvent}
+        rooms={rooms}
+        onUpdate={handleUpdateEvent}
+      />
     </div>
   );
 }

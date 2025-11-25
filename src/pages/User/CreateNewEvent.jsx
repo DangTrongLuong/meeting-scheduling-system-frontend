@@ -67,7 +67,7 @@ export default function CreateNewEvent({
   const fetchAllDevices = async () => {
     try {
       const response = await axios.get(
-        'http://localhost:8080/api/meetings/devices/active'
+        "http://localhost:8080/api/meetings/devices/active"
       );
       setAllDevices(response.data || []);
     } catch (error) {
@@ -378,7 +378,6 @@ export default function CreateNewEvent({
               </ul>
             </div>
           )}
-
 
 
           {/* Start Time */}

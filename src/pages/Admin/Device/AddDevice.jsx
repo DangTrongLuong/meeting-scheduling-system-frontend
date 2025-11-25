@@ -107,7 +107,7 @@ const AddDevice = () => {
 
       toast.success("Device added successfully!");
       setTimeout(() => {
-        navigate("/devices");
+        navigate("/admin/devices");
       }, 1500);
     } catch (err) {
       toast.error(err.message || "Failed to add device!");
@@ -117,7 +117,7 @@ const AddDevice = () => {
   };
 
   const handleCancel = () => {
-    navigate("/devices");
+    navigate("/admin/devices");
   };
 
   const toggleSidebar = () => {

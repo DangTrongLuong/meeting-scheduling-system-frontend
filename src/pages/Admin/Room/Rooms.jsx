@@ -36,7 +36,7 @@ const Rooms = () => {
   };
 
   useEffect(() => {
-    const pathToItem = { "/rooms": "management-rooms" };
+    const pathToItem = { "/admin/managementRooms": "management-rooms" };
     setActiveMenuItem(pathToItem[location.pathname] || "management-rooms");
   }, [location.pathname]);
 
@@ -141,7 +141,7 @@ const Rooms = () => {
             </div>
             <button
               className="meeting-room-btn-add"
-              onClick={() => navigate("/addRoom")}
+              onClick={() => navigate("/admin/addRoom")}
             >
               + Add Room
             </button>
@@ -175,7 +175,7 @@ const Rooms = () => {
                       <td>
                         <button
                           className="btn-edit"
-                          onClick={() => navigate(`/editRoom/${r.id}`)}
+                          onClick={() => navigate(`/admin/editRoom/${r.id}`)}
                           title="Edit room"
                         >
                           <Edit size={18} />
