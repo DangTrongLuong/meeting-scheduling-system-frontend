@@ -11,19 +11,17 @@ import async from "../../assets/async.png";
 import { FaFacebook, FaInstagram, FaTwitter, FaYoutube } from "react-icons/fa";
 import axios from "axios";
 import EmailForm from "./EmailForm";
+
 const HomePage = () => {
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   return (
     <div className="homepage">
       {/* Navbar */}
       <nav className="navbar">
         <div className="navbar-container">
-          <a href="/homepage" className="navbar-logo">
+          <a href="/" className="navbar-logo">
             <img src={logocmc} className="logo-img-homepage"></img>
           </a>
           <ul className="navbar-menu">
@@ -220,7 +218,7 @@ const HomePage = () => {
                 </li>
                 <li>
                   <a>Partners</a>
-                  </li>
+                </li>
                 <li>
                   <a>News</a>
                 </li>

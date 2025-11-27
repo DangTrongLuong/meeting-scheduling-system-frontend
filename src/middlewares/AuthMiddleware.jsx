@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState, useContext } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-
 import { useUser } from "../context/UserContext";
 import axios from "axios";
 
@@ -8,13 +7,18 @@ const AuthMiddleware = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { setUser } = useUser();
-  //   const { triggerSuccess } = useContext(NotificationContext);
   const hasFetched = useRef(false);
   const isProcessingLoginSuccess = useRef(false);
   const [isLoading, setIsLoading] = useState(false);
   const [debugInfo, setDebugInfo] = useState("");
 
-  const publicRoutes = ["/", "/register"];
+  // Bỏ "/" khỏi publicRoutes - sẽ xử lý riêng
+  const publicRoutes = [
+    "/forgot_password",
+    "/verify",
+    "/invite/accept",
+    "/invite/decline",
+  ];
 
   useEffect(() => {
     const refreshAccessToken = async () => {
@@ -77,8 +81,12 @@ const AuthMiddleware = ({ children }) => {
         console.log(
           "No access token or expiration time, redirecting to /login"
         );
-        if (!publicRoutes.includes(location.pathname)) {
-          navigate("/", { replace: true });
+        // Nếu không có token và đang ở route protected → redirect login
+        if (
+          !publicRoutes.includes(location.pathname) &&
+          location.pathname !== "/"
+        ) {
+          navigate("/login", { replace: true });
         }
         return;
       }
@@ -94,43 +102,33 @@ const AuthMiddleware = ({ children }) => {
           const refreshed = await refreshAccessToken();
           if (!refreshed) {
             console.log("Token refresh failed, redirecting to /login");
-            navigate("/", { replace: true });
+            navigate("/login", { replace: true });
             return;
           }
         } else {
           console.log(
             `Token expired for ${authProvider} login, redirecting to /login`
           );
-          navigate("/", { replace: true });
+          navigate("/login", { replace: true });
           return;
         }
       }
 
       // Kiểm tra quyền truy cập admin
-
       if (
         location.pathname.startsWith("/admin") &&
         role !== "ADMIN" &&
         role !== "SUPERADMIN"
       ) {
         console.log("Access denied: Admin or SuperAdmin role required");
-        navigate("/", { replace: true });
+        navigate("/login", { replace: true });
         return;
       }
     };
 
-    if (publicRoutes.includes(location.pathname)) {
-      console.log("Skipping auth check for public route:", location.pathname);
-      return;
-    }
-
+    // Xử lý route /loginSuccess
     if (location.pathname === "/loginSuccess") {
       console.log("=== PROCESSING /loginSuccess ===");
-      console.log("hasFetched.current:", hasFetched.current);
-      console.log(
-        "isProcessingLoginSuccess.current:",
-        isProcessingLoginSuccess.current
-      );
 
       if (hasFetched.current || isProcessingLoginSuccess.current) {
         console.log("Already processing loginSuccess, skipping...");
@@ -151,25 +149,18 @@ const AuthMiddleware = ({ children }) => {
           },
         })
         .then((response) => {
-          console.log("User info response status:", response.status);
-          console.log("User info response headers:", response.headers);
-          setDebugInfo(`Response status: ${response.status}`);
-
           const data = response.data;
           console.log("Received user info:", data);
-          setDebugInfo(`Received data: ${JSON.stringify(data, null, 2)}`);
 
           if (data.error) {
             console.error("Error in user info response:", data.error);
-            setDebugInfo(`Error in response: ${data.error}`);
-            navigate("/?error=session_expired", { replace: true });
+            navigate("/login?error=session_expired", { replace: true });
             return;
           }
 
           if (!data.accessToken) {
             console.error("No accessToken in response, redirecting to /login");
-            setDebugInfo("No accessToken in response");
-            navigate("/?error=no_token", { replace: true });
+            navigate("/login?error=no_token", { replace: true });
             return;
           }
 
@@ -200,41 +191,105 @@ const AuthMiddleware = ({ children }) => {
             role: data.role || "USER",
           });
 
-          console.log("=== STORED IN LOCALSTORAGE ===");
-          console.log(
-            "accessToken:",
-            localStorage.getItem("accessToken")?.substring(0, 20) + "..."
-          );
-          console.log("userId", localStorage.getItem("userId"));
-          console.log("userName:", localStorage.getItem("userName"));
-          console.log("userEmail:", localStorage.getItem("userEmail"));
-          console.log("avatarUrl:", localStorage.getItem("avatarUrl"));
-          console.log("role:", localStorage.getItem("role"));
-          console.log("created_at:", localStorage.getItem("created_at"));
-          console.log("backgroundUrl:", localStorage.getItem("backgroundUrl"));
-
-          console.log("Login success, navigating to dashboard");
-          setDebugInfo("Navigating to dashboard...");
-          //   triggerSuccess(`Welcome, you have logged in successfully`);
           setIsLoading(false);
-          navigate("/user/meeting-schedule", { replace: true });
+
+          // Lấy lastRoute hoặc mặc định dựa trên role
+          const lastRoute = localStorage.getItem("lastRoute");
+          const defaultRoute =
+            data.role === "ADMIN" || data.role === "SUPERADMIN"
+              ? "/admin/dashboard"
+              : "/user/meeting-schedule";
+
+          navigate(lastRoute || defaultRoute, { replace: true });
         })
         .catch((error) => {
           console.error("Error fetching user info:", error);
-          setDebugInfo(`Error: ${error.message}`);
           setIsLoading(false);
-          navigate("/?error=fetch_failed", { replace: true });
+          navigate("/login?error=fetch_failed", { replace: true });
         })
         .finally(() => {
-          console.log("=== CLEANUP ===");
           isProcessingLoginSuccess.current = false;
         });
 
       return;
     }
 
+    // XỬ LÝ ROUTE "/" (HOMEPAGE)
+    if (location.pathname === "/") {
+      const token = localStorage.getItem("accessToken");
+      const expiresAt = localStorage.getItem("tokenExpiresAt");
+      const role = localStorage.getItem("role");
+
+      // Nếu đã đăng nhập → redirect về lastRoute hoặc default
+      if (token && expiresAt && Date.now() < parseInt(expiresAt)) {
+        console.log("=== User logged in, redirecting from homepage ===");
+
+        const lastRoute = localStorage.getItem("lastRoute");
+
+        if (
+          lastRoute &&
+          lastRoute !== "/" &&
+          !publicRoutes.includes(lastRoute)
+        ) {
+          console.log("Redirecting to lastRoute:", lastRoute);
+          navigate(lastRoute, { replace: true });
+        } else {
+          const defaultRoute =
+            role === "ADMIN" || role === "SUPERADMIN"
+              ? "/admin/dashboard"
+              : "/user/meeting-schedule";
+          console.log("Redirecting to default route:", defaultRoute);
+          navigate(defaultRoute, { replace: true });
+        }
+        return;
+      }
+
+      // Chưa đăng nhập → hiển thị HomePage
+      console.log("Not logged in, showing HomePage");
+      return;
+    }
+
+    // Xử lý các public routes khác
+    if (publicRoutes.includes(location.pathname)) {
+      const token = localStorage.getItem("accessToken");
+      const expiresAt = localStorage.getItem("tokenExpiresAt");
+      const role = localStorage.getItem("role");
+
+      // Nếu đã đăng nhập và đang ở /login → redirect về dashboard
+      if (
+        token &&
+        expiresAt &&
+        Date.now() < parseInt(expiresAt) &&
+        location.pathname === "/login"
+      ) {
+        console.log("Already logged in, redirecting from /login");
+        const lastRoute = localStorage.getItem("lastRoute");
+        const defaultRoute =
+          role === "ADMIN" || role === "SUPERADMIN"
+            ? "/admin/dashboard"
+            : "/user/meeting-schedule";
+        navigate(lastRoute || defaultRoute, { replace: true });
+        return;
+      }
+
+      console.log("At public route, no redirect needed");
+      return;
+    }
+
+    // Lưu route hiện tại vào lastRoute (chỉ với protected routes)
+    if (
+      !publicRoutes.includes(location.pathname) &&
+      location.pathname !== "/" &&
+      location.pathname !== "/loginSuccess" &&
+      location.pathname !== "/redirecting"
+    ) {
+      console.log("Saving lastRoute:", location.pathname);
+      localStorage.setItem("lastRoute", location.pathname);
+    }
+
+    // Kiểm tra auth cho các protected routes
     checkAuth();
-  }, [location.pathname, location.search, navigate]);
+  }, [location.pathname, location.search, navigate, setUser]);
 
   if (location.pathname === "/loginSuccess") {
     return (

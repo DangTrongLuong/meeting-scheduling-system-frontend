@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import logo from "../../assets/logocmc.png";
+import CryptoJS from "crypto-js";
 
 export default function LoadingScreen() {
   const navigate = useNavigate();
@@ -12,7 +13,17 @@ export default function LoadingScreen() {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
-          navigate("/", { state: { email: location.state?.email || "" } });
+
+          // const secretKey = import.meta.env.VITE_SECRET_KEY;
+          const secretKey = "mySuperSecretKey_2025!@#%&*ABCxyz123";
+          const email = location.state?.email || "";
+          const encryptedEmail = CryptoJS.AES.encrypt(
+            email,
+            secretKey
+          ).toString();
+
+          navigate(`/login?email=${encodeURIComponent(encryptedEmail)}`);
+
           return 100;
         }
         return prev + 5;

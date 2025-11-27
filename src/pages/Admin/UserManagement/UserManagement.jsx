@@ -191,6 +191,7 @@ const UserManagement = () => {
               <table className="um-data-table">
                 <thead>
                   <tr>
+                    <th>STT</th>
                     <th>Avatar</th>
                     <th>Name</th>
                     <th>Email</th>
@@ -209,13 +210,15 @@ const UserManagement = () => {
                       </td>
                     </tr>
                   ) : (
-                    filteredUsers.map((user) => (
+                    filteredUsers.map((user, index) => (
                       <tr
                         key={user.id}
                         onClick={() =>
                           navigate(`/admin/managementUsers/detail/${user.id}`)
                         }
                       >
+                        <td>{index + 1}</td>
+
                         <td>
                           <img
                             src={
@@ -225,7 +228,7 @@ const UserManagement = () => {
                                   : `http://localhost:8080${user.avatar_url}`
                                 : "http://localhost:8080/uploads/avatars/user-avatar.png"
                             }
-                            alt={user.name}
+                            alt="avatar"
                             className="um-avatar-img"
                           />
                         </td>

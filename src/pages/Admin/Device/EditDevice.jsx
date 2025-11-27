@@ -137,7 +137,7 @@ const EditDevice = () => {
 
       toast.success("Device updated successfully!");
       setTimeout(() => {
-        navigate("/devices");
+        navigate("/admin/devices");
       }, 1200);
     } catch (err) {
       toast.error(err.message || "Failed to update device!");

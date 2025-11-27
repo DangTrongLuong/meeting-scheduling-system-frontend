@@ -11,11 +11,25 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import axios from "axios";
+import CryptoJS from "crypto-js";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+
   const location = useLocation();
-  const [email, setEmail] = useState(location.state?.email || "");
+  const params = new URLSearchParams(location.search);
+  const encryptedEmail = params.get("email");
+  let decryptedEmail = "";
+
+  if (encryptedEmail) {
+    // const secretKey = import.meta.env.VITE_SECRET_KEY;
+    const secretKey = "mySuperSecretKey_2025!@#%&*ABCxyz123";
+    const bytes = CryptoJS.AES.decrypt(encryptedEmail, secretKey);
+    decryptedEmail = bytes.toString(CryptoJS.enc.Utf8);
+  }
+
+  const [email, setEmail] = useState(decryptedEmail || "");
+
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
@@ -136,10 +150,10 @@ export default function LoginPage() {
 
       localStorage.setItem("accessToken", result.accessToken);
       localStorage.setItem("jwtToken", result.accessToken);
-      localStorage.setItem(
-        "tokenExpiresAt",
-        Date.now() + result.expiresIn * 1000
-      );
+
+      const threeDays = 3 * 24 * 60 * 60 * 1000;
+      localStorage.setItem("tokenExpiresAt", Date.now() + threeDays);
+
       localStorage.setItem("userId", result.id);
       localStorage.setItem("userEmail", result.email);
       localStorage.setItem("userName", result.name || "User");
@@ -451,10 +465,13 @@ export default function LoginPage() {
                     localStorage.setItem("userId", result.id);
                     localStorage.setItem("userEmail", result.email);
                     localStorage.setItem("userName", result.name || "User");
+
+                    const threeDays = 3 * 24 * 60 * 60 * 1000;
                     localStorage.setItem(
                       "tokenExpiresAt",
-                      Date.now() + result.expiresIn * 1000
+                      Date.now() + threeDays
                     );
+
                     localStorage.setItem(
                       "avatarUrl",
                       result.avatarUrl || "/uploads/avatars/user-avatar.png"

@@ -39,14 +39,31 @@ function App() {
       <UserProvider>
         <Routes>
           {/* Auth routes */}
-          <Route path="/register" element={<Register />} />
-          <Route path="/homepage" element={<HomePage />} />
+          {/* <Route path="/register" element={<Register />} /> */}
+
           <Route path="/redirecting" element={<LoadingScreen />} />
-          <Route path="/" element={<LoginPage />} />
+
           <Route path="/verify" element={<VerifyPage />} />
           <Route path="/forgot_password" element={<ForgotPasswordPage />} />
           <Route path="/invite/accept" element={<InviteAccept />} />
           <Route path="/invite/decline" element={<InviteDecline />} />
+
+          <Route
+            path="/"
+            element={
+              <AuthMiddleware>
+                <HomePage />
+              </AuthMiddleware>
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              <AuthMiddleware>
+                <LoginPage />
+              </AuthMiddleware>
+            }
+          />
 
           {/* Protected routes */}
           <Route

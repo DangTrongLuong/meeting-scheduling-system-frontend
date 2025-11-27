@@ -206,6 +206,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
+  overflow: hidden;
   object-fit: cover;
   border: 2px solid #e2e8f0;
 }
