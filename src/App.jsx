@@ -26,6 +26,8 @@ import DashboardAdmin from "./pages/Admin/DashboardAdmin.jsx";
 import Devices from "./pages/Admin/Device/Devices.jsx";
 import AddDevice from "./pages/Admin/Device/AddDevice.jsx";
 import EditDevice from "./pages/Admin/Device/EditDevice.jsx";
+import InviteAccept from "./pages/Verify/InviteAccept.jsx";
+import InviteDecline from "./pages/Verify/InviteDecline.jsx";
 
 import { UserProvider } from "./context/UserContext.jsx";
 import AuthMiddleware from "./middlewares/AuthMiddleware.jsx";
@@ -43,6 +45,8 @@ function App() {
           <Route path="/" element={<LoginPage />} />
           <Route path="/verify" element={<VerifyPage />} />
           <Route path="/forgot_password" element={<ForgotPasswordPage />} />
+          <Route path="/invite/accept" element={<InviteAccept />} />
+          <Route path="/invite/decline" element={<InviteDecline />} />
 
           {/* Protected routes */}
           <Route

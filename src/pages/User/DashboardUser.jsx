@@ -27,6 +27,16 @@ export default function DashboardUser() {
   const [filterMode, setFilterMode] = useState("all");
   const [filterRoomId, setFilterRoomId] = useState(null);
 
+  const [roomSearchTerm, setRoomSearchTerm] = useState("");
+  const [selectedRoomIds, setSelectedRoomIds] = useState([]); // Thay cho filterRoomId
+
+  // Khởi tạo mặc định chọn hết phòng
+  useEffect(() => {
+    if (rooms.length > 0 && selectedRoomIds.length === 0) {
+      setSelectedRoomIds(rooms.map((r) => r.id));
+    }
+  }, [rooms]);
+
   //
   const [selectedDate, setSelectedDate] = useState(null);
 
@@ -55,33 +65,58 @@ export default function DashboardUser() {
     setMiniCalendarKey(today.getTime()); // Buộc mini calendar re-render
   };
   // Lọc sự kiện dựa trên filterMode
-const getFilteredEvents = () => {
-  const userId = localStorage.getItem("userId");
+  const getFilteredEvents = () => {
+    let filtered = events;
 
-  let filtered = events;
+    const userId = localStorage.getItem("userId");
+    const userEmail = localStorage.getItem("userEmail");
 
-  // Lọc theo filter created/invited
-  if (filterMode === "created") {
-    filtered = filtered.filter((e) => e.extendedProps.creatorId === userId);
-  } else if (filterMode === "invited") {
-    filtered = filtered.filter(
-      (e) =>
-        e.extendedProps.creatorId !== userId &&
-        e.extendedProps.participants.includes(
-          localStorage.getItem("userEmail")
-        )
+    // Filter theo created/invited
+    if (filterMode === "created") {
+      filtered = filtered.filter((e) => e.extendedProps.creatorId === userId);
+    } else if (filterMode === "invited") {
+      filtered = filtered.filter(
+        (e) =>
+          e.extendedProps.creatorId !== userId &&
+          e.extendedProps.participants?.includes(userEmail)
+      );
+    }
+
+    // Filter theo danh sách phòng đã chọn
+    if (selectedRoomIds.length > 0 && selectedRoomIds.length < rooms.length) {
+      filtered = filtered.filter((e) =>
+        selectedRoomIds.includes(e.extendedProps.roomId)
+      );
+    }
+
+    return filtered;
+  };
+
+  const isRoomFullyBookedToday = (roomId) => {
+    const today = new Date().toISOString().split("T")[0];
+    const roomEvents = events.filter(
+      (e) => e.extendedProps.roomId === roomId && e.start.startsWith(today)
     );
-  }
 
-  // Lọc theo phòng nếu người dùng chọn trong "Available Rooms Today"
-  if (filterRoomId) {
-    filtered = filtered.filter(
-      (e) => e.extendedProps.roomId === filterRoomId
+    // Nếu có từ 10+ sự kiện trong ngày → coi như full (tùy chỉnh theo thực tế)
+    return roomEvents.length >= 10;
+  };
+
+  // Toggle chọn phòng
+  const toggleRoomSelection = (roomId) => {
+    setSelectedRoomIds((prev) =>
+      prev.includes(roomId)
+        ? prev.filter((id) => id !== roomId)
+        : [...prev, roomId]
     );
-  }
+  };
 
-  return filtered;
-};
+  // Lọc phòng theo từ khóa tìm kiếm
+  const filteredRoomsForSidebar = rooms
+    .filter((room) =>
+      room.name.toLowerCase().includes(roomSearchTerm.toLowerCase())
+    )
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   const handleEditClick = (event) => {
     setSelectedEvent(event); // set sự kiện sẽ edit
@@ -118,7 +153,7 @@ const getFilteredEvents = () => {
       const dayOfWeek = eventDate.getDay();
 
       const colorPalette = [
-        "#FF9999",
+        "#99ffff",
         "#66B2FF",
         "#99FF99",
         "#FFFF99",
@@ -409,109 +444,210 @@ const getFilteredEvents = () => {
                 }
                 return [];
               }}
+              eventDidMount={(info) => {
+                const el = info.el;
+
+                // Reset mọi style mặc định của FullCalendar
+                el.style.margin = "3px 2px";
+                el.style.borderRadius = "5px";
+                el.style.border = "none";
+                // el.style.backgroundColor = "#fff8c5";
+                el.style.color = "#5d4037";
+              }}
             />
           </div>
 
           <aside className="sidebar-user-calender">
+            {/* Mini Calendar */}
             <div className="mini-calendar">
               <Calendar
-                key={miniCalendarKey} //re-render khi Today nhấn
+                key={miniCalendarKey}
                 value={selectedDate || new Date()}
                 onClickDay={(date) => {
                   setSelectedDate(date);
-
-                  // Đồng bộ FullCalendar lớn
                   if (calendarRef.current) {
-                    const calendarApi = calendarRef.current.getApi();
-                    calendarApi.gotoDate(date);
-                  }
-                }}
-                onActiveStartDateChange={({ activeStartDate }) => {
-                  if (calendarRef.current && activeStartDate) {
-                    const calendarApi = calendarRef.current.getApi();
-                    calendarApi.gotoDate(activeStartDate);
+                    calendarRef.current.getApi().gotoDate(date);
                   }
                 }}
                 tileClassName={({ date, view }) => {
                   if (view === "month") {
                     const today = new Date();
                     if (date.toDateString() === today.toDateString())
-                      return "calendar-today"; // màu vàng
+                      return "calendar-today";
                     if (
                       selectedDate &&
                       date.toDateString() === selectedDate.toDateString()
                     )
-                      return "calendar-selected"; // màu xanh dương
+                      return "calendar-selected";
                   }
                   return null;
                 }}
               />
-
               <div className="current-time">{currentTime}</div>
             </div>
-            {/* Thông tin phòng */}
-            <h3 className="sidebar-title">Room Information</h3>
-            <div className="room-box">
+
+            {/* PHẦN 1: Rooms Booked Today (GIỮ LẠI NHƯ CŨ) */}
+            <div className="room-box" style={{ marginTop: "20px" }}>
               <h4 className="room-box-title">Rooms Booked Today</h4>
-              <ul className="room-list">
-                {getBookedRooms().map((roomId, i) => {
-                  const room = rooms.find((r) => r.id === roomId);
-                  return (
-                    <li key={i} className="room-item">
-                      <span
-                        className="room-dot"
-                        style={{ backgroundColor: "#3498db" }}
-                      ></span>
-                      {room?.name || "N/A"}
-                    </li>
-                  );
-                })}
-                {getBookedRooms().length === 0 && (
-                  <li className="room-item">No rooms have been booked</li>
+              <ul
+                className="room-list"
+                style={{ maxHeight: "120px", overflowY: "auto" }}
+              >
+                {getBookedRooms().length > 0 ? (
+                  getBookedRooms().map((roomId, i) => {
+                    const room = rooms.find((r) => r.id === roomId);
+                    return (
+                      <li key={i} className="room-item">
+                        <span
+                          className="room-dot"
+                          style={{ backgroundColor: "#e74c3c" }}
+                        ></span>
+                        {room?.name || "Unknown Room"}
+                      </li>
+                    );
+                  })
+                ) : (
+                  <li className="room-item" style={{ color: "#999" }}>
+                    No rooms booked today
+                  </li>
                 )}
               </ul>
+            </div>
 
-              <h4 className="room-box-title" style={{ marginTop: 16 }}>
-                Available Rooms Today
-              </h4>
-              <ul className="room-list">
-{getAvailableRooms().map((room, i) => (
-  <li
-    key={i}
-    className="room-item"
-    onClick={() => {
-      // Nếu nhấn lại thì bỏ filter thôi 
-      if (filterRoomId === room.id) {
-        setFilterRoomId(null);
-      } else {
-        setFilterRoomId(room.id);
-      }
-    }}
-    style={{
-      cursor: "pointer",
-      fontWeight: filterRoomId === room.id ? "bold" : "normal",
-      color: filterRoomId === room.id ? "#127cf5" : "inherit",
-    }}
-  >
-    <span
-      className="room-dot"
-      style={{ backgroundColor: "#28a745" }}
-    ></span>
-    {room.name}
-  </li>
-))}
+            {/* PHẦN 2: Filter Rooms bằng Checkbox + Search (MỚI & SIÊU ĐẸP) */}
+            <div className="room-filter-panel" style={{ marginTop: "20px" }}>
+              <h3 className="sidebar-title">Filter by Room</h3>
 
-              </ul>
+              {/* Ô tìm kiếm */}
+              <input
+                type="text"
+                placeholder="Search room name..."
+                value={roomSearchTerm}
+                onChange={(e) => setRoomSearchTerm(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: "8px",
+                  border: "1px solid #ccc",
+                  fontSize: "14px",
+                  marginBottom: "12px",
+                }}
+              />
 
-              <h4 className="room-box-title" style={{ marginTop: 16 }}>
-                All Rooms
-              </h4>
-              <ul className="room-list">
-                {rooms.map((room, i) => (
-                  <li key={i} className="room-item">
+              {/* Danh sách phòng với checkbox */}
+              <div
+                style={{
+                  maxHeight: "300px",
+                  overflowY: "auto",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: "8px",
+                  padding: "8px",
+                  backgroundColor: "#fafafa",
+                }}
+              >
+                {filteredRoomsForSidebar.map((room) => {
+                  const isFullyBooked = isRoomFullyBookedToday(room.id);
+                  const isSelected = selectedRoomIds.includes(room.id);
+
+                  return (
+                    <label
+                      key={room.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        padding: "10px 8px",
+                        margin: "4px 0",
+                        backgroundColor: isSelected ? "#e3f2fd" : "white",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        border: isSelected
+                          ? "2px solid #2196f3"
+                          : "1px solid #eee",
+                        opacity: isFullyBooked ? 0.7 : 1,
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleRoomSelection(room.id)}
+                        style={{ marginRight: "10px" }}
+                      />
+                      <span
+                        style={{ fontWeight: "500", fontSize: "14px", flex: 1 }}
+                      >
+                        {room.name}
+                      </span>
+                      {isFullyBooked && (
+                        <span
+                          style={{
+                            backgroundColor: "#c62828",
+                            color: "white",
+                            padding: "2px 8px",
+                            borderRadius: "12px",
+                            fontSize: "10px",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          FULL
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
+
+                {filteredRoomsForSidebar.length === 0 && (
+                  <p
+                    style={{
+                      textAlign: "center",
+                      color: "#999",
+                      padding: "20px",
+                      fontStyle: "italic",
+                    }}
+                  >
+                    No rooms match
+                  </p>
+                )}
+              </div>
+
+              {/* Nút Select All / Unselect All */}
+              <div style={{ marginTop: "12px", textAlign: "center" }}>
+                <button
+                  onClick={() =>
+                    setSelectedRoomIds(
+                      selectedRoomIds.length === rooms.length
+                        ? []
+                        : rooms.map((r) => r.id)
+                    )
+                  }
+                  style={{
+                    padding: "8px 16px",
+                    backgroundColor: "#1976d2",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    fontSize: "13px",
+                    cursor: "pointer",
+                  }}
+                >
+                  {selectedRoomIds.length === rooms.length
+                    ? "Unselect All"
+                    : "Select All"}
+                </button>
+              </div>
+            </div>
+
+            {/* PHẦN 3: All Rooms (GIỮ LẠI ĐỂ XEM NHANH) */}
+            <div className="room-box" style={{ marginTop: "20px" }}>
+              <h4 className="room-box-title">All Rooms</h4>
+              <ul
+                className="room-list"
+                style={{ maxHeight: "150px", overflowY: "auto" }}
+              >
+                {rooms.map((room) => (
+                  <li key={room.id} className="room-item">
                     <span
                       className="room-dot"
-                      style={{ backgroundColor: "#127cf5" }}
+                      style={{ backgroundColor: "#3498db" }}
                     ></span>
                     {room.name}
                   </li>

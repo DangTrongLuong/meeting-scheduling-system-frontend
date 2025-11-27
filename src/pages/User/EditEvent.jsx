@@ -76,8 +76,14 @@ export default function EditEvent({
         roomId: event.roomId || "",
         //participants: event.participants || [],
         //borrowedDevices: event.borrowedDevices || [],
-        participants: Array.isArray(event.participants) ? event.participants : [],
-        borrowedDevices: Array.isArray(event.borrowedDevices) ? event.borrowedDevices : [],
+        participants: Array.isArray(event.participants)
+          ? event.participants.map((p) =>
+              typeof p === "string" ? { email: p, role: "REQUIRED" } : p
+            )
+          : [],
+        borrowedDevices: Array.isArray(event.borrowedDevices)
+          ? event.borrowedDevices
+          : [],
       });
     }
   }, [event]);
@@ -93,7 +99,7 @@ export default function EditEvent({
   useEffect(() => {
     fetchAllDevices();
   }, []);
-  
+
   const fetchRoomDevices = async (roomId) => {
     try {
       const response = await axios.get(`/api/meetings/rooms/${roomId}/devices`);
@@ -129,27 +135,25 @@ export default function EditEvent({
     }
   };
 
-
   const addParticipant = (user) => {
-  const emailNorm = user.email.toLowerCase().trim();
-  const exists = formData.participants.some(
-    (p) => p.email?.toLowerCase().trim() === emailNorm
-  );
-  if (exists) {
-    // ví dụ: toast.info("Email này đã có trong danh sách.");
+    const emailNorm = user.email.toLowerCase().trim();
+    const exists = formData.participants.some(
+      (p) => p.email?.toLowerCase().trim() === emailNorm
+    );
+    if (exists) {
+      // ví dụ: toast.info("Email này đã có trong danh sách.");
+      setSearchEmail("");
+      setSearchResults([]);
+      return;
+    }
+
+    const newParticipants = [
+      ...formData.participants,
+      { email: user.email, role: "REQUIRED" },
+    ];
+    setFormData({ ...formData, participants: newParticipants });
     setSearchEmail("");
     setSearchResults([]);
-    return;
-  }
-
-  const newParticipants = [
-    ...formData.participants,
-    { email: user.email, role: "REQUIRED" },
-  ];
-  setFormData({ ...formData, participants: newParticipants });
-  setSearchEmail("");
-  setSearchResults([]);
-
   };
 
   const removeParticipant = (index) => {
@@ -382,75 +386,104 @@ export default function EditEvent({
           {/* Participants */}
           <div className="edit-event-form-group">
             <label className="edit-event-label">Participants</label>
-            <input
-              type="text"
-              className="edit-event-input"
-              value={searchEmail}
-              onChange={(e) => handleSearchEmail(e.target.value)}
-              placeholder="Search user by email..."
-            />
-            {searchResults.length > 0 && (
-              <div className="search-results-dropdown">
-                {searchResults.map((user) => (
-                  <div
-                    key={user.id}
-                    onClick={() => addParticipant(user)}
-                    className="search-result-item"
-                  >
-                    {user.name} ({user.email})
-                  </div>
-                ))}
-              </div>
-            )}
 
             <div style={{ marginTop: "10px" }}>
-              {formData.participants.map(
-                (participant, idx) =>
-                  participant.email && (
+              {formData.participants.length === 0 ? (
+                <p
+                  style={{
+                    color: "#888",
+
+                    margin: "8px 0",
+                  }}
+                >
+                  No participants added
+                </p>
+              ) : (
+                formData.participants.map((p, idx) => {
+                  // Chuẩn hóa dữ liệu: nếu backend trả string → biến thành object
+                  const participant =
+                    typeof p === "string" ? { email: p, role: "REQUIRED" } : p;
+
+                  return (
                     <div
                       key={idx}
                       style={{
                         display: "flex",
-                        justifyContent: "space-between",
                         alignItems: "center",
-                        padding: "8px",
-                        backgroundColor: "#e7f3ff",
-                        borderRadius: "4px",
-                        marginBottom: "5px",
+                        justifyContent: "space-between",
+                        padding: "10px 14px",
+                        backgroundColor: "#f8f9fa",
+                        borderRadius: "8px",
+                        marginBottom: "8px",
+                        border: "1px solid #e9ecef",
+                        fontSize: "0.95rem",
                       }}
                     >
-                      <span>{participant.email}</span>
-                      <div>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "14px",
+                          width: "100%",
+                        }}
+                      >
+                        <strong
+                          style={{
+                            fontWeight: "400",
+                            color: "#2c3e50",
+                            width: "75%",
+                          }}
+                        >
+                          {participant.email}
+                        </strong>
+
                         <select
-                          value={participant.role}
+                          value={participant.role || "REQUIRED"}
                           onChange={(e) => {
-                            const newParticipants = [...formData.participants];
-                            newParticipants[idx].role = e.target.value;
-                            setFormData({
-                              ...formData,
-                              participants: newParticipants,
-                            });
+                            const updated = [...formData.participants];
+                            if (typeof updated[idx] === "string") {
+                              updated[idx] = {
+                                email: updated[idx],
+                                role: e.target.value,
+                              };
+                            } else {
+                              updated[idx] = {
+                                ...updated[idx],
+                                role: e.target.value,
+                              };
+                            }
+                            setFormData({ ...formData, participants: updated });
+                          }}
+                          style={{
+                            padding: "6px 10px",
+                            borderRadius: "6px",
+                            border: "1px solid #ced4da",
+                            backgroundColor: "white",
+                            fontSize: "0.9rem",
                           }}
                         >
                           <option value="REQUIRED">Required</option>
                           <option value="OPTIONAL">Optional</option>
                         </select>
-                        <button
-                          onClick={() => removeParticipant(idx)}
-                          style={{
-                            backgroundColor: "#dc3545",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            padding: "4px 8px",
-                            marginLeft: "10px",
-                          }}
-                        >
-                          Remove
-                        </button>
                       </div>
+
+                      <button
+                        onClick={() => removeParticipant(idx)}
+                        style={{
+                          backgroundColor: "#e74c3c",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "6px",
+                          padding: "6px 12px",
+                          fontSize: "0.8rem",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Remove
+                      </button>
                     </div>
-                  )
+                  );
+                })
               )}
             </div>
           </div>
@@ -500,6 +533,7 @@ export default function EditEvent({
                     display: "flex",
                     gap: "10px",
                     marginBottom: "10px",
+                    marginTop: "10px",
                     alignItems: "center",
                   }}
                 >
@@ -573,7 +607,9 @@ export default function EditEvent({
                 borderRadius: "4px",
                 padding: "8px 16px",
                 cursor: "pointer",
-                marginTop: formData.borrowedDevices.length > 0 ? "10px" : "0",
+
+                marginTop:
+                  formData.borrowedDevices.length > 0 ? "10px" : "10px",
               }}
               disabled={loading}
             >
