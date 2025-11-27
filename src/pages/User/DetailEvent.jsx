@@ -196,12 +196,63 @@ export default function DetailEvent({
           {event.participants && event.participants.length > 0 && (
             <div style={{ marginBottom: "16px" }}>
               <strong>Participants:</strong>
-              <ul style={{ margin: "8px 0", paddingLeft: "20px" }}>
-                {event.participants.map((participant, idx) => (
-                  <li key={idx} style={{ fontSize: "14px", color: "#666" }}>
-                    {participant}
-                  </li>
-                ))}
+              <ul
+                style={{
+                  margin: "8px 0",
+                  paddingLeft: "20px",
+                  listStyle: "none",
+                }}
+              >
+                {event.participants.map((p, idx) => {
+                  // Chuẩn hóa dữ liệu: nếu là string → lấy email, nếu là object → lấy email + role
+                  const participant =
+                    typeof p === "string" ? { email: p, role: "REQUIRED" } : p;
+
+                  return (
+                    <li
+                      key={idx}
+                      style={{
+                        marginBottom: "8px",
+                        padding: "8px 12px",
+                        backgroundColor: "#f8f9fa",
+                        borderRadius: "8px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        fontSize: "14px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "12px",
+                        }}
+                      >
+                        <span style={{ fontWeight: "400", color: "#2c3e50" }}>
+                          {participant.email}
+                        </span>
+                        {participant.role && (
+                          <span
+                            style={{
+                              padding: "4px 10px",
+                              borderRadius: "20px",
+                              fontSize: "0.8rem",
+                              fontWeight: "bold",
+                              color: "white",
+                              backgroundColor:
+                                participant.role === "REQUIRED"
+                                  ? "#e74c3c"
+                                  : "#27ae60",
+                            }}
+                          >
+                            {participant.role}
+                          </span>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}
@@ -249,14 +300,7 @@ export default function DetailEvent({
               >
                 Update
               </button>
-              <button
-                className="detail-event-cancel-btn"
-                onClick={() => {
-                  toast.info("Update feature coming soon!");
-                }}
-              >
-                Cancel
-              </button>
+
               <button
                 className="detail-event-delete-btn"
                 onClick={handleDeleteClick}

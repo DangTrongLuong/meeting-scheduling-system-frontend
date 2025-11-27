@@ -256,7 +256,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="login-google">
+            {/* <div className="login-google">
               <button className="btn btn-login-gg" onClick={googleLogin}>
                 <FcGoogle size={20} />
                 Sign in with Google
@@ -267,7 +267,7 @@ export default function LoginPage() {
               <span className="device-login-text">
                 or sign in with your account
               </span>
-            </div>
+            </div> */}
 
             <form className="login-form" onSubmit={handleSubmit}>
               <div className="login-form-group">
@@ -348,12 +348,12 @@ export default function LoginPage() {
                 Click here !
               </a>
             </div>
-            <div className="login-form-footer">
+            {/* <div className="login-form-footer">
               Don't have an account?{" "}
               <a href="/register" onClick={handleRegisterClick}>
                 Register now!
               </a>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

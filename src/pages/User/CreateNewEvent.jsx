@@ -53,6 +53,28 @@ export default function CreateNewEvent({
     fetchAllDevices();
   }, []);
 
+  useEffect(() => {
+    if (!isOpen) {
+      const timer = setTimeout(() => {
+        setFormData({
+          title: "",
+          description: "",
+          date: prefill.date || "",
+          startTime: prefill.startTime || "07:00",
+          endTime: prefill.endTime || "07:30",
+          roomId: "",
+          participants: [],
+          borrowedDevices: [],
+        });
+        setSelectedRoom(null);
+        setRoomDevices([]);
+        setSearchEmail("");
+        setSearchResults([]);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, prefill]);
+
   const fetchRoomDevices = async (roomId) => {
     try {
       const response = await axios.get(
@@ -139,7 +161,36 @@ export default function CreateNewEvent({
     return slots;
   };
 
+  const resetForm = () => {
+    setFormData({
+      title: "",
+      description: "",
+      date: "",
+      startTime: "07:00",
+      endTime: "07:30",
+      roomId: "",
+      participants: [],
+      borrowedDevices: [],
+    });
+    setSelectedRoom(null);
+    setRoomDevices([]);
+    setSearchEmail("");
+    setSearchResults([]);
+  };
+
   const handleSubmit = async () => {
+    const now = new Date();
+    const selectedDateTime = new Date(
+      `${formData.date}T${formData.startTime}:00`
+    );
+
+    if (selectedDateTime < now) {
+      toast.error(
+        "Cannot create meeting in the past! Please choose a future time."
+      );
+      return;
+    }
+
     if (!formData.title.trim()) {
       toast.error("Please enter a meeting title!");
       return;
@@ -197,24 +248,45 @@ export default function CreateNewEvent({
           },
         }
       );
-
-      try {
-        await axios.post("https://n8n.quanliduan-pms.site/webhook/send-email", {
-          ...meetingData,
-          meetingId: response.data.data?.meetingId,
-          createdBy: userName,
-          createdByEmail: userEmail,
-          roomName: roomName,
-        });
-      } catch (emailError) {
-        console.error("Error sending email:", emailError);
-      }
-
+      console.log("Meeting created successfully:", response.data);
       toast.success("Meeting booked successfully!");
+      resetForm();
       setTimeout(() => {
         onSuccess();
         onClose();
       }, 1200);
+
+      if (formData.participants && formData.participants.length > 0) {
+        const baseUrl = "http://localhost:5173";
+        const meetingId = response.data.data.id;
+
+        for (const p of formData.participants) {
+          const email = typeof p === "string" ? p : p.email;
+
+          const acceptUrl = `${baseUrl}/invite/accept?email=${encodeURIComponent(
+            email
+          )}&mid=${meetingId}`;
+          const declineUrl = `${baseUrl}/invite/decline?email=${encodeURIComponent(
+            email
+          )}&mid=${meetingId}`;
+          try {
+            await axios.post(
+              "https://n8n.quanliduan-pms.site/webhook/send-email",
+              {
+                ...meetingData,
+                meetingId: response.data.data.id,
+                createdBy: userName,
+                createdByEmail: userEmail,
+                roomName: roomName,
+                acceptUrl: acceptUrl,
+                declineUrl: declineUrl,
+              }
+            );
+          } catch (emailError) {
+            console.error("Error sending email:", emailError);
+          }
+        }
+      }
     } catch (error) {
       console.error("Error creating meeting:", error);
       toast.error(
@@ -232,7 +304,7 @@ export default function CreateNewEvent({
       <ToastContainer
         position="top-right"
         style={{ top: "70px" }}
-        autoClose={1200}
+        autoClose={1500}
       />
       <div
         className="create-event-modal-content"
@@ -378,7 +450,6 @@ export default function CreateNewEvent({
               </ul>
             </div>
           )}
-
 
           {/* Start Time */}
           <div className="create-event-form-group">
