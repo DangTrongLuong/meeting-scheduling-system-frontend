@@ -78,6 +78,9 @@
   color: #2e2e2e;
   cursor: pointer;
 }
+.fc-event:hover {
+  cursor: pointer;
+}
 
 .navbar-left {
   display: flex;
@@ -325,6 +328,42 @@
   overflow: auto;
 }
 
+.meeting-notes {
+  margin-top: 10px;
+}
+
+.meeting-notes-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.meeting-notes-days {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notes-row {
+  display: flex;
+  gap: 16px;
+}
+
+.note-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #333;
+}
+
+.note-color {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .main-inner-calender {
@@ -424,6 +463,6 @@
   color: rgb(0, 0, 0) !important;
 }
 .fc-selected-date {
-  background-color: #f0f0f0 !important;
+  background-color: #f1f1f1 !important;
   color: white !important;
 }
