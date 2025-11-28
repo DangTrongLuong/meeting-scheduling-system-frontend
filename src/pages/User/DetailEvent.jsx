@@ -113,6 +113,8 @@ export default function DetailEvent({
   const durationMinutes = Math.round((endTime - startTime) / (1000 * 60));
   const durationHours = (durationMinutes / 60).toFixed(1);
 
+  const statusColor =
+    event.status === "PENDING_APPROVAL" ? "#f39c12" : "#28a745";
   return (
     <div className="detail-event-modal" onClick={onClose}>
       <ToastContainer
@@ -278,15 +280,8 @@ export default function DetailEvent({
           {/* Status */}
           <div style={{ marginBottom: "16px" }}>
             <strong>Status:</strong>
-            <p
-              style={{
-                margin: "4px 0",
-                fontSize: "14px",
-                color: "#28a745",
-                fontWeight: "bold",
-              }}
-            >
-              {event.status || "N/A"}
+            <p style={{ color: statusColor, fontWeight: "bold" }}>
+              {event.status}
             </p>
           </div>
         </div>

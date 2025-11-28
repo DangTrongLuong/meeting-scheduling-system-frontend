@@ -283,7 +283,6 @@ const AuthMiddleware = ({ children }) => {
       location.pathname !== "/loginSuccess" &&
       location.pathname !== "/redirecting"
     ) {
-      console.log("Saving lastRoute:", location.pathname);
       localStorage.setItem("lastRoute", location.pathname);
     }
 

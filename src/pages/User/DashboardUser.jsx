@@ -447,6 +447,11 @@ export default function DashboardUser() {
               eventDidMount={(info) => {
                 const el = info.el;
 
+                if (info.event.extendedProps.status === "PENDING_APPROVAL") {
+                  info.el.style.opacity = "0.5";
+                  info.el.style.backgroundColor = "#cfcfcfff";
+                }
+
                 // Reset mọi style mặc định của FullCalendar
                 el.style.margin = "3px 2px";
                 el.style.borderRadius = "5px";
@@ -486,7 +491,74 @@ export default function DashboardUser() {
               <div className="current-time">{currentTime}</div>
             </div>
 
-            {/* PHẦN 1: Rooms Booked Today (GIỮ LẠI NHƯ CŨ) */}
+            <div className="meeting-notes">
+              <h4 className="meeting-notes-title">Meeting Notes</h4>
+              <div className="meeting-notes-days">
+                {/* Hàng 1 */}
+                <div className="notes-row">
+                  <div className="note-item">
+                    <span
+                      className="note-color"
+                      style={{ backgroundColor: "#66B2FF" }}
+                    ></span>
+                    Mon
+                  </div>
+                  <div className="note-item">
+                    <span
+                      className="note-color"
+                      style={{ backgroundColor: "#99FF99" }}
+                    ></span>
+                    Tue
+                  </div>
+                  <div className="note-item">
+                    <span
+                      className="note-color"
+                      style={{ backgroundColor: "#FFFF99" }}
+                    ></span>
+                    Wed
+                  </div>
+                  <div className="note-item">
+                    <span
+                      className="note-color"
+                      style={{ backgroundColor: "#FFCC99" }}
+                    ></span>
+                    Thu
+                  </div>
+                </div>
+
+                {/* Hàng 2 */}
+                <div className="notes-row">
+                  <div className="note-item">
+                    <span
+                      className="note-color"
+                      style={{ backgroundColor: "#CC99FF" }}
+                    ></span>
+                    Fri
+                  </div>
+                  <div className="note-item">
+                    <span
+                      className="note-color"
+                      style={{ backgroundColor: "#FF99CC" }}
+                    ></span>
+                    Sat
+                  </div>
+                  <div className="note-item">
+                    <span
+                      className="note-color"
+                      style={{ backgroundColor: "#99ffff" }}
+                    ></span>
+                    Sun
+                  </div>
+                  <div className="note-item">
+                    <span
+                      className="note-color"
+                      style={{ backgroundColor: "#ccc" }}
+                    ></span>
+                    Pending
+                  </div>
+                </div>
+              </div>
+            </div>
             <div className="room-box" style={{ marginTop: "20px" }}>
               <h4 className="room-box-title">Rooms Booked Today</h4>
               <ul
@@ -514,7 +586,6 @@ export default function DashboardUser() {
               </ul>
             </div>
 
-            {/* PHẦN 2: Filter Rooms bằng Checkbox + Search (MỚI & SIÊU ĐẸP) */}
             <div className="room-filter-panel" style={{ marginTop: "20px" }}>
               <h3 className="sidebar-title">Filter by Room</h3>
 
@@ -537,7 +608,7 @@ export default function DashboardUser() {
               {/* Danh sách phòng với checkbox */}
               <div
                 style={{
-                  maxHeight: "300px",
+                  maxHeight: "200px",
                   overflowY: "auto",
                   border: "1px solid #e0e0e0",
                   borderRadius: "8px",

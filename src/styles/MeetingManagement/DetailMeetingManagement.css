@@ -1,0 +1,667 @@
+/* Detail Meeting Management Styles */
+
+/* Header Section */
+.dmm-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 24px;
+  margin-top: 50px;
+}
+
+.dmm-back-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #f1f5f9;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dmm-back-button:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+  transform: translateX(-3px);
+}
+
+.dmm-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: #093765;
+  margin: 0;
+}
+
+/* Loading State */
+.dmm-loading-container,
+.dmm-error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: #64748b;
+}
+
+.dmm-loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #8b5cf6;
+  border-radius: 50%;
+  animation: dmm-spin 0.8s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes dmm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.dmm-back-btn {
+  margin-top: 16px;
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dmm-back-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
+/* Container */
+.dmm-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Card Styles */
+.dmm-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s;
+}
+
+.dmm-card:hover {
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.15);
+  border-color: #ddd6fe;
+}
+
+.dmm-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.dmm-header-icon {
+  color: #093765;
+}
+
+.dmm-card-header h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #093765;
+  margin: 0;
+}
+
+.dmm-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Info Row */
+.dmm-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: #f5fdff;
+  border-radius: 8px;
+  border-left: 4px solid #1f7efa;
+}
+
+.dmm-label {
+  min-width: 140px;
+  font-weight: 600;
+  color: #64748b;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dmm-value {
+  flex: 1;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.dmm-icon-inline {
+  flex-shrink: 0;
+}
+
+.dmm-title-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #093765;
+}
+
+.dmm-duration {
+  font-weight: 600;
+  color: #10b981;
+  background: #d1fae5;
+  padding: 4px 12px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.dmm-room-value {
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.dmm-location-value {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.dmm-description-row {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.dmm-description-text {
+  margin: 8px 0 0 0;
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
+  color: #334155;
+}
+
+/* Status Badge */
+.dmm-status-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.dmm-status-pending {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+
+/* Creator Info */
+.dmm-creator-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, #ddeffa 0%, #d6f0f8 100%);
+  border-radius: 12px;
+}
+
+.dmm-creator-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(92, 215, 246, 0.2);
+}
+
+.dmm-creator-details {
+  flex: 1;
+}
+
+.dmm-creator-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #093765;
+  margin: 0 0 4px 0;
+}
+
+.dmm-creator-email {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Participants List */
+.dmm-participants-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dmm-participant-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s;
+}
+
+.dmm-participant-item:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateX(4px);
+}
+
+.dmm-participant-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.dmm-participant-info {
+  flex: 1;
+}
+
+.dmm-participant-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #334155;
+  margin: 0 0 4px 0;
+}
+
+.dmm-participant-email {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+.dmm-participant-badges {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.dmm-role-badge {
+  padding: 4px 10px;
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.dmm-status-badge-small {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.dmm-status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.dmm-status-accepted {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.dmm-status-declined {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Devices List */
+.dmm-devices-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.dmm-device-item {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s;
+}
+
+.dmm-device-item:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.dmm-device-image {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.dmm-device-info {
+  flex: 1;
+}
+
+.dmm-device-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #334155;
+  margin: 0 0 4px 0;
+}
+
+.dmm-device-quantity {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0 0 8px 0;
+}
+
+.dmm-device-status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.dmm-device-reserved {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.dmm-device-available {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.dmm-device-notes {
+  margin: 8px 0 0 0;
+  font-size: 12px;
+  color: #64748b;
+  font-style: italic;
+}
+
+/* Empty Message */
+.dmm-empty-message {
+  text-align: center;
+  padding: 32px;
+  color: #94a3b8;
+  font-style: italic;
+  font-size: 14px;
+}
+
+/* Action Buttons */
+.dmm-action-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 2px solid #e2e8f0;
+}
+
+.dmm-approve-button,
+.dmm-reject-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 32px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dmm-approve-button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.dmm-approve-button:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+}
+
+.dmm-reject-button {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.dmm-reject-button:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+}
+
+.dmm-approve-button:active,
+.dmm-reject-button:active {
+  transform: translateY(-1px);
+}
+
+/* Modal Styles */
+.dmm-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: dmm-fadeIn 0.2s;
+}
+
+@keyframes dmm-fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.dmm-modal-box {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  padding: 28px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: dmm-slideUp 0.3s;
+}
+
+@keyframes dmm-slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dmm-modal-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #093765;
+  margin: 0 0 16px 0;
+}
+
+.dmm-modal-text {
+  color: #334155;
+  font-size: 15px;
+  margin: 0 0 28px 0;
+  line-height: 1.6;
+}
+
+.dmm-modal-text strong {
+  color: #106ebb;
+  font-weight: 600;
+}
+
+.dmm-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.dmm-cancel-btn,
+.dmm-confirm-btn {
+  padding: 12px 28px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dmm-cancel-btn {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.dmm-cancel-btn:hover {
+  background: #e2e8f0;
+}
+
+.dmm-confirm-btn {
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dmm-approve-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.dmm-approve-btn:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.dmm-reject-btn {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.dmm-reject-btn:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+.dmm-confirm-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .dmm-devices-list {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .dmm-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dmm-title {
+    font-size: 24px;
+  }
+
+  .dmm-card {
+    padding: 16px;
+  }
+
+  .dmm-info-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .dmm-label {
+    min-width: auto;
+  }
+
+  .dmm-creator-info {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .dmm-devices-list {
+    grid-template-columns: 1fr;
+  }
+
+  .dmm-action-buttons {
+    flex-direction: column;
+  }
+
+  .dmm-approve-button,
+  .dmm-reject-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .dmm-modal-box {
+    width: 95%;
+    padding: 20px;
+  }
+
+  .dmm-modal-actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .dmm-cancel-btn,
+  .dmm-confirm-btn {
+    width: 100%;
+  }
+}

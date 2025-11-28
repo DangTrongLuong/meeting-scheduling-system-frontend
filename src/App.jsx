@@ -15,6 +15,9 @@ import RoomDevices from "./pages/Admin/RoomDevice/RoomDevices.jsx";
 import AddRoomDevice from "./pages/Admin/RoomDevice/AssignDevice.jsx";
 import EditAssignment from "./pages/Admin/RoomDevice/EditAssignment.jsx";
 
+import MeetingManagement from "./pages/Admin/MeetingManagement/MeetingManagement.jsx";
+import DetailMeetingManagement from "./pages/Admin/MeetingManagement/DetailMeetingManagement.jsx";
+
 import UserManagement from "./pages/Admin/UserManagement/UserManagement.jsx";
 import CreateUser from "./pages/Admin/UserManagement/CreateUser.jsx";
 import EditUser from "./pages/Admin/UserManagement/EditUser.jsx";
@@ -202,6 +205,23 @@ function App() {
             element={
               <AuthMiddleware>
                 <DetailUser />
+              </AuthMiddleware>
+            }
+          />
+
+          <Route
+            path="/admin/meeting-management"
+            element={
+              <AuthMiddleware>
+                <MeetingManagement />
+              </AuthMiddleware>
+            }
+          />
+          <Route
+            path="/admin/meetingManagement/detail/:id"
+            element={
+              <AuthMiddleware>
+                <DetailMeetingManagement />
               </AuthMiddleware>
             }
           />
