@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
@@ -31,6 +31,30 @@ export default function CreateNewEvent({
   const [searchEmail, setSearchEmail] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [allDevices, setAllDevices] = useState([]);
+
+  const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const dropdownRef = useRef(null);
+
+  const filteredRooms = rooms.filter((room) =>
+    room.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleSelect = (roomId) => {
+    setFormData({ ...formData, roomId });
+    setOpen(false);
+    setSearchTerm(""); // reset search
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (formData.roomId) {
@@ -397,25 +421,46 @@ export default function CreateNewEvent({
           </div>
 
           {/* Room */}
-          <div className="create-event-form-group">
+
+          <div className="custom-select-container" ref={dropdownRef}>
             <label className="create-event-label">
-              Room <span class="create-meeting-important">*</span>
+              Room <span className="create-meeting-important">*</span>
             </label>
-            <select
-              className="create-event-select"
-              value={formData.roomId}
-              onChange={(e) =>
-                setFormData({ ...formData, roomId: e.target.value })
-              }
-              disabled={loading}
-            >
-              <option value="">-- Select a room --</option>
-              {rooms.map((room) => (
-                <option key={room.id} value={room.id}>
-                  {room.name}
-                </option>
-              ))}
-            </select>
+            <div className="custom-select" onClick={() => setOpen(!open)}>
+              <span className="selected-value">
+                {formData.roomId
+                  ? rooms.find((r) => r.id === formData.roomId)?.name
+                  : "Select a room"}
+              </span>
+              <span className="arrow">{open ? "▲" : "▼"}</span>
+            </div>
+
+            {open && (
+              <div className="dropdown">
+                <input
+                  type="text"
+                  placeholder="Search room..."
+                  className="dropdown-search"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <ul className="dropdown-list">
+                  {filteredRooms.length > 0 ? (
+                    filteredRooms.map((room) => (
+                      <li
+                        key={room.id}
+                        onClick={() => handleSelect(room.id)}
+                        className="dropdown-item"
+                      >
+                        {room.name}
+                      </li>
+                    ))
+                  ) : (
+                    <li className="dropdown-item no-result">No rooms found</li>
+                  )}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Room Info */}

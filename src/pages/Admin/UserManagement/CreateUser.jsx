@@ -144,33 +144,6 @@ const CreateUser = () => {
                   </small>
                 </div>
 
-                <div className="um-field-row">
-                  <div className="um-field-group">
-                    <label>Age</label>
-                    <input
-                      type="number"
-                      value={formData.age}
-                      onChange={(e) =>
-                        setFormData({ ...formData, age: e.target.value })
-                      }
-                      placeholder="Enter age"
-                      min="1"
-                      max="150"
-                    />
-                  </div>
-                  <div className="um-field-group">
-                    <label>Address</label>
-                    <input
-                      type="text"
-                      value={formData.address}
-                      onChange={(e) =>
-                        setFormData({ ...formData, address: e.target.value })
-                      }
-                      placeholder="Enter address"
-                    />
-                  </div>
-                </div>
-
                 <div className="um-modal-bottom">
                   <button
                     type="button"
