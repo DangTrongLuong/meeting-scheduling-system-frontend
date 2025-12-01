@@ -184,6 +184,11 @@ export default function CreateNewEvent({
       `${formData.date}T${formData.startTime}:00`
     );
 
+    if (formData.title.length < 5) {
+      toast.error("Title must be at least 5 characters long!");
+      return;
+    }
+
     if (selectedDateTime < now) {
       toast.error(
         "Cannot create meeting in the past! Please choose a future time."
