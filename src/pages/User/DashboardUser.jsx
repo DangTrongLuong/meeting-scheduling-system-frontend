@@ -15,6 +15,7 @@ import axios from "axios";
 import CreateNewEvent from "./CreateNewEvent";
 import DetailEvent from "./DetailEvent";
 import EditEvent from "./EditEvent";
+import ggCalendar from '../../assets/gcalendericon.png';
 
 export default function DashboardUser() {
   const calendarRef = useRef(null);
@@ -346,6 +347,13 @@ export default function DashboardUser() {
         />
 
         <div className="navbar-right">
+          
+          <button class="google-calendar-btn">
+            <img src={ggCalendar} alt="Google Calendar" class="google-calendar-icon" />
+            <span>Connect</span>
+          </button>
+
+
           <button
             className="meeting-btn-list"
             onClick={() => {
