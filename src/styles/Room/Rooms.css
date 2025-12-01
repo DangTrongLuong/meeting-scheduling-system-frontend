@@ -14,24 +14,28 @@
 .meeting-room-search-wrapper {
   position: relative;
   flex: 1;
-  min-width: 200px;
+  min-width: 250px;
+  max-width: 400px;
 }
 .meeting-room-search-input {
   width: 100%;
-  padding: 10px 15px 10px 20px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 15px;
+  padding: 10px 12px 10px 40px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s;
 }
 .meeting-room-search-input:focus {
-  outline: 1px solid rgb(18, 147, 240);
+  outline: none;
+  border-color: #5cbef6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
 .search-icon {
   position: absolute;
+  left: 12px;
   top: 50%;
-  left: 14px;
   transform: translateY(-50%);
-  color: #888;
+  color: #64748b;
 }
 .sort-container {
   display: flex;

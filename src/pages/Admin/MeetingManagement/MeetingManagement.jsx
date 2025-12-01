@@ -210,6 +210,10 @@ const MeetingManagement = () => {
             </button>
           </div>
 
+          <div className="meeting-management-summary">
+            Total: {filteredMeetings.length} / {pendingMeetings.length}
+          </div>
+
           {loading ? (
             <div className="mm-loading-container">
               <div className="mm-loading-spinner"></div>
@@ -304,11 +308,6 @@ const MeetingManagement = () => {
               </table>
             </div>
           )}
-
-          <div className="mm-count-info">
-            Showing {filteredMeetings.length} of {pendingMeetings.length}{" "}
-            pending meetings
-          </div>
         </main>
       </div>
 

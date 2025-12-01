@@ -5,7 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "../../../styles/RoomDevice/RoomDevices.css";
 import NavBar from "../../../components/NavBar";
 import SideBarAdmin from "../../../components/SideBarAdmin";
-import { Trash2, Edit, ChevronDown } from "lucide-react";
+import { Trash2, Edit, ChevronDown, Search } from "lucide-react";
 
 const RoomDevices = () => {
   const navigate = useNavigate();
@@ -171,6 +171,7 @@ const RoomDevices = () => {
 
           <div className="room-device-controls">
             <div className="room-device-search-wrapper">
+              <Search className="Room-Device-search-icon" size={20} />
               <input
                 type="text"
                 placeholder="Search by room name..."
@@ -197,6 +198,7 @@ const RoomDevices = () => {
               {sortRoomOpen && (
                 <div className="sort-dropdown-menu sort-room-dropdown">
                   <div className="sort-dropdown-search">
+                    <Search className="Room-Device-search-icon" size={20} />
                     <input
                       type="text"
                       placeholder="Search room..."
@@ -316,7 +318,7 @@ const RoomDevices = () => {
           )}
 
           <div className="room-device-summary">
-            Total Assignments: {filteredAssignments.length}
+            Total: {filteredAssignments.length} / {assignments.length}
           </div>
 
           <div className="room-device-list">
@@ -326,7 +328,7 @@ const RoomDevices = () => {
               <table className="room-device-table">
                 <thead>
                   <tr>
-                    <th>ID</th>
+                    <th>STT</th>
                     <th>Room</th>
                     <th>Device</th>
                     <th>Quantity</th>
@@ -335,9 +337,9 @@ const RoomDevices = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredAssignments.map((a) => (
+                  {filteredAssignments.map((a, index) => (
                     <tr key={a.id}>
-                      <td>{a.id}</td>
+                      <td>{index + 1}</td>
                       <td>{a.roomName}</td>
                       <td>{a.deviceName}</td>
                       <td>{a.quantity}</td>

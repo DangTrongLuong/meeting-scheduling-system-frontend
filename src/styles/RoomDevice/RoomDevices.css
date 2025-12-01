@@ -1,9 +1,10 @@
 /* Room Device Management */
 .room-device-management {
-  font-size: 30px;
-  color: #093765;
+  font-size: 32px;
   font-weight: 600;
-  margin: 50px 0 20px 0;
+  color: #093765;
+  margin-bottom: 20px;
+  margin-top: 50px;
 }
 
 /* Controls */
@@ -16,23 +17,32 @@
 }
 
 .room-device-search-wrapper {
-  flex: 1;
   position: relative;
-  min-width: 200px;
+  flex: 1;
+  min-width: 250px;
+  max-width: 400px;
 }
+.Room-Device-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+  }
 
 .room-device-search-input {
   width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #d0d0d0;
+  padding: 10px 12px 10px 40px;
+  border: 2px solid #e2e8f0;
   border-radius: 8px;
   font-size: 14px;
-  transition: all 0.3s ease;
+  transition: all 0.2s;
 }
 
 .room-device-search-input:focus {
   outline: none;
-  border-color: #398fe6;
+  border-color: #5cbef6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
 
 /* Sort Dropdown Wrapper */
@@ -253,10 +263,9 @@
 
 /* Summary */
 .room-device-summary {
-  font-size: 15px;
-  color: #666;
-  margin-bottom: 20px;
-  padding: 10px 0;
+  margin-bottom: 15px;
+  font-weight: 600;
+  color: #093765;
 }
 
 /* Table */
@@ -272,32 +281,21 @@
   border-collapse: collapse;
 }
 
-.room-device-table thead {
-  background-color: #f8f9fa;
-  border-bottom: 2px solid #dee2e6;
+.room-device-table th,
+.room-device-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
 }
 
 .room-device-table th {
-  padding: 16px;
-  text-align: left;
+  background: #f8f9fa;
   font-weight: 600;
   color: #093765;
-  font-size: 14px;
 }
 
-.room-device-table tbody tr {
-  border-bottom: 1px solid #dee2e6;
-  transition: background-color 0.2s ease;
-}
-
-.room-device-table tbody tr:hover {
+.room-device-table tr:hover {
   background-color: #f8f9fa;
-}
-
-.room-device-table td {
-  padding: 16px;
-  color: #333;
-  font-size: 14px;
 }
 
 /* Status Badge */
