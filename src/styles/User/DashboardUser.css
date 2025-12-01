@@ -179,6 +179,31 @@
   background-color: #218838;
 }
 
+.google-calendar-btn {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff; /* same as meeting-btn-list */
+  color: black;
+  border: 1px solid #000000; /* thêm viền đen */
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.google-calendar-btn:hover {
+  background-color: #65aaf8; /* hover effect */
+  color: white; /* đổi màu chữ khi hover */
+}
+
+.google-calendar-icon {
+  width: 20px; /* adjust size */
+  height: 20px;
+  margin-right: 8px; /* space between icon and text */
+}
+
 .meeting-btn-list {
   background-color: #dc3545;
   color: white;
