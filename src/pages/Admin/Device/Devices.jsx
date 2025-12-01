@@ -136,6 +136,7 @@ const Devices = () => {
               />
             </div>
             <div className="sort-container">
+              <label className="sort-label">Sort by:</label>
               <select
                 className="sort-select"
                 value={sortBy}
@@ -162,7 +163,7 @@ const Devices = () => {
             </button>
           </div>
 
-          <div className="device-summary">Total: {filteredDevices.length}</div>
+          <div className="device-summary">Total: {filteredDevices.length} / {devices.length}</div>
 
           <div className="device-list">
             {filteredDevices.length === 0 ? (
