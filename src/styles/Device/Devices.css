@@ -41,6 +41,11 @@
   gap: 8px;
   align-items: center;
 }
+
+.sort-label {
+  font-size: 15px;
+  font-weight: 500;
+}
 .sort-select {
   padding: 12px 12px;
   font-size: 14px;
