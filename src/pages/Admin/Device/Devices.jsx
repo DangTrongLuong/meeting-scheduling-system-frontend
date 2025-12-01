@@ -5,7 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "../../../styles/Device/Devices.css";
 import NavBar from "../../../components/NavBar";
 import SideBarAdmin from "../../../components/SideBarAdmin";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Search } from "lucide-react";
 
 const Devices = () => {
   const navigate = useNavigate();
@@ -127,6 +127,7 @@ const Devices = () => {
 
           <div className="device-controls">
             <div className="device-search-wrapper">
+              <Search className="search-icon" size={20} />
               <input
                 type="text"
                 placeholder="Search devices name..."
@@ -172,7 +173,7 @@ const Devices = () => {
               <table className="device-table">
                 <thead>
                   <tr>
-                    <th>Id</th>
+                    <th>STT</th>
                     <th>Image</th>
                     <th>Name</th>
                     <th>Total</th>
@@ -182,9 +183,9 @@ const Devices = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredDevices.map((d) => (
+                  {filteredDevices.map((d, index) => (
                     <tr key={d.id}>
-                      <td>{d.id}</td>
+                      <td>{index + 1}</td>
                       <td>
                         {d.imagePath ? (
                           <img

@@ -5,7 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "../../../styles/Room/Rooms.css";
 import NavBar from "../../../components/NavBar";
 import SideBarAdmin from "../../../components/SideBarAdmin";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Search } from "lucide-react";
 
 const Rooms = () => {
   const navigate = useNavigate();
@@ -111,6 +111,7 @@ const Rooms = () => {
 
           <div className="meeting-room-controls">
             <div className="meeting-room-search-wrapper">
+              <Search className="search-icon" size={20} />
               <input
                 type="text"
                 placeholder="Search rooms..."
@@ -158,7 +159,7 @@ const Rooms = () => {
               <table className="meeting-room-table">
                 <thead>
                   <tr>
-                    <th>Id</th>
+                    <th>STT</th>
                     <th>Name</th>
                     <th>Location</th>
                     <th>Capacity</th>
@@ -166,9 +167,9 @@ const Rooms = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredRooms.map((r) => (
+                  {filteredRooms.map((r, index) => (
                     <tr key={r.id}>
-                      <td>{r.id}</td>
+                      <td>{index + 1}</td>
                       <td>{r.name}</td>
                       <td>{r.location}</td>
                       <td>{r.capacity}</td>

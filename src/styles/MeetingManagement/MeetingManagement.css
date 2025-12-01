@@ -279,15 +279,6 @@
   font-style: italic;
 }
 
-/* Count Info */
-.mm-count-info {
-  margin-top: 16px;
-  text-align: right;
-  color: #64748b;
-  font-size: 14px;
-  font-weight: 500;
-}
-
 /* Modal Styles */
 .mm-modal-backdrop {
   position: fixed;
@@ -377,6 +368,12 @@
 
 .mm-cancel-btn:hover {
   background: #e2e8f0;
+}
+
+.meeting-management-summary {
+  margin-bottom: 15px;
+  font-weight: 600;
+  color: #093765;
 }
 
 .mm-confirm-btn {
