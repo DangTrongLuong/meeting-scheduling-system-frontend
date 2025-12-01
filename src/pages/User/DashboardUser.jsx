@@ -16,8 +16,10 @@ import CreateNewEvent from "./CreateNewEvent";
 import DetailEvent from "./DetailEvent";
 import EditEvent from "./EditEvent";
 import ggCalendar from '../../assets/gcalendericon.png';
+import { useNavigate } from "react-router-dom";
 
 export default function DashboardUser() {
+  const navigate = useNavigate();
   const calendarRef = useRef(null);
 
   const [rooms, setRooms] = useState([]);
