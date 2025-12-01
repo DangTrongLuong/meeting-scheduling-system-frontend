@@ -113,8 +113,15 @@ export default function DetailEvent({
   const durationMinutes = Math.round((endTime - startTime) / (1000 * 60));
   const durationHours = (durationMinutes / 60).toFixed(1);
 
-  const statusColor =
+  const statusColor_Meeting =
     event.status === "PENDING_APPROVAL" ? "#f39c12" : "#28a745";
+
+  const statusColors_Member = {
+    PENDING: "#f19d2eff",
+    ACCEPTED: "#27ae60",
+    DECLINED: "#d81b24ff",
+  };
+
   return (
     <div className="detail-event-modal" onClick={onClose}>
       <ToastContainer
@@ -206,9 +213,10 @@ export default function DetailEvent({
                 }}
               >
                 {event.participants.map((p, idx) => {
-                  // Chuẩn hóa dữ liệu: nếu là string → lấy email, nếu là object → lấy email + role
                   const participant =
-                    typeof p === "string" ? { email: p, role: "REQUIRED" } : p;
+                    typeof p === "string"
+                      ? { email: p, role: "", status: "" }
+                      : p;
 
                   return (
                     <li
@@ -229,9 +237,16 @@ export default function DetailEvent({
                           display: "flex",
                           alignItems: "center",
                           gap: "12px",
+                          width: "100%",
                         }}
                       >
-                        <span style={{ fontWeight: "400", color: "#2c3e50" }}>
+                        <span
+                          style={{
+                            fontWeight: "400",
+                            color: "#2c3e50",
+                            width: "60%",
+                          }}
+                        >
                           {participant.email}
                         </span>
                         {participant.role && (
@@ -249,6 +264,22 @@ export default function DetailEvent({
                             }}
                           >
                             {participant.role}
+                          </span>
+                        )}
+                        {participant.status && (
+                          <span
+                            style={{
+                              padding: "4px 10px",
+                              borderRadius: "20px",
+                              fontSize: "0.8rem",
+                              fontWeight: "bold",
+                              color: "white",
+                              backgroundColor:
+                                statusColors_Member[participant.status] ||
+                                "#999",
+                            }}
+                          >
+                            {participant.status}
                           </span>
                         )}
                       </div>
@@ -280,7 +311,7 @@ export default function DetailEvent({
           {/* Status */}
           <div style={{ marginBottom: "16px" }}>
             <strong>Status:</strong>
-            <p style={{ color: statusColor, fontWeight: "bold" }}>
+            <p style={{ color: statusColor_Meeting, fontWeight: "bold" }}>
               {event.status}
             </p>
           </div>

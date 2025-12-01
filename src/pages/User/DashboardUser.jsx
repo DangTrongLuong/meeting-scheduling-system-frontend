@@ -191,7 +191,14 @@ export default function DashboardUser() {
           },
           isCreator: isCreatorMeeting, // ← Thêm flag isCreator
           description: m.description,
-          participants: m.participants?.map((p) => p.user?.email) || [],
+
+          participants:
+            m.participants?.map((p) => ({
+              email: p.user?.email,
+              role: p.role,
+              status: p.status,
+            })) || [],
+
           devices: m.devices?.map((d) => d.device?.name) || [],
           status: m.status,
         },

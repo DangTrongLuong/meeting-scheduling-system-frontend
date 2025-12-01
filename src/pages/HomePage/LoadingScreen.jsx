@@ -23,7 +23,6 @@ export default function LoadingScreen() {
           ).toString();
 
           navigate(`/login?email=${encodeURIComponent(encryptedEmail)}`);
-
           return 100;
         }
         return prev + 5;
