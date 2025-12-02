@@ -15,7 +15,7 @@ import axios from "axios";
 import CreateNewEvent from "./CreateNewEvent";
 import DetailEvent from "./DetailEvent";
 import EditEvent from "./EditEvent";
-import ggCalendar from '../../assets/gcalendericon.png';
+import ggCalendar from "../../assets/gcalendericon.png";
 import { useNavigate } from "react-router-dom";
 
 export default function DashboardUser() {
@@ -24,6 +24,7 @@ export default function DashboardUser() {
 
   const [rooms, setRooms] = useState([]);
   const [events, setEvents] = useState([]);
+
   const [loading, setLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   //
@@ -69,7 +70,7 @@ export default function DashboardUser() {
   };
 
   const filteredEvents = React.useMemo(() => {
-    if (selectedRoomIds.length === 0) return [];
+    if (selectedRoomIds.length === 0) return events;
 
     return events.filter((event) => {
       const eventRoomId = event.extendedProps?.room?.id;
@@ -203,70 +204,79 @@ export default function DashboardUser() {
   };
 
   // Fetch meetings lần đầu
-  useEffect(() => {
-    const currentUserId = localStorage.getItem("userId");
+  const currentUserId = localStorage.getItem("userId");
 
-    const fetchAllEvents = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem("accessToken");
+  const fetchAllEvents = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("accessToken");
 
-        const res = await axios.get("/api/meetings/getAllMeetings", {
-          headers: { Authorization: `Bearer ${token}` },
-          params: {
-            page: 0,
-            size: 1000,
-            sortBy: "startTime",
-            direction: "desc",
-          },
-        });
+      const res = await axios.get("/api/meetings/getAllMeetings", {
+        headers: { Authorization: `Bearer ${token}` },
+        params: {
+          page: 0,
+          size: 1000,
+          sortBy: "startTime",
+          direction: "desc",
+        },
+      });
 
-        const meetings = res.data.data?.content || res.data.data || [];
+      const meetings = res.data.data?.content || res.data.data || [];
 
-        const formattedEvents = meetings.map((meeting) => {
-          const isCreator = meeting.creator?.id === currentUserId;
-          const isParticipant = meeting.participants?.some(
-            (p) => p.user?.id === currentUserId && p.status === "ACCEPTED"
-          );
+      const formattedEvents = meetings.map((meeting) => {
+        const isCreator = meeting.creator?.id === currentUserId;
+        const isParticipant = meeting.participants?.some(
+          (p) => p.user?.id === currentUserId && p.status === "ACCEPTED"
+        );
 
-          // PHÂN BIỆT MÀU RÕ RÀNG
-          let backgroundColor = "#ff9800";
-          let borderColor = "#f57c00";
+        let backgroundColor, borderColor;
 
+        if (meeting.status === "CANCELLED") {
+          backgroundColor = "#f88a8aff";
+          borderColor = "#f88a8aff";
+        } else if (meeting.status === "PENDING_APPROVAL") {
+          backgroundColor = "#b1b1b1ff";
+          borderColor = "#b1b1b1ff";
+        } else {
           if (isCreator) {
             backgroundColor = "#1976d2";
             borderColor = "#1565c0";
           } else if (isParticipant) {
             backgroundColor = "#4caf50";
             borderColor = "#388e3c";
+          } else {
+            backgroundColor = "#ff9800";
+            borderColor = "#f57c00";
           }
+        }
 
-          return {
-            id: meeting.id,
-            title: meeting.title,
-            start: meeting.startTime,
-            end: meeting.endTime,
-            backgroundColor,
-            borderColor,
-            textColor: "white",
-            extendedProps: {
-              ...meeting,
-              isCreator,
-              isParticipant,
-              isMyMeeting: isCreator || isParticipant,
-            },
-          };
-        });
+        return {
+          id: meeting.id,
+          title: meeting.title,
+          start: meeting.startTime,
+          end: meeting.endTime,
+          backgroundColor,
+          borderColor,
+          textColor: "white",
+          extendedProps: {
+            ...meeting,
+            isCreator,
+            isParticipant,
+            isMyMeeting: isCreator || isParticipant,
+          },
+        };
+      });
 
-        setEvents(formattedEvents);
-      } catch (error) {
-        console.error("Error loading meetings:", error);
-        toast.error("Không tải được lịch họp");
-      } finally {
-        setLoading(false);
-      }
-    };
+      setEvents(formattedEvents);
+    } catch (error) {
+      console.error("Error loading meetings:", error);
+      toast.error("Không tải được lịch họp");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchAllEvents();
   }, []);
 
@@ -300,41 +310,33 @@ export default function DashboardUser() {
 
   const handleCreateSuccess = () => {
     // Refresh meetings list
-    const fetchMeetings = async () => {
-      try {
-        const token = localStorage.getItem("accessToken");
-        const userId = localStorage.getItem("userId");
-
-        const response = await axios.get(
-          "http://localhost:8080/api/meetings/my-meetings",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              userId: userId,
-            },
-          }
-        );
-
-        // ← Dùng helper function
-        const mappedEvents = mapMeetingsToEvents(response.data.data, userId);
-        setEvents(mappedEvents);
-      } catch (error) {
-        console.error("Error fetching meetings:", error);
-      }
-    };
-
-    fetchMeetings();
+    fetchAllEvents();
   };
 
   const handleDeleteSuccess = () => {
-    handleCreateSuccess();
+    setEvents((prevEvents) =>
+      prevEvents.map((ev) =>
+        ev.id === selectedEvent.id
+          ? {
+              ...ev,
+              backgroundColor: "#f88a8aff",
+              borderColor: "#f88a8aff",
+              extendedProps: {
+                ...ev.extendedProps,
+                status: "CANCELLED",
+              },
+            }
+          : ev
+      )
+    );
+    fetchAllEvents();
   };
 
   const getBookedRooms = () => {
     const now = new Date();
     const today = now.toISOString().split("T")[0];
     const currentEvents = events.filter((e) => e.start.startsWith(today));
-    return [...new Set(currentEvents.map((e) => e.extendedProps.room))];
+    return [...new Set(currentEvents.map((e) => e.extendedProps.room.id))];
   };
 
   const getAvailableRooms = () => {
@@ -489,11 +491,6 @@ export default function DashboardUser() {
               eventDidMount={(info) => {
                 const el = info.el;
 
-                if (info.event.extendedProps.status === "PENDING_APPROVAL") {
-                  info.el.style.opacity = "0.5";
-                  info.el.style.backgroundColor = "#cfcfcfff";
-                }
-
                 // Reset mọi style mặc định của FullCalendar
                 el.style.margin = "3px 2px";
                 el.style.borderRadius = "5px";
@@ -554,6 +551,13 @@ export default function DashboardUser() {
                     ></span>
                     My Meetings
                   </div>
+                  <div className="note-item">
+                    <span
+                      className="note-color"
+                      style={{ backgroundColor: "#f88a8aff" }}
+                    ></span>
+                    Cancelled
+                  </div>
                 </div>
 
                 {/* Hàng 2 */}
@@ -575,6 +579,7 @@ export default function DashboardUser() {
                 </div>
               </div>
             </div>
+
             <div className="room-box" style={{ marginTop: "20px" }}>
               <h4 className="room-box-title">Rooms Booked Today</h4>
               <ul
@@ -583,14 +588,16 @@ export default function DashboardUser() {
               >
                 {getBookedRooms().length > 0 ? (
                   getBookedRooms().map((roomId, i) => {
-                    const room = rooms.find((r) => r.id === roomId);
+                    const event = events.find(
+                      (e) => e.extendedProps.room.id === roomId
+                    );
                     return (
                       <li key={i} className="room-item">
                         <span
                           className="room-dot"
                           style={{ backgroundColor: "#e74c3c" }}
                         ></span>
-                        {room?.name || "Unknown Room"}
+                        {event?.extendedProps.room.name || "Unknown Room"}
                       </li>
                     );
                   })

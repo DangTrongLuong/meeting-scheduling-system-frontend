@@ -33,6 +33,7 @@ export default function DetailEvent({
     );
 
   const canEdit = isCreator;
+  const cancelled = event?.status || "";
 
   // useEffect(() => {
   //   if (event) {
@@ -137,7 +138,11 @@ export default function DetailEvent({
   const durationHours = (durationMinutes / 60).toFixed(1);
 
   const statusColor_Meeting =
-    event.status === "PENDING_APPROVAL" ? "#f39c12" : "#28a745";
+    event.status === "PENDING_APPROVAL"
+      ? "#f39c12"
+      : event.status === "SCHEDULED"
+      ? "#28a745"
+      : "#fa3434ff";
 
   const statusColors_Member = {
     PENDING: "#f19d2eff",
@@ -354,7 +359,7 @@ export default function DetailEvent({
         </div>
 
         <div className="detail-event-modal-footer">
-          {canEdit ? (
+          {canEdit && cancelled !== "CANCELLED" ? (
             <>
               <button
                 className="detail-event-update-btn"
@@ -372,9 +377,7 @@ export default function DetailEvent({
               </button>
             </>
           ) : (
-            <p style={{ color: "#999", fontSize: "14px" }}>
-              Only creator can edit or delete
-            </p>
+            <p style={{ color: "#999", fontSize: "14px" }}></p>
           )}
 
           <button

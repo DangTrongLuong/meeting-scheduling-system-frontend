@@ -226,6 +226,18 @@
   border: 1px solid #fcd34d;
 }
 
+.mm-status-scheduled {
+  background: #18f35a;
+  color: #ffffff;
+  border: 1px solid #39ec22;
+}
+
+.mm-status-cancelled {
+  background: #fa7d7d;
+  color: #ffffff;
+  border: 1px solid #f53232;
+}
+
 /* Action Buttons */
 .mm-action-group {
   display: flex;
