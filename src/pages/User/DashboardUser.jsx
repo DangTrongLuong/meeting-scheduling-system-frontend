@@ -32,6 +32,72 @@ export default function DashboardUser() {
 
   const [roomSearchTerm, setRoomSearchTerm] = useState("");
   const [selectedRoomIds, setSelectedRoomIds] = useState([]); // Thay cho filterRoomId
+  const [isConnected, setIsConnected] = useState(false);
+  
+
+// Kiểm tra trạng thái kết nối khi load
+  
+const userId = localStorage.getItem("userId");
+const accessToken = localStorage.getItem("accessToken");
+
+// Hàm kiểm tra trạng thái kết nối
+useEffect(() => {
+  axios.get("/api/calendar/status", {
+    withCredentials: true,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "userId": userId  
+    }
+  })
+    .then(res => setIsConnected(res.data.connected))
+    .catch(() => setIsConnected(false));
+}, []);
+
+// Hàm đồng bộ Google Calendar
+const handleConnect = async () => {
+  setLoading(true);
+  try {
+    const response = await axios.post("/api/calendar/sync-to-google", {}, {
+      withCredentials: true,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "userId": userId
+      }
+    });
+    alert(response.data);
+    setIsConnected(true);
+  } catch (error) {
+    if (error.response && error.response.status === 401) {
+      window.location.href = "/api/auth/login/google";
+    } else {
+      alert("Có lỗi xảy ra khi đồng bộ.");
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
+// Hàm ngắt kết nối
+const handleDisconnect = async () => {
+  setLoading(true);
+  try {
+    const response = await axios.post("/api/calendar/disconnect-google", {}, {
+      withCredentials: true,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "userId": userId
+      }
+    });
+    alert(response.data);
+    setIsConnected(false);
+  } catch (error) {
+    alert("Có lỗi xảy ra khi bỏ đồng bộ.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   // Khởi tạo mặc định chọn hết phòng
   useEffect(() => {
@@ -379,14 +445,19 @@ export default function DashboardUser() {
         />
 
         <div className="navbar-right">
-          <button className="google-calendar-btn">
-            <img
-              src={ggCalendar}
-              alt="Google Calendar"
-              className="google-calendar-icon"
-            />
-            <span>Connect</span>
-          </button>
+          
+          
+            
+<button
+      className="google-calendar-btn"
+      onClick={isConnected ? handleDisconnect : handleConnect}
+      disabled={loading}
+    >
+      <img src={ggCalendar} alt="Google Calendar" className="google-calendar-icon" />
+      <span>{loading ? "Processing..." : isConnected ? "Disconnect" : "Connect"}</span>
+    </button>
+
+
 
           <button
             className="meeting-btn-list"
