@@ -26,6 +26,7 @@ const DetailMeetingManagement = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeMenuItem, setActiveMenuItem] = useState("meetting-management");
   const [meeting, setMeeting] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
@@ -244,10 +245,20 @@ const DetailMeetingManagement = () => {
                 </div>
                 <div className="dmm-info-row">
                   <span className="dmm-label">Status:</span>
-                  <span className="dmm-status-badge dmm-status-pending">
+
+                  <span
+                    className={
+                      meeting.status === "PENDING_APPROVAL"
+                        ? "dmm-status-badge dmm-status-pending"
+                        : meeting.status === "SCHEDULED"
+                        ? "dmm-status-badge dmm-status-scheduled"
+                        : "dmm-status-badge dmm-status-other"
+                    }
+                  >
                     {meeting.status}
                   </span>
                 </div>
+
                 {meeting.description && (
                   <div className="dmm-info-row dmm-description-row">
                     <span className="dmm-label">

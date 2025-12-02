@@ -220,6 +220,17 @@
   border: 1px solid #fcd34d;
 }
 
+.dmm-status-scheduled {
+  background: #4caf50; /* xanh */
+  color: #fff;
+}
+
+/* FALLBACK cho các trạng thái khác */
+.dmm-status-other {
+  background: #d9d9d9;
+  color: #333;
+}
+
 /* Creator Info */
 .dmm-creator-info {
   display: flex;

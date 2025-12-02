@@ -225,16 +225,17 @@
 
 .login-form {
   width: 100%;
+  height: auto;
 }
 
 .login-form-button {
   width: 100%;
-  padding: 14px;
+  padding: 10px;
   background: linear-gradient(135deg, #3567f0 0%, #0651db 100%);
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -295,6 +296,90 @@
   background: #d5f4e6;
   border-radius: 6px;
   border-left: 3px solid #27ae60;
+}
+
+.login-first-login-title {
+  text-align: center;
+  color: #d32f2f;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+}
+
+.login-first-login-subtitle {
+  text-align: center;
+  color: #555;
+  font-size: 14px;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.login-input-group {
+  margin: 0 0 15px 0;
+}
+
+.login-input-group label {
+  font-weight: 600;
+}
+
+/* Thống nhất style cho cả 2 ô input khi đổi mật khẩu lần đầu */
+.login-form .login-input-group input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  background: #fff;
+}
+
+.login-form .login-input-group input:focus {
+  outline: none;
+  border-color: #4285f4;
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.15);
+}
+
+/* Đảm bảo Confirm Password cũng có toggle icon giống New Password */
+.login-input-group .login-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login-input-group .login-password-wrapper input {
+  padding-right: 46px; /* Để chỗ cho icon mắt */
+  flex: 1;
+}
+
+.login-input-group .login-password-wrapper .login-toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #666;
+  font-size: 18px;
+  z-index: 2;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.2s ease;
+}
+
+.login-input-group .login-password-wrapper .login-toggle-password:hover {
+  color: #333;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Error message khi đổi mật khẩu */
+.login-first-login-error {
+  color: #e74c3c;
+  font-size: 13px;
+  text-align: center;
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  background: #fadbd8;
+  border-radius: 6px;
+  border-left: 3px solid #e74c3c;
 }
 
 /* ============= Responsive for Mobile ============= */

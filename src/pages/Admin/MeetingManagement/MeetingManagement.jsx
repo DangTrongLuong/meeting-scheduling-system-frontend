@@ -5,16 +5,9 @@ import "react-toastify/dist/ReactToastify.css";
 import "../../../styles/MeetingManagement/MeetingManagement.css";
 import NavBar from "../../../components/NavBar";
 import SideBarAdmin from "../../../components/SideBarAdmin";
-import {
-  Search,
-  CheckCircle,
-  XCircle,
-  Calendar,
-  Clock,
-  MapPin,
-  User,
-  Eye,
-} from "lucide-react";
+import { Search, CheckCircle, XCircle, Eye } from "lucide-react";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
 import axios from "axios";
 
 const MeetingManagement = () => {
@@ -22,30 +15,40 @@ const MeetingManagement = () => {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeMenuItem, setActiveMenuItem] = useState("meetting-management");
-  const [pendingMeetings, setPendingMeetings] = useState([]);
+  const [allMeetings, setAllMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("date");
   const [sortOrder, setSortOrder] = useState("asc");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
   const [selectedMeeting, setSelectedMeeting] = useState(null);
 
   useEffect(() => {
-    fetchPendingMeetings();
+    fetchAllMeetings();
   }, []);
 
-  const fetchPendingMeetings = async () => {
+  const fetchAllMeetings = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("accessToken");
-      const res = await axios.get("/api/meetings/pending", {
+      const res = await axios.get("/api/meetings/getAllMeetings", {
         headers: { Authorization: `Bearer ${token}` },
+        params: {
+          page: 0,
+          size: 1000,
+          sortBy: "startTime",
+          direction: "desc",
+        },
       });
-      setPendingMeetings(res.data.data || []);
+
+      const meetings = res.data.data?.content || [];
+      setAllMeetings(Array.isArray(meetings) ? meetings : []);
     } catch (error) {
-      console.error("Error fetching pending meetings:", error);
-      toast.error("Failed to load pending meetings");
+      console.error("Error fetching all meetings:", error);
+      toast.error("Failed to load meetings");
     } finally {
       setLoading(false);
     }
@@ -64,7 +67,7 @@ const MeetingManagement = () => {
         }
       );
       toast.success("Meeting approved successfully!");
-      fetchPendingMeetings();
+      fetchAllMeetings();
     } catch (error) {
       console.error("Error approving meeting:", error);
       toast.error(
@@ -90,7 +93,7 @@ const MeetingManagement = () => {
         }
       );
       toast.error("Meeting rejected!");
-      fetchPendingMeetings();
+      fetchAllMeetings();
     } catch (error) {
       console.error("Error rejecting meeting:", error);
       toast.error(error.response?.data?.message || "Failed to reject meeting!");
@@ -121,8 +124,24 @@ const MeetingManagement = () => {
     });
   };
 
-  const filteredMeetings = pendingMeetings
+  const filteredMeetings = allMeetings
     .filter((meeting) => {
+      // Filter by status
+      if (statusFilter !== "ALL" && meeting.status !== statusFilter) {
+        return false;
+      }
+
+      // Filter by selected date
+      const meetingDate = new Date(meeting.startTime);
+      if (
+        meetingDate.getDate() !== selectedDate.getDate() ||
+        meetingDate.getMonth() !== selectedDate.getMonth() ||
+        meetingDate.getFullYear() !== selectedDate.getFullYear()
+      ) {
+        return false;
+      }
+
+      // Filter by search term
       const searchLower = searchTerm.toLowerCase();
       return (
         meeting.title?.toLowerCase().includes(searchLower) ||
@@ -154,6 +173,41 @@ const MeetingManagement = () => {
     });
   };
 
+  const formatTime = (dateTimeString) => {
+    if (!dateTimeString) return "N/A";
+    const date = new Date(dateTimeString);
+    return date.toLocaleString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const getStatusBadgeClass = (status) => {
+    switch (status) {
+      case "PENDING_APPROVAL":
+        return "mm-status-pending";
+      case "SCHEDULED":
+        return "mm-status-scheduled";
+      case "CANCELLED":
+        return "mm-status-cancelled";
+      default:
+        return "mm-status-pending";
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "PENDING_APPROVAL":
+        return "PENDING";
+      case "SCHEDULED":
+        return "SCHEDULED";
+      case "CANCELLED":
+        return "CANCELLED";
+      default:
+        return status;
+    }
+  };
+
   const handleMenuClick = (itemId) => {
     setActiveMenuItem(itemId);
   };
@@ -178,46 +232,95 @@ const MeetingManagement = () => {
       />
       <div className="main-layout">
         <main className="main-content">
-          <h1 className="meeting-management">Meeting Management</h1>
+          <div className="mm-header-wrapper">
+            <div className="mm-meeting-management-and-search">
+              <h1 className="meeting-management">Meeting Management</h1>
+              <div className="mm-controls">
+                <div className="mm-search-wrapper">
+                  <Search className="mm-search-icon" size={20} />
+                  <input
+                    type="text"
+                    placeholder="Search by title, room, or organizer..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="mm-search-field"
+                  />
+                </div>
 
-          <div className="mm-controls">
-            <div className="mm-search-wrapper">
-              <Search className="mm-search-icon" size={20} />
-              <input
-                type="text"
-                placeholder="Search by title, room, or organizer..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="mm-search-field"
-              />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="mm-sort-dropdown"
+                >
+                  <option value="PENDING_APPROVAL">Pending</option>
+                  <option value="SCHEDULED">Scheduled</option>
+                  <option value="CANCELLED">Cancelled</option>
+                  <option value="ALL">All Status</option>
+                </select>
+
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="mm-sort-dropdown"
+                >
+                  <option value="date">Sort by Date</option>
+                  <option value="title">Sort by Title</option>
+                  <option value="room">Sort by Room</option>
+                </select>
+
+                {/* <button
+                  onClick={() =>
+                    setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                  }
+                  className="mm-order-toggle"
+                >
+                  {sortOrder === "asc" ? "↑ Ascending" : "↓ Descending"}
+                </button> */}
+              </div>
             </div>
 
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="mm-sort-dropdown"
-            >
-              <option value="date">Sort by Date</option>
-              <option value="title">Sort by Title</option>
-              <option value="room">Sort by Room</option>
-            </select>
+            {/* Mini Calendar */}
+            <div className="mm-mini-calendar-box">
+              <Calendar
+                value={selectedDate}
+                onClickDay={(date) => setSelectedDate(date)}
+                tileClassName={({ date }) => {
+                  const today = new Date();
+                  let classes = "";
 
-            <button
-              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-              className="mm-order-toggle"
-            >
-              {sortOrder === "asc" ? "↑ Ascending" : "↓ Descending"}
-            </button>
+                  if (date.toDateString() === today.toDateString()) {
+                    classes += "calendar-today ";
+                  }
+                  if (date.toDateString() === selectedDate.toDateString()) {
+                    classes += "calendar-selected";
+                  }
+
+                  return classes.trim();
+                }}
+              />
+              <div className="mm-selected-date-display">
+                {selectedDate.toLocaleDateString("en-US", {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                })}
+              </div>
+            </div>
           </div>
 
           <div className="meeting-management-summary">
-            Total: {filteredMeetings.length} / {pendingMeetings.length}
+            Total: {filteredMeetings.length} meetings on{" "}
+            {selectedDate.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })}
           </div>
 
           {loading ? (
             <div className="mm-loading-container">
               <div className="mm-loading-spinner"></div>
-              <p>Loading pending meetings...</p>
+              <p>Loading meetings...</p>
             </div>
           ) : (
             <div className="mm-table-wrapper">
@@ -228,8 +331,7 @@ const MeetingManagement = () => {
                     <th>Title</th>
                     <th>Creator</th>
                     <th>Room</th>
-                    <th>Start Time</th>
-                    <th>End Time</th>
+                    <th>Time</th>
                     <th>Participants</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -238,8 +340,8 @@ const MeetingManagement = () => {
                 <tbody>
                   {filteredMeetings.length === 0 ? (
                     <tr>
-                      <td colSpan="9" className="mm-no-data">
-                        No pending meetings found
+                      <td colSpan="8" className="mm-no-data">
+                        No meetings found
                       </td>
                     </tr>
                   ) : (
@@ -256,18 +358,20 @@ const MeetingManagement = () => {
                           {meeting.room?.name || "N/A"}
                         </td>
                         <td className="mm-time-cells">
-                          {formatDateTime(meeting.startTime)}
-                        </td>
-                        <td className="mm-time-cells">
-                          {formatDateTime(meeting.endTime)}
+                          {formatTime(meeting.startTime)} -{" "}
+                          {formatTime(meeting.endTime)}
                         </td>
                         <td className="mm-participant-cell">
                           {meeting.participants?.length || 0}
                         </td>
 
                         <td>
-                          <span className="mm-status-badge mm-status-pending">
-                            PENDING
+                          <span
+                            className={`mm-status-badge ${getStatusBadgeClass(
+                              meeting.status
+                            )}`}
+                          >
+                            {getStatusLabel(meeting.status)}
                           </span>
                         </td>
                         <td>
@@ -280,25 +384,29 @@ const MeetingManagement = () => {
                               <Eye size={16} />
                             </button>
 
-                            <button
-                              onClick={() =>
-                                openConfirmModal(meeting, "approve")
-                              }
-                              className="mm-approve-action"
-                              title="Approve meeting"
-                            >
-                              <CheckCircle size={16} />
-                            </button>
+                            {meeting.status === "PENDING_APPROVAL" && (
+                              <>
+                                <button
+                                  onClick={() =>
+                                    openConfirmModal(meeting, "approve")
+                                  }
+                                  className="mm-approve-action"
+                                  title="Approve meeting"
+                                >
+                                  <CheckCircle size={16} />
+                                </button>
 
-                            <button
-                              onClick={() =>
-                                openConfirmModal(meeting, "reject")
-                              }
-                              className="mm-reject-action"
-                              title="Reject meeting"
-                            >
-                              <XCircle size={16} />
-                            </button>
+                                <button
+                                  onClick={() =>
+                                    openConfirmModal(meeting, "reject")
+                                  }
+                                  className="mm-reject-action"
+                                  title="Reject meeting"
+                                >
+                                  <XCircle size={16} />
+                                </button>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>

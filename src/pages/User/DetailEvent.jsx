@@ -17,6 +17,7 @@ export default function DetailEvent({
 }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [roomDevices, setRoomDevices] = useState([]);
+
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const currentUserId = localStorage.getItem("userId");
 
@@ -24,6 +25,14 @@ export default function DetailEvent({
     event?.isCreator ||
     event?.creator?.id === currentUserId ||
     event?.creatorId === currentUserId;
+
+  const isParticipant =
+    event?.extendedProps?.isParticipant ||
+    event?.participants?.some(
+      (p) => p.user?.id === currentUserId && p.status === "ACCEPTED"
+    );
+
+  const canEdit = isCreator;
 
   // useEffect(() => {
   //   if (event) {
@@ -47,13 +56,27 @@ export default function DetailEvent({
 
   const fetchRoomDevices = async () => {
     try {
-      const roomId = event.room || event.roomId;
+      const roomId = event.room?.id;
+
+      if (!roomId) {
+        console.warn("No room ID found in event:", event);
+        setRoomDevices([]);
+        return;
+      }
+
       const response = await axios.get(
-        `http://localhost:8080/api/meetings/rooms/${roomId}/devices`
+        `http://localhost:8080/api/meetings/rooms/${roomId}/devices`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        }
       );
+
       setRoomDevices(response.data || []);
     } catch (error) {
       console.error("Error fetching room devices:", error);
+      setRoomDevices([]);
     }
   };
 
@@ -154,8 +177,17 @@ export default function DetailEvent({
           {/* Room */}
           <div style={{ marginBottom: "16px" }}>
             <strong>Room:</strong>
-            <p style={{ margin: "4px 0", fontSize: "14px", color: "#666" }}>
-              {event.roomName || "N/A"}
+            <p
+              style={{ fontSize: "15px", fontWeight: "600", color: "#1976d2" }}
+            >
+              {event.room?.name || event.meetingRoom?.name || "N/A"}
+              {event.room?.location && (
+                <span
+                  style={{ color: "#666", fontSize: "13px", marginLeft: "8px" }}
+                >
+                  ({event.room.location})
+                </span>
+              )}
             </p>
           </div>
 
@@ -205,87 +237,79 @@ export default function DetailEvent({
           {event.participants && event.participants.length > 0 && (
             <div style={{ marginBottom: "16px" }}>
               <strong>Participants:</strong>
-              <ul
-                style={{
-                  margin: "8px 0",
-                  paddingLeft: "20px",
-                  listStyle: "none",
-                }}
-              >
-                {event.participants.map((p, idx) => {
-                  const participant =
-                    typeof p === "string"
-                      ? { email: p, role: "", status: "" }
-                      : p;
+              <ul style={{ margin: "8px 0", paddingLeft: "20px" }}>
+                {event.participants && event.participants.length > 0 ? (
+                  event.participants.map((p, idx) => {
+                    const user = p.user || p;
+                    const statusColor =
+                      p.status === "ACCEPTED"
+                        ? "#28a745"
+                        : p.status === "DECLINED"
+                        ? "#dc3545"
+                        : "#ffc107";
+                    const statusBg =
+                      p.status === "ACCEPTED"
+                        ? "#d4edda"
+                        : p.status === "DECLINED"
+                        ? "#f8d7da"
+                        : "#fff3cd";
 
-                  return (
-                    <li
-                      key={idx}
-                      style={{
-                        marginBottom: "8px",
-                        padding: "8px 12px",
-                        backgroundColor: "#f8f9fa",
-                        borderRadius: "8px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        fontSize: "14px",
-                      }}
-                    >
-                      <div
+                    return (
+                      <li
+                        key={idx}
                         style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "12px",
-                          width: "100%",
+                          fontSize: "14px",
+                          color: "#444",
+                          marginBottom: "6px",
                         }}
                       >
-                        <span
-                          style={{
-                            fontWeight: "400",
-                            color: "#2c3e50",
-                            width: "60%",
-                          }}
-                        >
-                          {participant.email}
-                        </span>
-                        {participant.role && (
+                        <strong>{user.name || "Unknown User"}</strong>
+                        <br></br>
+                        {user.email && (
                           <span
                             style={{
-                              padding: "4px 10px",
-                              borderRadius: "20px",
-                              fontSize: "0.8rem",
-                              fontWeight: "bold",
-                              color: "white",
-                              backgroundColor:
-                                participant.role === "REQUIRED"
-                                  ? "#e74c3c"
-                                  : "#27ae60",
+                              color: "#666",
+                              marginLeft: "8px",
+                              fontSize: "13px",
                             }}
                           >
-                            {participant.role}
+                            &lt;{user.email}&gt;
                           </span>
                         )}
-                        {participant.status && (
+                        {p.role && (
                           <span
                             style={{
-                              padding: "4px 10px",
-                              borderRadius: "20px",
-                              fontSize: "0.8rem",
-                              fontWeight: "bold",
-                              color: "white",
-                              backgroundColor:
-                                statusColors_Member[participant.status] ||
-                                "#999",
+                              marginLeft: "8px",
+                              color: "#999",
+                              fontSize: "12px",
                             }}
                           >
-                            {participant.status}
+                            ({p.role})
                           </span>
                         )}
-                      </div>
-                    </li>
-                  );
-                })}
+                        {p.status && (
+                          <span
+                            style={{
+                              marginLeft: "10px",
+                              padding: "2px 6px",
+                              borderRadius: "4px",
+                              fontSize: "11px",
+                              backgroundColor: statusBg,
+                              color: statusColor,
+                              fontWeight: "bold",
+                            }}
+                          >
+                            {p.status}
+                          </span>
+                        )}
+                      </li>
+                    );
+                  })
+                ) : (
+                  <li style={{ fontSize: "14px", color: "#999" }}>
+                    No participants invited
+                  </li>
+                )}
               </ul>
             </div>
           )}
@@ -296,8 +320,20 @@ export default function DetailEvent({
             <ul style={{ margin: "8px 0", paddingLeft: "20px" }}>
               {roomDevices && roomDevices.length > 0 ? (
                 roomDevices.map((device, idx) => (
-                  <li key={idx} style={{ fontSize: "14px", color: "#666" }}>
-                    {device.deviceName} (x{device.quantity})
+                  <li key={idx} style={{ fontSize: "14px", color: "#444" }}>
+                    {device.device?.name || device.deviceName} (x
+                    {device.quantity || 1})
+                    {device.notes && (
+                      <span
+                        style={{
+                          color: "#999",
+                          fontSize: "12px",
+                          marginLeft: "6px",
+                        }}
+                      >
+                        – {device.notes}
+                      </span>
+                    )}
                   </li>
                 ))
               ) : (
@@ -318,7 +354,7 @@ export default function DetailEvent({
         </div>
 
         <div className="detail-event-modal-footer">
-          {isCreator ? (
+          {canEdit ? (
             <>
               <button
                 className="detail-event-update-btn"

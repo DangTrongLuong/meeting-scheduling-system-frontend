@@ -154,7 +154,6 @@ const UserManagement = () => {
                 className="um-search-field"
               />
             </div>
-
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -164,20 +163,82 @@ const UserManagement = () => {
               <option value="email">Sort by Email</option>
               <option value="role">Sort by Role</option>
             </select>
-
             <button
               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
               className="um-order-toggle"
             >
               {sortOrder === "asc" ? "↑ Ascending" : "↓ Descending"}
             </button>
-
             <button
               onClick={() => navigate("/admin/managementUsers/create")}
               className="um-add-button"
             >
               <Plus size={20} />
               Add User
+            </button>
+            {/* NÚT EXPORT EXCEL – CHỈ XUẤT USER CHƯA ACTIVE */}
+            <button
+              onClick={() => {
+                const XLSX = window.XLSX;
+                if (!XLSX) {
+                  toast.error("Export library not loaded!");
+                  return;
+                }
+
+                // LỌC CHỈ NHỮNG USER CÓ active = false
+                const inactiveUsers = users.filter((user) => !user.active);
+
+                if (inactiveUsers.length === 0) {
+                  toast.warning("No inactive users to export");
+                  return;
+                }
+
+                const defaultPass =
+                  localStorage.getItem("lastUsedDefaultPassword") || "N/A";
+
+                const dataToExport = inactiveUsers.map((user) => ({
+                  Name: user.name,
+                  Email: user.email,
+                  Password: defaultPass,
+                  Age: user.age || "N/A",
+                  Phone: user.phone_numbers || "N/A",
+                  Address: user.address || "N/A",
+                }));
+
+                const ws = XLSX.utils.json_to_sheet(dataToExport);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Inactive Users");
+
+                const fileName = `inactive_users_${new Date()
+                  .toISOString()
+                  .slice(0, 10)}.xlsx`;
+                XLSX.writeFile(wb, fileName);
+
+                toast.success(
+                  `Exported ${inactiveUsers.length} inactive account(s)!`
+                );
+              }}
+              className="um-add-button"
+              style={{
+                background: "linear-gradient(135deg, #0bc23cff, #06a83cff)",
+                marginLeft: "12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <path d="M14 2v6h6" />
+                <text
+                  x="6"
+                  y="16"
+                  fontSize="10"
+                  fill="white"
+                  fontWeight="bold"
+                ></text>
+              </svg>
+              Export Users
             </button>
           </div>
 
