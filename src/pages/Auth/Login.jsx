@@ -44,6 +44,11 @@ export default function LoginPage() {
   const [totpCode, setTotpCode] = useState("");
   const [isSettingUp2FA, setIsSettingUp2FA] = useState(false);
 
+  const [isFirstLogin, setIsFirstLogin] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changePassError, setChangePassError] = useState("");
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const error = params.get("error");
@@ -131,6 +136,54 @@ export default function LoginPage() {
     }
   };
 
+  const checkFirstLogin = async (email) => {
+    try {
+      const res = await axios.post("/api/auth/check-first-login", { email });
+      return res.data.firstLogin === true;
+    } catch (err) {
+      return false;
+    }
+  };
+
+  const handleFirstLoginChangePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      setChangePassError("Passwords do not match");
+      return;
+    }
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(newPassword)) {
+      setChangePassError(
+        "Password must contain uppercase, lowercase, number and special character"
+      );
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await axios.post("/api/auth/update-password-first-login", {
+        email: email.trim(),
+        newPassword,
+      });
+
+      if (res.data.success) {
+        toast.success("Password changed successfully! Logging you in...");
+        localStorage.removeItem("lastUsedDefaultPassword");
+
+        // Tự động đăng nhập lại với mật khẩu mới
+        setPassword(newPassword);
+        setIsFirstLogin(false);
+        setTimeout(() => {
+          handleSubmit(new Event("submit"));
+        }, 1500);
+      }
+    } catch (err) {
+      setChangePassError(
+        err.response?.data?.message || "Failed to update password"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setGeneralError("");
@@ -139,6 +192,13 @@ export default function LoginPage() {
     setQrCodeUrl("");
     setTotpCode("");
     setIsSettingUp2FA(false);
+
+    const isFirst = await checkFirstLogin(email);
+    if (isFirst) {
+      setIsFirstLogin(true);
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await axios.post("/api/auth/login", {
@@ -283,78 +343,281 @@ export default function LoginPage() {
               </span>
             </div> */}
 
-            <form className="login-form" onSubmit={handleSubmit}>
-              <div className="login-form-group">
-                <label className="login-form-label">Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={handleEmailChange}
-                  onBlur={handleEmailBlur}
-                  onFocus={handleInputFocus}
-                  className={`login-form-input ${
-                    touched.email && emailError ? "input-error" : ""
-                  }`}
-                  placeholder="Enter your @gmail.com email"
-                />
-                {touched.email && emailError && (
-                  <span className="login-error-text">{emailError}</span>
-                )}
-              </div>
-
-              <div
-                className="login-form-group"
-                style={{ position: "relative" }}
-              >
-                <label className="login-form-label">Password</label>
-
-                <div className="password-wrapper">
+            {!isFirstLogin ? (
+              <form className="login-form" onSubmit={handleSubmit}>
+                <div className="login-form-group">
+                  <label className="login-form-label">Email</label>
                   <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={handlePasswordChange}
-                    onBlur={handlePasswordBlur}
+                    type="email"
+                    value={email}
+                    onChange={handleEmailChange}
+                    onBlur={handleEmailBlur}
                     onFocus={handleInputFocus}
                     className={`login-form-input ${
-                      touched.password && passwordError ? "input-error" : ""
+                      touched.email && emailError ? "input-error" : ""
                     }`}
-                    placeholder="Enter your password"
+                    placeholder="Enter your @gmail.com email"
                   />
-                  {password.length > 0 &&
-                    (showPassword ? (
-                      <AiOutlineEyeInvisible
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="password-toggle-icon"
-                      />
-                    ) : (
-                      <AiOutlineEye
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="password-toggle-icon"
-                      />
-                    ))}
+                  {touched.email && emailError && (
+                    <span className="login-error-text">{emailError}</span>
+                  )}
                 </div>
 
-                {touched.password && passwordError && (
-                  <span className="login-error-text">{passwordError}</span>
+                <div
+                  className="login-form-group"
+                  style={{ position: "relative" }}
+                >
+                  <label className="login-form-label">Password</label>
+
+                  <div className="password-wrapper">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={handlePasswordChange}
+                      onBlur={handlePasswordBlur}
+                      onFocus={handleInputFocus}
+                      className={`login-form-input ${
+                        touched.password && passwordError ? "input-error" : ""
+                      }`}
+                      placeholder="Enter your password"
+                    />
+                    {password.length > 0 &&
+                      (showPassword ? (
+                        <AiOutlineEyeInvisible
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="password-toggle-icon"
+                        />
+                      ) : (
+                        <AiOutlineEye
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="password-toggle-icon"
+                        />
+                      ))}
+                  </div>
+
+                  {touched.password && passwordError && (
+                    <span className="login-error-text">{passwordError}</span>
+                  )}
+                </div>
+
+                {generalError && (
+                  <div className="login-error-message">{generalError}</div>
                 )}
+
+                <button
+                  type="submit"
+                  className="login-form-button"
+                  disabled={
+                    loading ||
+                    (touched.email && emailError) ||
+                    (touched.password && passwordError)
+                  }
+                >
+                  {loading ? "Logging in..." : "Sign In"}
+                </button>
+              </form>
+            ) : (
+              <div className="login-form">
+                <h3 className="login-first-login-title">First Time Login</h3>
+                <p className="login-first-login-subtitle">
+                  For security, please change your default password before
+                  continuing.
+                </p>
+
+                {/* New Password */}
+                <div className="login-input-group">
+                  <label>New Password</label>
+                  <div className="login-password-wrapper">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => {
+                        setNewPassword(e.target.value);
+                        setChangePassError("");
+                      }}
+                      placeholder="Enter new password"
+                      required
+                    />
+                    <span
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="login-toggle-password"
+                    >
+                      {showPassword ? (
+                        <AiOutlineEyeInvisible />
+                      ) : (
+                        <AiOutlineEye />
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Confirm Password */}
+                <div className="login-input-group">
+                  <label>Confirm New Password</label>
+                  <div className="login-password-wrapper">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        setChangePassError("");
+                      }}
+                      placeholder="Confirm new password"
+                      required
+                    />
+                    <span
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="login-toggle-password"
+                    >
+                      {showPassword ? (
+                        <AiOutlineEyeInvisible />
+                      ) : (
+                        <AiOutlineEye />
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                {/* HIỂN THỊ LỖI NGAY KHI ẤN NÚT (không cần blur) */}
+                {changePassError && (
+                  <div className="login-first-login-error">
+                    {changePassError}
+                  </div>
+                )}
+
+                <div className="login-first-login-buttons">
+                  <button
+                    type="button"
+                    className="login-form-button"
+                    disabled={loading}
+                    onClick={async () => {
+                      // === VALIDATE NGAY KHI ẤN NÚT ===
+                      if (!newPassword || newPassword.length < 8) {
+                        setChangePassError(
+                          "Password must be at least 8 characters"
+                        );
+                        return;
+                      }
+                      if (newPassword !== confirmPassword) {
+                        setChangePassError("Passwords do not match");
+                        return;
+                      }
+                      if (
+                        !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(
+                          newPassword
+                        )
+                      ) {
+                        setChangePassError(
+                          "Password must contain uppercase, lowercase, number and special character"
+                        );
+                        return;
+                      }
+
+                      setLoading(true);
+                      setChangePassError("");
+
+                      try {
+                        const res = await axios.post(
+                          "/api/auth/update-password-first-login",
+                          {
+                            email: email.trim(),
+                            newPassword,
+                          }
+                        );
+
+                        if (res.data.success) {
+                          toast.success(
+                            "Password changed successfully! Logging you in..."
+                          );
+
+                          const loginRes = await axios.post("/api/auth/login", {
+                            email: email.trim(),
+                            password: newPassword,
+                          });
+
+                          const result = loginRes.data.data;
+
+                          // Lưu token như bình thường
+                          localStorage.setItem(
+                            "accessToken",
+                            result.accessToken
+                          );
+                          localStorage.setItem("jwtToken", result.accessToken);
+                          const threeDays = 3 * 24 * 60 * 60 * 1000;
+                          localStorage.setItem(
+                            "tokenExpiresAt",
+                            Date.now() + threeDays
+                          );
+                          localStorage.setItem("userId", result.id);
+                          localStorage.setItem("userEmail", result.email);
+                          localStorage.setItem(
+                            "userName",
+                            result.name || "User"
+                          );
+                          localStorage.setItem("role", result.role || "USER");
+                          localStorage.setItem(
+                            "created_at",
+                            result.createdAt ||
+                              new Date().toISOString().split("T")[0]
+                          );
+                          localStorage.setItem(
+                            "avatarUrl",
+                            result.avatarUrl ||
+                              "/uploads/avatars/user-avatar.png"
+                          );
+                          localStorage.setItem(
+                            "backgroundUrl",
+                            result.backgroundUrl || null
+                          );
+                          localStorage.setItem(
+                            "authProvider",
+                            result.authProvider || "LOCAL"
+                          );
+
+                          // Xóa pass cũ trong localStorage
+                          localStorage.removeItem("lastUsedDefaultPassword");
+
+                          // Chuyển hướng ngay
+                          setTimeout(() => {
+                            navigate(
+                              result.role === "ADMIN" ||
+                                result.role === "SUPERADMIN"
+                                ? "/admin/dashboard"
+                                : "/user/meeting-schedule",
+                              { replace: true }
+                            );
+                          }, 1200);
+                        }
+                      } catch (err) {
+                        setChangePassError(
+                          err.response?.data?.message ||
+                            "Failed to update password"
+                        );
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                  >
+                    {loading ? "Processing..." : "Change Password & Continue"}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="login-form-button"
+                    style={{ background: "#888" }}
+                    onClick={() => {
+                      setIsFirstLogin(false);
+                      setNewPassword("");
+                      setConfirmPassword("");
+                      setChangePassError("");
+                    }}
+                    disabled={loading}
+                  >
+                    Back to Login
+                  </button>
+                </div>
               </div>
-
-              {generalError && (
-                <div className="login-error-message">{generalError}</div>
-              )}
-
-              <button
-                type="submit"
-                className="login-form-button"
-                disabled={
-                  loading ||
-                  (touched.email && emailError) ||
-                  (touched.password && passwordError)
-                }
-              >
-                {loading ? "Logging in..." : "Sign In"}
-              </button>
-            </form>
+            )}
 
             <div className="login-form-footer">
               Forgot password?{" "}

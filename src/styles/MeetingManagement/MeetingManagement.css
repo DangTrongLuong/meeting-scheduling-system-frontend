@@ -6,6 +6,14 @@
   margin-bottom: 20px;
   margin-top: 50px;
 }
+.mm-header-wrapper {
+  display: flex;
+  width: 100%;
+  margin-top: 12px;
+}
+.mm-meeting-management-and-search {
+  width: 80%;
+}
 
 /* Controls Section */
 .mm-controls {
@@ -421,6 +429,16 @@
   .mm-controls {
     flex-direction: column;
     align-items: stretch;
+  }
+  .mm-header-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+  .mm-meeting-management-and-search {
+    width: 98%;
+  }
+  .meeting-management-summary {
+    margin-top: 20px;
   }
 
   .mm-search-wrapper {

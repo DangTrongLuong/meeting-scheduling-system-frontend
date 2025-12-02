@@ -59,41 +59,24 @@ export default function DashboardUser() {
   const [currentTime, setCurrentTime] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeMenuItem, setActiveMenuItem] = useState("meetting");
-  const [miniCalendarKey, setMiniCalendarKey] = useState(0); // key để re-render React Calendar
+  const [miniCalendarKey, setMiniCalendarKey] = useState(0);
   const handleTodayClick = () => {
     const calendarApi = calendarRef.current.getApi();
-    calendarApi.today(); // FullCalendar lớn về hôm nay
+    calendarApi.today();
     const today = new Date();
-    setSelectedDate(today); // Mini calendar highlight today
-    setMiniCalendarKey(today.getTime()); // Buộc mini calendar re-render
+    setSelectedDate(today);
+    setMiniCalendarKey(today.getTime());
   };
-  // Lọc sự kiện dựa trên filterMode
-  const getFilteredEvents = () => {
-    let filtered = events;
 
-    const userId = localStorage.getItem("userId");
-    const userEmail = localStorage.getItem("userEmail");
+  const filteredEvents = React.useMemo(() => {
+    if (selectedRoomIds.length === 0) return [];
 
-    // Filter theo created/invited
-    if (filterMode === "created") {
-      filtered = filtered.filter((e) => e.extendedProps.creatorId === userId);
-    } else if (filterMode === "invited") {
-      filtered = filtered.filter(
-        (e) =>
-          e.extendedProps.creatorId !== userId &&
-          e.extendedProps.participants?.includes(userEmail)
-      );
-    }
+    return events.filter((event) => {
+      const eventRoomId = event.extendedProps?.room?.id;
 
-    // Filter theo danh sách phòng đã chọn
-    if (selectedRoomIds.length > 0 && selectedRoomIds.length < rooms.length) {
-      filtered = filtered.filter((e) =>
-        selectedRoomIds.includes(e.extendedProps.roomId)
-      );
-    }
-
-    return filtered;
-  };
+      return selectedRoomIds.includes(eventRoomId);
+    });
+  }, [events, selectedRoomIds]);
 
   const isRoomFullyBookedToday = (roomId) => {
     const today = new Date().toISOString().split("T")[0];
@@ -101,7 +84,6 @@ export default function DashboardUser() {
       (e) => e.extendedProps.roomId === roomId && e.start.startsWith(today)
     );
 
-    // Nếu có từ 10+ sự kiện trong ngày → coi như full (tùy chỉnh theo thực tế)
     return roomEvents.length >= 10;
   };
 
@@ -122,8 +104,8 @@ export default function DashboardUser() {
     .sort((a, b) => a.name.localeCompare(b.name));
 
   const handleEditClick = (event) => {
-    setSelectedEvent(event); // set sự kiện sẽ edit
-    setShowEdit(true); // mở modal EditEvent
+    setSelectedEvent(event);
+    setShowEdit(true);
   };
 
   // Fetch rooms
@@ -184,14 +166,13 @@ export default function DashboardUser() {
           room: m.room.id,
           roomId: m.room.id,
           roomName: m.room.name,
-          creatorId: m.creator.id, // ← Thêm creatorId
+          creatorId: m.creator.id,
           creator: {
-            // ← Thêm creator object
             id: m.creator.id,
             name: m.creator.name,
             email: m.creator.email,
           },
-          isCreator: isCreatorMeeting, // ← Thêm flag isCreator
+          isCreator: isCreatorMeeting,
           description: m.description,
 
           participants:
@@ -223,28 +204,70 @@ export default function DashboardUser() {
 
   // Fetch meetings lần đầu
   useEffect(() => {
-    const fetchMeetings = async () => {
+    const currentUserId = localStorage.getItem("userId");
+
+    const fetchAllEvents = async () => {
       try {
+        setLoading(true);
         const token = localStorage.getItem("accessToken");
-        const userId = localStorage.getItem("userId");
 
-        const response = await axios.get(
-          "http://localhost:8080/api/meetings/my-meetings",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              userId: userId,
-            },
+        const res = await axios.get("/api/meetings/getAllMeetings", {
+          headers: { Authorization: `Bearer ${token}` },
+          params: {
+            page: 0,
+            size: 1000,
+            sortBy: "startTime",
+            direction: "desc",
+          },
+        });
+
+        const meetings = res.data.data?.content || res.data.data || [];
+
+        const formattedEvents = meetings.map((meeting) => {
+          const isCreator = meeting.creator?.id === currentUserId;
+          const isParticipant = meeting.participants?.some(
+            (p) => p.user?.id === currentUserId && p.status === "ACCEPTED"
+          );
+
+          // PHÂN BIỆT MÀU RÕ RÀNG
+          let backgroundColor = "#ff9800";
+          let borderColor = "#f57c00";
+
+          if (isCreator) {
+            backgroundColor = "#1976d2";
+            borderColor = "#1565c0";
+          } else if (isParticipant) {
+            backgroundColor = "#4caf50";
+            borderColor = "#388e3c";
           }
-        );
 
-        const mappedEvents = mapMeetingsToEvents(response.data.data, userId);
-        setEvents(mappedEvents);
+          return {
+            id: meeting.id,
+            title: meeting.title,
+            start: meeting.startTime,
+            end: meeting.endTime,
+            backgroundColor,
+            borderColor,
+            textColor: "white",
+            extendedProps: {
+              ...meeting,
+              isCreator,
+              isParticipant,
+              isMyMeeting: isCreator || isParticipant,
+            },
+          };
+        });
+
+        setEvents(formattedEvents);
       } catch (error) {
-        console.error("Error fetching meetings:", error);
+        console.error("Error loading meetings:", error);
+        toast.error("Không tải được lịch họp");
+      } finally {
+        setLoading(false);
       }
     };
-    fetchMeetings();
+
+    fetchAllEvents();
   }, []);
 
   // Update current time
@@ -356,12 +379,14 @@ export default function DashboardUser() {
         />
 
         <div className="navbar-right">
-          
-          <button class="google-calendar-btn">
-            <img src={ggCalendar} alt="Google Calendar" class="google-calendar-icon" />
+          <button className="google-calendar-btn">
+            <img
+              src={ggCalendar}
+              alt="Google Calendar"
+              className="google-calendar-icon"
+            />
             <span>Connect</span>
           </button>
-
 
           <button
             className="meeting-btn-list"
@@ -396,7 +421,7 @@ export default function DashboardUser() {
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
               initialView="timeGridWeek"
               locale="en-EN"
-              events={getFilteredEvents()}
+              events={filteredEvents}
               eventClick={handleEventClick}
               headerToolbar={{
                 left: "prev,next customtoday",
@@ -516,30 +541,18 @@ export default function DashboardUser() {
                   <div className="note-item">
                     <span
                       className="note-color"
-                      style={{ backgroundColor: "#66B2FF" }}
+                      style={{ backgroundColor: "#1976d2" }}
                     ></span>
-                    Mon
+                    My Created Meetings
                   </div>
+                </div>
+                <div className="notes-row">
                   <div className="note-item">
                     <span
                       className="note-color"
-                      style={{ backgroundColor: "#99FF99" }}
+                      style={{ backgroundColor: "#4caf50" }}
                     ></span>
-                    Tue
-                  </div>
-                  <div className="note-item">
-                    <span
-                      className="note-color"
-                      style={{ backgroundColor: "#FFFF99" }}
-                    ></span>
-                    Wed
-                  </div>
-                  <div className="note-item">
-                    <span
-                      className="note-color"
-                      style={{ backgroundColor: "#FFCC99" }}
-                    ></span>
-                    Thu
+                    My Meetings
                   </div>
                 </div>
 
@@ -548,23 +561,9 @@ export default function DashboardUser() {
                   <div className="note-item">
                     <span
                       className="note-color"
-                      style={{ backgroundColor: "#CC99FF" }}
+                      style={{ backgroundColor: "#ff9800" }}
                     ></span>
-                    Fri
-                  </div>
-                  <div className="note-item">
-                    <span
-                      className="note-color"
-                      style={{ backgroundColor: "#FF99CC" }}
-                    ></span>
-                    Sat
-                  </div>
-                  <div className="note-item">
-                    <span
-                      className="note-color"
-                      style={{ backgroundColor: "#99ffff" }}
-                    ></span>
-                    Sun
+                    Other Meetings
                   </div>
                   <div className="note-item">
                     <span
