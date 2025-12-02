@@ -758,3 +758,11 @@
     font-size: 12px;
   }
 }
+
+.back-to-dashboard-btn:hover {
+  background: #1251a3;
+  color: #ffe082;
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 4px 16px rgba(25, 118, 210, 0.18);
+  transition: all 0.18s;
+}

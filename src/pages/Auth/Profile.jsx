@@ -9,8 +9,10 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { useNavigate } from "react-router-dom";
 
 const ProfileContent = () => {
+  const navigate = useNavigate();
   const { user, setUser } = useUser();
 
   const [userInfo, setUserInfo] = useState({});
@@ -479,7 +481,30 @@ const ProfileContent = () => {
       <div className="my-project-container">
         <NavBar />
         <div id="global-progress-bar" className="progress-bar"></div>
+        
+        <button
+        className="back-to-dashboard-btn"
+          style={{
+            position: "fixed",
+            bottom: 32, // cách mép dưới 32px, chỉnh lại nếu muốn sát hơn
+            left: 32,   // cách mép trái 32px, chỉnh lại nếu muốn sát hơn
+            zIndex: 1000,
+            padding: "8px 5px",
+            background: "#4e5964ff",
+            color: "#fff",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontWeight: "bold",
+            fontSize: "15px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
+          }}
+          onClick={() => navigate("/user/meeting-schedule")}
+        >
+          ← Back
+        </button>
         <div className="content-container-profile">
+          
           <div className={`main-container-profile`}>
             <div className="profile-container-cover">
               <div className="cover-image">
@@ -592,6 +617,7 @@ const ProfileContent = () => {
                         )}
                       </>
                     )}
+                    
                   </div>
                   {showPasswordModal && (
                     <div className="modal-overlay-profile">
@@ -747,7 +773,7 @@ const ProfileContent = () => {
                         </form>
                       </div>
                     </div>
-                  )}
+                  )}                 
                   {showConfirmModal && (
                     <div className="modal-overlay-confirm-change">
                       <div className="modal-content-confirm-change">
