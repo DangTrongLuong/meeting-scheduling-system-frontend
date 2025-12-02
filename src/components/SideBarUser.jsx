@@ -49,7 +49,7 @@ const SideBarUser = ({ activeItem, onItemClick, isOpen, onClose }) => {
       icon: Search,
       label: "Search",
       hasSubmenu: true,
-      path: "/search",
+      path: "/user/search",
     },
   ];
 

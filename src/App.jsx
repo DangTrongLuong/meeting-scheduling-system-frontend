@@ -34,6 +34,7 @@ import InviteDecline from "./pages/Verify/InviteDecline.jsx";
 
 import { UserProvider } from "./context/UserContext.jsx";
 import AuthMiddleware from "./middlewares/AuthMiddleware.jsx";
+import Search from "./pages/User/Search.jsx";
 import "./App.css";
 
 function App() {
@@ -50,6 +51,8 @@ function App() {
           <Route path="/forgot_password" element={<ForgotPasswordPage />} />
           <Route path="/invite/accept" element={<InviteAccept />} />
           <Route path="/invite/decline" element={<InviteDecline />} />
+          <Route path="/user/search" element={<Search />} />
+
 
           <Route
             path="/"
