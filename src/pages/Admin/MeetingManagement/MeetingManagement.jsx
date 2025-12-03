@@ -25,6 +25,7 @@ const MeetingManagement = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
   const [selectedMeeting, setSelectedMeeting] = useState(null);
+  const [approveRejectLoading, setApproveRejectLoading] = useState(false);
 
   useEffect(() => {
     fetchAllMeetings();
@@ -54,18 +55,112 @@ const MeetingManagement = () => {
     }
   };
 
+  // Gửi webhook thông báo approve/reject
+  const sendWebhookNotification = (meeting, action) => {
+    try {
+      const webhookData = {
+        action: action, // "approve" hoặc "reject"
+        timestamp: new Date().toISOString(),
+        meeting: {
+          id: meeting.id,
+          title: meeting.title,
+          description: meeting.description,
+          startTime: meeting.startTime,
+          endTime: meeting.endTime,
+          status: meeting.status,
+          room: {
+            id: meeting.room?.id,
+            name: meeting.room?.name,
+            location: meeting.room?.location,
+            capacity: meeting.room?.capacity,
+          },
+          creator: {
+            id: meeting.creator?.id,
+            name: meeting.creator?.name,
+            email: meeting.creator?.email,
+            avatarUrl: meeting.creator?.avatarUrl,
+          },
+          participants:
+            meeting.participants?.map((p) => ({
+              id: p.id,
+              user: {
+                id: p.user?.id,
+                name: p.user?.name,
+                email: p.user?.email,
+                avatarUrl: p.user?.avatarUrl,
+              },
+              role: p.role,
+              status: p.status,
+              invitedAt: p.invitedAt,
+              respondedAt: p.respondedAt,
+            })) || [],
+          devices:
+            meeting.devices?.map((d) => ({
+              id: d.id,
+              device: {
+                id: d.device?.id,
+                name: d.device?.name,
+                imagePath: d.device?.imagePath,
+              },
+              quantity: d.quantity,
+              status: d.status,
+              notes: d.notes,
+              availableQuantity: d.availableQuantity,
+            })) || [],
+          createdAt: meeting.createdAt,
+          updatedAt: meeting.updatedAt,
+          cancelledAt: meeting.cancelledAt,
+          cancellationReason: meeting.cancellationReason,
+        },
+      };
+
+      console.log("Sending webhook notification:", webhookData);
+
+      // Fire and forget - không chờ phản hồi
+      axios
+        .post(
+          "https://n8n.quanliduan-pms.site/webhook-test/email-aprrove-or-reject",
+          webhookData,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        )
+        .then(() => {
+          console.log("Webhook sent successfully");
+        })
+        .catch((error) => {
+          console.error("Webhook send error:", error.message);
+        });
+    } catch (error) {
+      console.error("Error preparing webhook notification:", error);
+    }
+  };
+
   const handleApprove = async () => {
     if (!selectedMeeting) return;
 
     try {
+      setApproveRejectLoading(true);
       const token = localStorage.getItem("accessToken");
-      await axios.patch(
+
+      // Gọi API approve
+      const approveRes = await axios.patch(
         `/api/meetings/${selectedMeeting.id}/approve`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
+      const approvedMeeting = approveRes.data?.data;
+
+      // Gửi webhook (không chờ phản hồi)
+      if (approvedMeeting) {
+        sendWebhookNotification(approvedMeeting, "approve");
+      }
+
       toast.success("Meeting approved successfully!");
       fetchAllMeetings();
     } catch (error) {
@@ -74,6 +169,7 @@ const MeetingManagement = () => {
         error.response?.data?.message || "Failed to approve meeting!"
       );
     } finally {
+      setApproveRejectLoading(false);
       setShowConfirmModal(false);
       setSelectedMeeting(null);
       setConfirmAction(null);
@@ -84,20 +180,32 @@ const MeetingManagement = () => {
     if (!selectedMeeting) return;
 
     try {
+      setApproveRejectLoading(true);
       const token = localStorage.getItem("accessToken");
-      await axios.patch(
+
+      // Gọi API reject
+      const rejectRes = await axios.patch(
         `/api/meetings/${selectedMeeting.id}/reject`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
+      const rejectedMeeting = rejectRes.data?.data;
+
+      // Gửi webhook (không chờ phản hồi)
+      if (rejectedMeeting) {
+        sendWebhookNotification(rejectedMeeting, "reject");
+      }
+
       toast.error("Meeting rejected!");
       fetchAllMeetings();
     } catch (error) {
       console.error("Error rejecting meeting:", error);
       toast.error(error.response?.data?.message || "Failed to reject meeting!");
     } finally {
+      setApproveRejectLoading(false);
       setShowConfirmModal(false);
       setSelectedMeeting(null);
       setConfirmAction(null);
@@ -267,15 +375,6 @@ const MeetingManagement = () => {
                   <option value="title">Sort by Title</option>
                   <option value="room">Sort by Room</option>
                 </select>
-
-                {/* <button
-                  onClick={() =>
-                    setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                  }
-                  className="mm-order-toggle"
-                >
-                  {sortOrder === "asc" ? "↑ Ascending" : "↓ Descending"}
-                </button> */}
               </div>
             </div>
 
@@ -380,6 +479,7 @@ const MeetingManagement = () => {
                               onClick={() => handleViewDetail(meeting)}
                               className="mm-view-action"
                               title="View details"
+                              disabled={approveRejectLoading}
                             >
                               <Eye size={16} />
                             </button>
@@ -392,6 +492,7 @@ const MeetingManagement = () => {
                                   }
                                   className="mm-approve-action"
                                   title="Approve meeting"
+                                  disabled={approveRejectLoading}
                                 >
                                   <CheckCircle size={16} />
                                 </button>
@@ -402,6 +503,7 @@ const MeetingManagement = () => {
                                   }
                                   className="mm-reject-action"
                                   title="Reject meeting"
+                                  disabled={approveRejectLoading}
                                 >
                                   <XCircle size={16} />
                                 </button>
@@ -439,6 +541,7 @@ const MeetingManagement = () => {
               <button
                 onClick={() => setShowConfirmModal(false)}
                 className="mm-cancel-btn"
+                disabled={approveRejectLoading}
               >
                 Cancel
               </button>
@@ -449,13 +552,42 @@ const MeetingManagement = () => {
                     ? "mm-approve-btn"
                     : "mm-reject-btn"
                 }`}
+                disabled={approveRejectLoading}
               >
-                {confirmAction === "approve" ? "Approve" : "Reject"}
+                {approveRejectLoading ? (
+                  <>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        marginRight: "8px",
+                        animation: "spin 1s linear infinite",
+                      }}
+                    >
+                      ⟳
+                    </span>
+                    Processing...
+                  </>
+                ) : confirmAction === "approve" ? (
+                  "Approve"
+                ) : (
+                  "Reject"
+                )}
               </button>
             </div>
           </div>
         </div>
       )}
+
+      <style>{`
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
     </div>
   );
 };
