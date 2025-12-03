@@ -15,10 +15,11 @@ export default function CreateNewEvent({
   loading,
   prefill = { date: "", startTime: "07:00", endTime: "07:30" },
 }) {
+  const today = new Date().toISOString().split("T")[0];
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    date: "",
+    date: today,
     startTime: "07:00",
     endTime: "07:30",
     roomId: "",
@@ -83,7 +84,7 @@ export default function CreateNewEvent({
         setFormData({
           title: "",
           description: "",
-          date: prefill.date || "",
+          date: today , 
           startTime: prefill.startTime || "07:00",
           endTime: prefill.endTime || "07:30",
           roomId: "",
