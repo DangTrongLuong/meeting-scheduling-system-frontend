@@ -55,7 +55,7 @@ const NavBar = ({ onToggleSidebar }) => {
 
   const handleLogout = () => {
     localStorage.clear();
-    navigate("/");
+    navigate("/login");
   };
 
   const handleProfileClick = () => {
