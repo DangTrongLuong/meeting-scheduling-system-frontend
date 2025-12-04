@@ -15,7 +15,7 @@ import axios from "axios";
 import CreateNewEvent from "./CreateNewEvent";
 import DetailEvent from "./DetailEvent";
 import EditEvent from "./EditEvent";
-import ggCalendar from '../../assets/gcalendericon.png';
+import ggCalendar from "../../assets/gcalendericon.png";
 import { useNavigate } from "react-router-dom";
 
 export default function DashboardUser() {
@@ -33,6 +33,8 @@ export default function DashboardUser() {
   const [roomSearchTerm, setRoomSearchTerm] = useState("");
   const [selectedRoomIds, setSelectedRoomIds] = useState([]); // Thay cho filterRoomId
 
+  const [isGoogleConnected, setIsGoogleConnected] = useState(false);
+
   // Khởi tạo mặc định chọn hết phòng
   useEffect(() => {
     if (rooms.length > 0 && selectedRoomIds.length === 0) {
@@ -40,7 +42,6 @@ export default function DashboardUser() {
     }
   }, [rooms]);
 
-  //
   const [selectedDate, setSelectedDate] = useState(null);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -60,6 +61,7 @@ export default function DashboardUser() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeMenuItem, setActiveMenuItem] = useState("meetting");
   const [miniCalendarKey, setMiniCalendarKey] = useState(0);
+
   const handleTodayClick = () => {
     const calendarApi = calendarRef.current.getApi();
     calendarApi.today();
@@ -67,55 +69,99 @@ export default function DashboardUser() {
     setSelectedDate(today);
     setMiniCalendarKey(today.getTime());
   };
-const handleGoogleSync = async () => {
-  try {
-    const token = localStorage.getItem("accessToken");
-    const userId = localStorage.getItem("userId");
-    
-    if (!token || !userId) {
-      toast.error("Please login first!");
-      return;
-    }
 
-    setLoading(true);
-    
-    const response = await axios.post(
-      "http://localhost:8080/api/meetings/sync-all-google-calendar",
-      {},
-      {
+  useEffect(() => {
+    const checkGoogleConnection = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        const userId = localStorage.getItem("userId");
+
+        const response = await axios.get("/api/google-calendar/status", {
+          headers: { Authorization: `Bearer ${token}`, userId },
+        });
+
+        setIsGoogleConnected(response.data.data.connected);
+      } catch (error) {
+        console.error("Error checking Google connection:", error);
+      }
+    };
+
+    checkGoogleConnection();
+  }, []);
+
+  const handleGoogleSync = async () => {
+    if (!isGoogleConnected) {
+      try {
+        const userId = localStorage.getItem("userId");
+        const token = localStorage.getItem("accessToken");
+
+        if (!userId || !token) {
+          toast.error("Please login first!");
+          return;
+        }
+
+        // Redirect trực tiếp - KHÔNG dùng axios
+        window.location.href = `http://localhost:8080/api/google-calendar/connect?userId=${userId}`;
+      } catch (error) {
+        console.error("Error initiating Google connection:", error);
+        toast.error("Failed to connect Google Calendar!");
+      }
+    } else {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("accessToken");
+        const userId = localStorage.getItem("userId");
+
+        const response = await axios.post(
+          "http://localhost:8080/api/google-calendar/sync-all",
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              userId: userId,
+            },
+          }
+        );
+
+        if (response.data.code === 200) {
+          toast.success(`Synced ${response.data.data.syncedCount} meetings!`);
+          handleCreateSuccess(); // Refresh meetings
+        }
+      } catch (error) {
+        console.error("Error syncing:", error);
+        toast.error("Failed to sync with Google Calendar!");
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleGoogleDisconnect = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const userId = localStorage.getItem("userId");
+
+      // Gọi API DELETE tới backend
+      await axios.delete("/api/google-calendar/disconnect", {
         headers: {
           Authorization: `Bearer ${token}`,
-          userId: userId,
-          "Content-Type": "application/json",
+          userId,
         },
-      }
-    );
+      });
 
-    if (response.data.code === 200) {
-      const syncedCount = response.data.data.syncedCount;
-      toast.success(`✅ Synced ${syncedCount} meetings to Google Calendar!`);
-      
-      // Refresh meetings to show updated sync status
-      handleCreateSuccess();
-    } else {
-      toast.error(response.data.message || "Failed to sync!");
+      // Cập nhật UI
+      setIsGoogleConnected(false);
+      toast.success("Disconnected Google Calendar!");
+    } catch (error) {
+      console.error("Error disconnecting:", error);
+      toast.error("Failed to disconnect Google Calendar!");
+    } finally {
+      setLoading?.(false);
     }
-  } catch (error) {
-    console.error("Error syncing with Google Calendar:", error);
-    
-    if (error.response?.status === 401) {
-      toast.error("⚠️ Please login with Google first to sync meetings!");
-    } else if (error.response?.data?.message) {
-      toast.error(`❌ ${error.response.data.message}`);
-    } else {
-      toast.error("❌ Failed to sync with Google Calendar!");
-    }
-  } finally {
-    setLoading(false);
-  }
-};
+  };
+
   const filteredEvents = React.useMemo(() => {
-    if (selectedRoomIds.length === 0) return [];
+    if (selectedRoomIds.length === 0) return events;
 
     return events.filter((event) => {
       const eventRoomId = event.extendedProps?.room?.id;
@@ -249,70 +295,79 @@ const handleGoogleSync = async () => {
   };
 
   // Fetch meetings lần đầu
-  useEffect(() => {
-    const currentUserId = localStorage.getItem("userId");
+  const currentUserId = localStorage.getItem("userId");
 
-    const fetchAllEvents = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem("accessToken");
+  const fetchAllEvents = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("accessToken");
 
-        const res = await axios.get("/api/meetings/getAllMeetings", {
-          headers: { Authorization: `Bearer ${token}` },
-          params: {
-            page: 0,
-            size: 1000,
-            sortBy: "startTime",
-            direction: "desc",
-          },
-        });
+      const res = await axios.get("/api/meetings/getAllMeetings", {
+        headers: { Authorization: `Bearer ${token}` },
+        params: {
+          page: 0,
+          size: 1000,
+          sortBy: "startTime",
+          direction: "desc",
+        },
+      });
 
-        const meetings = res.data.data?.content || res.data.data || [];
+      const meetings = res.data.data?.content || res.data.data || [];
 
-        const formattedEvents = meetings.map((meeting) => {
-          const isCreator = meeting.creator?.id === currentUserId;
-          const isParticipant = meeting.participants?.some(
-            (p) => p.user?.id === currentUserId && p.status === "ACCEPTED"
-          );
+      const formattedEvents = meetings.map((meeting) => {
+        const isCreator = meeting.creator?.id === currentUserId;
+        const isParticipant = meeting.participants?.some(
+          (p) => p.user?.id === currentUserId && p.status === "ACCEPTED"
+        );
 
-          // PHÂN BIỆT MÀU RÕ RÀNG
-          let backgroundColor = "#ff9800";
-          let borderColor = "#f57c00";
+        let backgroundColor, borderColor;
 
+        if (meeting.status === "CANCELLED") {
+          backgroundColor = "#f88a8aff";
+          borderColor = "#f88a8aff";
+        } else if (meeting.status === "PENDING_APPROVAL") {
+          backgroundColor = "#b1b1b1ff";
+          borderColor = "#b1b1b1ff";
+        } else {
           if (isCreator) {
             backgroundColor = "#1976d2";
             borderColor = "#1565c0";
           } else if (isParticipant) {
             backgroundColor = "#4caf50";
             borderColor = "#388e3c";
+          } else {
+            backgroundColor = "#ff9800";
+            borderColor = "#f57c00";
           }
+        }
 
-          return {
-            id: meeting.id,
-            title: meeting.title,
-            start: meeting.startTime,
-            end: meeting.endTime,
-            backgroundColor,
-            borderColor,
-            textColor: "white",
-            extendedProps: {
-              ...meeting,
-              isCreator,
-              isParticipant,
-              isMyMeeting: isCreator || isParticipant,
-            },
-          };
-        });
+        return {
+          id: meeting.id,
+          title: meeting.title,
+          start: meeting.startTime,
+          end: meeting.endTime,
+          backgroundColor,
+          borderColor,
+          textColor: "white",
+          extendedProps: {
+            ...meeting,
+            isCreator,
+            isParticipant,
+            isMyMeeting: isCreator || isParticipant,
+          },
+        };
+      });
 
-        setEvents(formattedEvents);
-      } catch (error) {
-        console.error("Error loading meetings:", error);
-        toast.error("Không tải được lịch họp");
-      } finally {
-        setLoading(false);
-      }
-    };
+      setEvents(formattedEvents);
+    } catch (error) {
+      console.error("Error loading meetings:", error);
+      toast.error("Không tải được lịch họp");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchAllEvents();
   }, []);
 
@@ -345,42 +400,33 @@ const handleGoogleSync = async () => {
   };
 
   const handleCreateSuccess = () => {
-    // Refresh meetings list
-    const fetchMeetings = async () => {
-      try {
-        const token = localStorage.getItem("accessToken");
-        const userId = localStorage.getItem("userId");
-
-        const response = await axios.get(
-          "http://localhost:8080/api/meetings/my-meetings",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              userId: userId,
-            },
-          }
-        );
-
-        // ← Dùng helper function
-        const mappedEvents = mapMeetingsToEvents(response.data.data, userId);
-        setEvents(mappedEvents);
-      } catch (error) {
-        console.error("Error fetching meetings:", error);
-      }
-    };
-
     fetchMeetings();
   };
 
   const handleDeleteSuccess = () => {
-    handleCreateSuccess();
+    setEvents((prevEvents) =>
+      prevEvents.map((ev) =>
+        ev.id === selectedEvent.id
+          ? {
+              ...ev,
+              backgroundColor: "#f88a8aff",
+              borderColor: "#f88a8aff",
+              extendedProps: {
+                ...ev.extendedProps,
+                status: "CANCELLED",
+              },
+            }
+          : ev
+      )
+    );
+    fetchAllEvents();
   };
 
   const getBookedRooms = () => {
     const now = new Date();
     const today = now.toISOString().split("T")[0];
     const currentEvents = events.filter((e) => e.start.startsWith(today));
-    return [...new Set(currentEvents.map((e) => e.extendedProps.room))];
+    return [...new Set(currentEvents.map((e) => e.extendedProps.room.id))];
   };
 
   const getAvailableRooms = () => {
@@ -425,17 +471,26 @@ const handleGoogleSync = async () => {
         />
 
         <div className="navbar-right">
-          <button className="google-calendar-btn"
-          onClick={handleGoogleSync}>
+          <button
+            className="google-calendar-btn"
+            onClick={
+              isGoogleConnected ? handleGoogleDisconnect : handleGoogleSync
+            }
+            disabled={loading}
+          >
             <img
               src={ggCalendar}
               alt="Google Calendar"
               className="google-calendar-icon"
             />
-            <span>Connect</span>
+            <span>
+              {isGoogleConnected
+                ? "Disconnect G-Calendar"
+                : "Connect G-Calendar"}
+            </span>
           </button>
 
-          <button
+          {/* <button
             className="meeting-btn-list"
             onClick={() => {
               setFilterMode((prev) => (prev === "created" ? "all" : "created"));
@@ -451,7 +506,7 @@ const handleGoogleSync = async () => {
             }}
           >
             + Invited Rooms List
-          </button>
+          </button> */}
 
           <button
             className="meeting-btn"
@@ -535,12 +590,6 @@ const handleGoogleSync = async () => {
               }}
               eventDidMount={(info) => {
                 const el = info.el;
-
-                if (info.event.extendedProps.status === "PENDING_APPROVAL") {
-                  info.el.style.opacity = "0.5";
-                  info.el.style.backgroundColor = "#cfcfcfff";
-                }
-
                 // Reset mọi style mặc định của FullCalendar
                 el.style.margin = "3px 2px";
                 el.style.borderRadius = "5px";
@@ -601,6 +650,13 @@ const handleGoogleSync = async () => {
                     ></span>
                     My Meetings
                   </div>
+                  <div className="note-item">
+                    <span
+                      className="note-color"
+                      style={{ backgroundColor: "#f88a8aff" }}
+                    ></span>
+                    Cancelled
+                  </div>
                 </div>
 
                 {/* Hàng 2 */}
@@ -630,14 +686,16 @@ const handleGoogleSync = async () => {
               >
                 {getBookedRooms().length > 0 ? (
                   getBookedRooms().map((roomId, i) => {
-                    const room = rooms.find((r) => r.id === roomId);
+                    const event = events.find(
+                      (e) => e.extendedProps.room.id === roomId
+                    );
                     return (
                       <li key={i} className="room-item">
                         <span
                           className="room-dot"
                           style={{ backgroundColor: "#e74c3c" }}
                         ></span>
-                        {room?.name || "Unknown Room"}
+                        {event?.extendedProps.room.name || "Unknown Room"}
                       </li>
                     );
                   })
