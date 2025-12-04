@@ -13,6 +13,17 @@ import { useNavigate } from "react-router-dom";
 
 const ProfileContent = () => {
   const navigate = useNavigate();
+  
+  const getHomeByRole = (role) => {
+      const r = (role || "").toUpperCase();
+      return r === "ADMIN" ? "/admin/dashboard" : "/user/meeting-schedule";
+    };
+
+    const handleBack = () => {
+      const role = localStorage.getItem("role"); // lấy role từ localStorage
+      navigate(getHomeByRole(role));
+    };
+
   const { user, setUser } = useUser();
 
   const [userInfo, setUserInfo] = useState({});
@@ -482,27 +493,31 @@ const ProfileContent = () => {
         <NavBar />
         <div id="global-progress-bar" className="progress-bar"></div>
         
-        <button
-        className="back-to-dashboard-btn"
-          style={{
-            position: "fixed",
-            bottom: 32, // cách mép dưới 32px, chỉnh lại nếu muốn sát hơn
-            left: 32,   // cách mép trái 32px, chỉnh lại nếu muốn sát hơn
-            zIndex: 1000,
-            padding: "8px 5px",
-            background: "#4e5964ff",
-            color: "#fff",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontWeight: "bold",
-            fontSize: "15px",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
-          }}
-          onClick={() => navigate("/user/meeting-schedule")}
-        >
-          ← Back
-        </button>
+        
+
+<button
+      className="back-to-dashboard-btn"
+      style={{
+        position: "fixed",
+        bottom: 32,
+        left: 32,
+        zIndex: 1000,
+        padding: "8px 5px",
+        background: "#4e5964ff",
+        color: "#fff",
+        border: "none",
+        borderRadius: "6px",
+        cursor: "pointer",
+        fontWeight: "bold",
+        fontSize: "15px",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+      }}
+      onClick={handleBack}
+    >
+      ← Back
+    </button>
+
+
         <div className="content-container-profile">
           
           <div className={`main-container-profile`}>
@@ -1082,3 +1097,5 @@ const Profile = () => {
 };
 
 export default Profile;
+
+
