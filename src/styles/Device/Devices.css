@@ -247,3 +247,43 @@
 .btn-delete {
   color: #e74c3c;
 }
+
+
+
+/* Canh giữa thanh phân trang */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin: 20px 0 24px;
+}
+
+/* Nút phân trang (giống room) */
+.pagination-btn {
+  border: 1px solid #d1d5db;
+  background-color: #fff;
+  color: #374151;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.pagination-btn:hover {
+  border-color: #93c5fd;
+}
+
+/* Nút trang hiện tại – xanh */
+.pagination-btn.active {
+  background-color: #0d6efd; /* đổi sang màu xanh của room nếu khác */
+  border-color: #0d6efd;
+  color: #fff;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

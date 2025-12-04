@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+
+import React, { useEffect, useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -6,6 +7,7 @@ import "../../../styles/Device/Devices.css";
 import NavBar from "../../../components/NavBar";
 import SideBarAdmin from "../../../components/SideBarAdmin";
 import { Edit, Trash2, Search } from "lucide-react";
+import Pagination from "../../../components/Pagination.jsx"; // [ADD]
 
 const Devices = () => {
   const navigate = useNavigate();
@@ -83,11 +85,12 @@ const Devices = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!res.ok) throw new Error("Delete failed");
+    if (!res.ok) throw new Error("Delete failed");
 
       setDevices((prev) => prev.filter((d) => d.id !== deviceId));
       toast.success("Device deleted successfully");
       closeDeleteModal();
+      // [ADD] Sau khi xóa, nếu trang hiện tại rỗng sẽ được clamp lại bởi hook bên dưới
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -110,6 +113,34 @@ const Devices = () => {
   const closeSidebar = () => {
     setSidebarOpen(false);
   };
+
+  // ---------------------------
+  //  Phân trang client-side
+  // ---------------------------
+  const [currentPage, setCurrentPage] = useState(1); // 1-based
+  const pageSize = 10; 
+
+  //  Khi search/sort đổi => quay về trang 1
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, sortBy, direction]);
+
+  const totalItems = filteredDevices.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+  // Clamp currentPage khi data thay đổi (ví dụ sau khi xóa/search)
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+    if (currentPage < 1 && totalPages >= 1) setCurrentPage(1);
+  }, [totalPages, currentPage]);
+
+  const startIndex = (currentPage - 1) * pageSize;
+
+  // Dữ liệu hiển thị theo trang
+  const pagedDevices = useMemo(
+    () => filteredDevices.slice(startIndex, startIndex + pageSize),
+    [filteredDevices, startIndex]
+  );
 
   return (
     <div className="my-project-container">
@@ -164,7 +195,14 @@ const Devices = () => {
             </button>
           </div>
 
-          <div className="device-summary">Total: {filteredDevices.length} / {devices.length}</div>
+          <div className="device-summary">
+            Total: {filteredDevices.length} / {devices.length}
+            {filteredDevices.length > 0 && (
+              <>{" "}
+                (Show {startIndex + 1}–{Math.min(startIndex + pageSize, filteredDevices.length)} / {filteredDevices.length})
+              </>
+            )}
+          </div>
 
           <div className="device-list">
             {filteredDevices.length === 0 ? (
@@ -183,9 +221,10 @@ const Devices = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredDevices.map((d, index) => (
+                  {/* [CHANGE MINOR] dùng pagedDevices + STT theo trang */}
+                  {pagedDevices.map((d, index) => (
                     <tr key={d.id}>
-                      <td>{index + 1}</td>
+                      <td>{startIndex + index + 1}</td>
                       <td>
                         {d.imagePath ? (
                           <img
@@ -197,13 +236,12 @@ const Devices = () => {
                           "—"
                         )}
                       </td>
+
                       <td>{d.name}</td>
                       <td>{d.totalQuantity}</td>
                       <td>{d.availableQuantity}</td>
                       <td>
-                        <span
-                          className={`status-badge ${d.status.toLowerCase()}`}
-                        >
+                        <span className={`status-badge ${d.status.toLowerCase()}`}>
                           {d.status}
                         </span>
                       </td>
@@ -230,6 +268,19 @@ const Devices = () => {
                 </tbody>
               </table>
             )}
+
+            {/* Thanh phân trang – CHỈ dưới bảng, dùng component sẵn có */}
+            {totalPages > 1 && (
+              <div className="pagination-container">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                showFirstLast
+                maxButtons={5}
+              /></div>
+            )}
+
             {deleteModal.isOpen && (
               <div className="delete-modal-overlay" onClick={closeDeleteModal}>
                 <div
