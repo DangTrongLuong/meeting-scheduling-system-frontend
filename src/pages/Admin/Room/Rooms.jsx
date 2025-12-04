@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -6,6 +6,7 @@ import "../../../styles/Room/Rooms.css";
 import NavBar from "../../../components/NavBar";
 import SideBarAdmin from "../../../components/SideBarAdmin";
 import { Edit, Trash2, Search } from "lucide-react";
+import Pagination from '../../../components/Pagination'; 
 
 const Rooms = () => {
   const navigate = useNavigate();
@@ -71,6 +72,7 @@ const Rooms = () => {
       if (!res.ok) throw new Error("Delete failed");
       setRooms((prev) => prev.filter((r) => r.id !== roomId));
       toast.success("Room deleted successfully!");
+      // [ADD] Sau khi xóa, nếu trang hiện tại rỗng thì sẽ được clamp lại bên dưới
     } catch (err) {
       toast.error(err.message || "Failed to delete room");
     } finally {
@@ -93,6 +95,98 @@ const Rooms = () => {
 
   const closeSidebar = () => {
     setSidebarOpen(false);
+  };
+
+  // ---------------------------
+  // [ADD] Phân trang client-side
+  // ---------------------------
+  const [currentPage, setCurrentPage] = useState(1); // 1-based
+  const [pageSize, setPageSize] = useState(10);      // số dòng/trang
+
+  // [ADD] Khi search/sort đổi => quay về trang 1
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, sortBy, direction]);
+
+  const totalItems = filteredRooms.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+  // [ADD] Clamp currentPage khi data thay đổi (ví dụ sau khi xóa/search)
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+    if (currentPage < 1 && totalPages >= 1) setCurrentPage(1);
+  }, [totalPages, currentPage]);
+
+  const startIndex = (currentPage - 1) * pageSize;
+
+  // [ADD] Dữ liệu hiển thị theo trang
+  const pagedRooms = useMemo(
+    () => filteredRooms.slice(startIndex, startIndex + pageSize),
+    [filteredRooms, startIndex, pageSize]
+  );
+
+  // [ADD] Render các nút phân trang (không dùng inline style để giữ nguyên CSS tổng thể)
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    const go = (p) => setCurrentPage(Math.min(Math.max(1, p), totalPages));
+
+    const maxButtons = 5;
+    const half = Math.floor(maxButtons / 2);
+    let start = Math.max(1, currentPage - half);
+    let end = Math.min(totalPages, start + maxButtons - 1);
+    if (end - start + 1 < maxButtons) {
+      start = Math.max(1, end - maxButtons + 1);
+    }
+
+    const pages = [];
+    for (let i = start; i <= end; i++) pages.push(i);
+
+    return (
+      <div className="meeting-room-pagination">
+        <button
+          className="pagination-btn pagination-first"
+          onClick={() => go(1)}
+          disabled={currentPage === 1}
+        >
+          « First
+        </button>
+        <button
+          className="pagination-btn pagination-prev"
+          onClick={() => go(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          ‹ Prev
+        </button>
+
+        {start > 1 && <span className="pagination-ellipsis">…</span>}
+        {pages.map((p) => (
+          <button
+            key={p}
+            className={`pagination-btn ${p === currentPage ? "active" : ""}`}
+            onClick={() => go(p)}
+          >
+            {p}
+          </button>
+        ))}
+        {end < totalPages && <span className="pagination-ellipsis">…</span>}
+
+        <button
+          className="pagination-btn pagination-next"
+          onClick={() => go(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          Next ›
+        </button>
+        <button
+          className="pagination-btn pagination-last"
+          onClick={() => go(totalPages)}
+          disabled={currentPage === totalPages}
+        >
+          Last »
+        </button>
+      </div>
+    );
   };
 
   return (
@@ -140,6 +234,7 @@ const Rooms = () => {
                 {direction === "asc" ? "Asc" : "Desc"}
               </button>
             </div>
+
             <button
               className="meeting-room-btn-add"
               onClick={() => navigate("/admin/addRoom")}
@@ -148,8 +243,14 @@ const Rooms = () => {
             </button>
           </div>
 
+          {/* [CHANGE MINOR] Summary hiển thị theo trang để người dùng biết dải hiện tại */}
           <div className="meeting-room-summary">
             Total: {filteredRooms.length} / {rooms.length}
+            {filteredRooms.length > 0 && (
+              <>{" "}
+                (Show {startIndex + 1}–{Math.min(startIndex + pageSize, filteredRooms.length)} / {filteredRooms.length})
+              </>
+            )}
           </div>
 
           <div className="meeting-room-list">
@@ -167,9 +268,10 @@ const Rooms = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredRooms.map((r, index) => (
+                  {/* [CHANGE MINOR] dùng pagedRooms + STT theo trang */}
+                  {pagedRooms.map((r, index) => (
                     <tr key={r.id}>
-                      <td>{index + 1}</td>
+                      <td>{startIndex + index + 1}</td>
                       <td>{r.name}</td>
                       <td>{r.location}</td>
                       <td>{r.capacity}</td>
@@ -194,6 +296,10 @@ const Rooms = () => {
                 </tbody>
               </table>
             )}
+
+            {/* [ADD] Thanh phân trang – nằm dưới bảng, không thay đổi layout/các class hiện có */}
+            {renderPagination()}
+
             {deleteModal.isOpen && (
               <div className="delete-modal-overlay" onClick={closeDeleteModal}>
                 <div

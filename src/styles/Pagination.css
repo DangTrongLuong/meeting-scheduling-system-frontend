@@ -1,0 +1,92 @@
+
+/* ===== Pagination – Professional look ===== */
+
+/* Container dưới bảng */
+.meeting-room-pagination,
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;          /* ở giữa khung */
+  gap: 8px;
+  margin-top: 16px;
+  padding: 12px 0;
+}
+
+/* Nút chung */
+.meeting-room-pagination .pagination-btn,
+.pagination .pagination-btn,
+.meeting-room-pagination button,
+.pagination button {
+  height: 32px;
+  min-width: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid #dfe3e8;        /* viền nhẹ */
+  background: #fff;                  /* nền trắng tinh */
+  color: #2c3e50;                    /* chữ sẫm */
+  font-size: 14px;
+  line-height: 30px;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+/* Hover */
+.meeting-room-pagination .pagination-btn:hover,
+.pagination .pagination-btn:hover,
+.meeting-room-pagination button:hover,
+.pagination button:hover {
+  border-color: #2f80ed;             /* viền xanh chủ đạo */
+  color: #2f80ed;
+  background: #f7fbff;               /* nền nhạt */
+}
+
+/* Active (trang hiện tại) */
+.meeting-room-pagination .pagination-btn.active,
+.pagination .pagination-btn.active {
+  background: #2f80ed;
+  border-color: #2f80ed;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Disabled */
+.meeting-room-pagination .pagination-btn:disabled,
+.pagination .pagination-btn:disabled,
+.meeting-room-pagination button:disabled,
+.pagination button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+  background: #fafafa;
+  color: #98a2b3;
+}
+
+/* Ellipsis */
+.meeting-room-pagination .pagination-ellipsis,
+.pagination .pagination-ellipsis {
+  color: #98a2b3;
+  padding: 0 4px;
+}
+
+/* Nút đặc biệt (First/Last/Prev/Next) có icon » ‹ */
+.meeting-room-pagination .pagination-first,
+.meeting-room-pagination .pagination-last,
+.meeting-room-pagination .pagination-prev,
+.meeting-room-pagination .pagination-next,
+.pagination .pagination-first,
+.pagination .pagination-last,
+.pagination .pagination-prev,
+.pagination .pagination-next {
+  min-width: 64px;
+}
+
+/* Responsive – thu gọn trên màn hình nhỏ */
+@media (max-width: 768px) {
+  .meeting-room-pagination,
+  .pagination {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .meeting-room-pagination .pagination-first,
+  .meeting-room-pagination .pagination-last {
+    display: none; /* Ẩn First/Last trên mobile để gọn */
+  }
