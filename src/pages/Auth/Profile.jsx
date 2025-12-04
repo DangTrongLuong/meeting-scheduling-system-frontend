@@ -14,15 +14,17 @@ import { useNavigate } from "react-router-dom";
 const ProfileContent = () => {
   const navigate = useNavigate();
   
-  const getHomeByRole = (role) => {
-      const r = (role || "").toUpperCase();
-      return r === "ADMIN" ? "/admin/dashboard" : "/user/meeting-schedule";
-    };
 
-    const handleBack = () => {
-      const role = localStorage.getItem("role"); // lấy role từ localStorage
-      navigate(getHomeByRole(role));
-    };
+  const getHomeByRole = (role) => {
+    const r = (role || "").toUpperCase();
+    const adminRoles = ["ADMIN", "SUPERADMIN"];
+    return adminRoles.includes(r) ? "/admin/dashboard" : "/user/meeting-schedule";
+  };
+
+  const handleBack = () => {
+    const role = localStorage.getItem("role");
+    navigate(getHomeByRole(role));
+  };
 
   const { user, setUser } = useUser();
 
