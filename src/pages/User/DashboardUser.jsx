@@ -100,28 +100,19 @@ export default function DashboardUser() {
           return;
         }
 
-        // Redirect trực tiếp - KHÔNG dùng axios
-        window.location.href = `http://localhost:8080/api/google-calendar/connect?userId=${userId}`;
-      } catch (error) {
-        console.error("Error initiating Google connection:", error);
-        toast.error("Failed to connect Google Calendar!");
+    setLoading(true);
+    
+    const response = await axios.post(
+      "http://localhost:8080/api/meetings/sync-all-google-calendar",
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          userId: userId,
+          "Content-Type": "application/json",
+        },
       }
-    } else {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem("accessToken");
-        const userId = localStorage.getItem("userId");
-
-        const response = await axios.post(
-          "http://localhost:8080/api/google-calendar/sync-all",
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              userId: userId,
-            },
-          }
-        );
+    );
 
         if (response.data.code === 200) {
           toast.success(`Synced ${response.data.data.syncedCount} meetings!`);
@@ -400,25 +391,25 @@ export default function DashboardUser() {
   };
 
   const handleCreateSuccess = () => {
-    fetchMeetings();
+    fetchAllEvents();
   };
 
   const handleDeleteSuccess = () => {
-    setEvents((prevEvents) =>
-      prevEvents.map((ev) =>
-        ev.id === selectedEvent.id
-          ? {
-              ...ev,
-              backgroundColor: "#f88a8aff",
-              borderColor: "#f88a8aff",
-              extendedProps: {
-                ...ev.extendedProps,
-                status: "CANCELLED",
-              },
-            }
-          : ev
-      )
-    );
+    // setEvents((prevEvents) =>
+    //   prevEvents.map((ev) =>
+    //     ev.id === selectedEvent.id
+    //       ? {
+    //           ...ev,
+    //           backgroundColor: "#f88a8aff",
+    //           borderColor: "#f88a8aff",
+    //           extendedProps: {
+    //             ...ev.extendedProps,
+    //             status: "CANCELLED",
+    //           },
+    //         }
+    //       : ev
+    //   )
+    // );
     fetchAllEvents();
   };
 
