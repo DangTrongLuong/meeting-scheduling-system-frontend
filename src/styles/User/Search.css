@@ -1,9 +1,10 @@
-
 .search-page {
   padding: 16px;
-  max-width: 980px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
 }
+
+
 
 .search-header {
   margin-bottom: 12px;
@@ -26,11 +27,12 @@
   border-radius: 10px;
   padding: 12px;
   background: #fff;
+  width: 100%;
 }
 
 .form-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 12px;
   margin-bottom: 12px;
 }
@@ -84,11 +86,6 @@
 
 .device-chip input {
   margin: 0;
-}
-
-.muted {
-  color: #6b7280;
-  font-size: 13px;
 }
 
 .errors {
@@ -177,13 +174,9 @@
   gap: 6px;
 }
 
-.badge-available { background: #10b981; } /* green */
-.badge-busy { background: #ef4444; }      /* red */
-.badge-unknown { background: #6b7280; }   /* gray */
-
-.search-card-body {
-  flex: 1;
-}
+.badge-available { background: #10b981; }
+.badge-busy { background: #ef4444; }
+.badge-unknown { background: #6b7280; }
 
 .search-card-title {
   font-weight: 600;
@@ -199,3 +192,15 @@
 .search-card-actions .btn {
   font-size: 13px;
 }
+/* FIX layout under sidebar + navbar */
+.search-page {
+  margin-left: 150px;
+  margin-top: 50px;
+  padding: 20px;
+}
+.search-wrapper {
+  width: 100%;
+  display: block;
+}
+
+
