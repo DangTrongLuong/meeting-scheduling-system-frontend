@@ -252,17 +252,13 @@ export default function DashboardUser() {
       });
 
       const meetings = res.data.data?.content || res.data.data || [];
+      const visibleMeetings = meetings.filter((m) => m.status !== "CANCELLED");
 
-      const formattedEvents = meetings.map((meeting) => {
+      const formattedEvents = visibleMeetings.map((meeting) => {
         const isCreator = meeting.creator?.id === currentUserId;
         const isParticipant = meeting.participants?.some(
           (p) => p.user?.id === currentUserId && p.status === "ACCEPTED"
         );
-
-        const participantsCount = Array.isArray(meeting.participants)
-          ? meeting.participants.length
-          : 0;
-        const status = meeting.status ?? "UNKNOWN";
 
         let backgroundColor, borderColor;
 
@@ -273,21 +269,18 @@ export default function DashboardUser() {
           backgroundColor = "#b1b1b1ff";
           borderColor = "#b1b1b1ff";
         } else {
-          if (isCreator) {
+          if (isCreator || isParticipant) {
             backgroundColor = "#3f9bf7ff";
             borderColor = "#1565c0";
-          } else if (isParticipant) {
-            backgroundColor = "#4caf50";
-            borderColor = "#388e3c";
           } else {
-            backgroundColor = "#ff9800";
-            borderColor = "#f57c00";
+            backgroundColor = "#00ce22ff";
+            borderColor = "#27e900ff";
           }
         }
 
         return {
           id: meeting.id,
-          title: `${meeting.title} – ${meeting.room?.name}\n${status} | ${participantsCount}`,
+          title: `${meeting.title} – ${meeting.room?.name}`,
           start: meeting.startTime,
           end: meeting.endTime,
           backgroundColor,
@@ -497,6 +490,26 @@ export default function DashboardUser() {
               }}
               eventDidMount={(info) => {
                 const el = info.el;
+
+                const meeting = info.event.extendedProps;
+                const status = meeting.status ?? "UNKNOWN";
+                const participantsCount = meeting.participants?.length ?? 0;
+
+                info.el.setAttribute(
+                  "title",
+                  `${info.event.title}\nStatus: ${status}\nParticipants: ${participantsCount}`
+                );
+
+                const frame = el.querySelector(".fc-event-main-frame");
+                if (frame) {
+                  // Tạo dòng meta: "Status | 👥N"
+                  const meta = document.createElement("div");
+                  meta.className = "fc-event-extra";
+                  meta.textContent = `${status}`;
+
+                  frame.appendChild(meta);
+                }
+
                 // Reset mọi style mặc định của FullCalendar
                 el.style.margin = "3px 2px";
                 el.style.borderRadius = "5px";
@@ -546,7 +559,7 @@ export default function DashboardUser() {
                       className="note-color"
                       style={{ backgroundColor: "#1976d2" }}
                     ></span>
-                    My Created Meetings
+                    My Meetings
                   </div>
                 </div>
                 <div className="notes-row">
@@ -555,26 +568,12 @@ export default function DashboardUser() {
                       className="note-color"
                       style={{ backgroundColor: "#4caf50" }}
                     ></span>
-                    My Meetings
-                  </div>
-                  <div className="note-item">
-                    <span
-                      className="note-color"
-                      style={{ backgroundColor: "#f88a8aff" }}
-                    ></span>
-                    Cancelled
+                    Other Meetings
                   </div>
                 </div>
 
                 {/* Hàng 2 */}
                 <div className="notes-row">
-                  <div className="note-item">
-                    <span
-                      className="note-color"
-                      style={{ backgroundColor: "#ff9800" }}
-                    ></span>
-                    Other Meetings
-                  </div>
                   <div className="note-item">
                     <span
                       className="note-color"
