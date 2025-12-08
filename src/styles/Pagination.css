@@ -1,15 +1,11 @@
-
-/* ===== Pagination – Professional look ===== */
-
-/* Container dưới bảng */
 .meeting-room-pagination,
 .pagination {
   display: flex;
   align-items: center;
-  justify-content: center;          /* ở giữa khung */
+  justify-content: center;          
   gap: 8px;
   margin-top: 16px;
-  padding: 12px 0;
+  padding: 12px 600px;
 }
 
 /* Nút chung */
@@ -19,11 +15,11 @@
 .pagination button {
   height: 32px;
   min-width: 36px;
-  padding: 0 12px;
+  /* padding: 20px; */
   border-radius: 8px;
-  border: 1px solid #dfe3e8;        /* viền nhẹ */
-  background: #fff;                  /* nền trắng tinh */
-  color: #2c3e50;                    /* chữ sẫm */
+  border: 1px solid #dfe3e8;      
+  background: #fff;                  
+  color: #2c3e50;                    
   font-size: 14px;
   line-height: 30px;
   cursor: pointer;
@@ -35,9 +31,9 @@
 .pagination .pagination-btn:hover,
 .meeting-room-pagination button:hover,
 .pagination button:hover {
-  border-color: #2f80ed;             /* viền xanh chủ đạo */
+  border-color: #2f80ed;            
   color: #2f80ed;
-  background: #f7fbff;               /* nền nhạt */
+  background: #f7fbff;            
 }
 
 /* Active (trang hiện tại) */
