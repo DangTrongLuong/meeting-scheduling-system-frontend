@@ -37,6 +37,29 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.fc .fc-day-today {
+  background: transparent !important;
+}
+
+.fc-timeGridDay-view .fc-timegrid-slot,
+.fc-timeGridWeek-view .fc-timegrid-slot {
+  height: 30px;
+  line-height: 28px;
+}
+
+/* 2.3) Khu vực all-day cao hơn một chút */
+.fc-timeGridDay-view .fc-timegrid-allday {
+  min-height: 50px;
+}
+.fc-timeGridDay-view .fc-timegrid-allday .fc-timegrid-day {
+  min-height: 50px;
+}
+
+/* (Tuỳ chọn) Đường kẻ nhỏ giữa các slot cho dễ nhìn */
+.fc-timeGridDay-view .fc-timegrid-slot {
+  border-bottom: 1px dashed #eee;
+}
+
 .fc .fc-button-group .fc-button {
   color: #1a73e8;
   border: 0.5px solid gray;
@@ -80,6 +103,21 @@
 }
 .fc-event:hover {
   cursor: pointer;
+}
+
+.fc-timeGridDay-view .fc-event-title,
+.fc-timeGridWeek-view .fc-event-title {
+  white-space: pre-line;
+}
+
+.fc-dayGridMonth-view .fc-event-title {
+  white-space: pre-line;
+}
+
+.fc .fc-event-title,
+.fc .fc-event-main-frame {
+  overflow: visible;
+  white-space: pre-line;
 }
 
 .navbar-left {
@@ -479,15 +517,8 @@
     gap: 6px;
   }
 }
-.calendar-today {
-  background-color: #ffd700 !important; /* vàng đậm */
-}
 
 .calendar-selected {
   background-color: #e4e4e4 !important;
   color: rgb(0, 0, 0) !important;
-}
-.fc-selected-date {
-  background-color: #f1f1f1 !important;
-  color: white !important;
 }

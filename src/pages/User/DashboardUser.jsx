@@ -26,9 +26,6 @@ export default function DashboardUser() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
-  //
-  const [filterMode, setFilterMode] = useState("all");
-  const [filterRoomId, setFilterRoomId] = useState(null);
 
   const [roomSearchTerm, setRoomSearchTerm] = useState("");
   const [selectedRoomIds, setSelectedRoomIds] = useState([]); // Thay cho filterRoomId
@@ -100,19 +97,28 @@ export default function DashboardUser() {
           return;
         }
 
-    setLoading(true);
-    
-    const response = await axios.post(
-      "http://localhost:8080/api/meetings/sync-all-google-calendar",
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          userId: userId,
-          "Content-Type": "application/json",
-        },
+        // Redirect trực tiếp - KHÔNG dùng axios
+        window.location.href = `http://localhost:8080/api/google-calendar/connect?userId=${userId}`;
+      } catch (error) {
+        console.error("Error initiating Google connection:", error);
+        toast.error("Failed to connect Google Calendar!");
       }
-    );
+    } else {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("accessToken");
+        const userId = localStorage.getItem("userId");
+
+        const response = await axios.post(
+          "http://localhost:8080/api/google-calendar/sync-all",
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              userId: userId,
+            },
+          }
+        );
 
         if (response.data.code === 200) {
           toast.success(`Synced ${response.data.data.syncedCount} meetings!`);
@@ -214,64 +220,6 @@ export default function DashboardUser() {
     fetchRooms();
   }, []);
 
-  // Helper function để map meetings - tái sử dụng
-  const mapMeetingsToEvents = (meetings, userId) => {
-    return meetings.map((m) => {
-      const eventDate = new Date(m.startTime);
-      const dayOfWeek = eventDate.getDay();
-
-      const colorPalette = [
-        "#99ffff",
-        "#66B2FF",
-        "#99FF99",
-        "#FFFF99",
-        "#FFCC99",
-        "#CC99FF",
-        "#FF99CC",
-      ];
-
-      const backgroundColor = colorPalette[dayOfWeek];
-      const borderColor = backgroundColor;
-
-      // Kiểm tra xem userId có phải creator không
-      const isCreatorMeeting = m.creator.id === userId;
-
-      return {
-        id: m.id,
-        title: `${m.title}`,
-        start: m.startTime,
-        end: m.endTime,
-        backgroundColor,
-        borderColor,
-        textColor: "#000",
-        extendedProps: {
-          meetingId: m.id,
-          room: m.room.id,
-          roomId: m.room.id,
-          roomName: m.room.name,
-          creatorId: m.creator.id,
-          creator: {
-            id: m.creator.id,
-            name: m.creator.name,
-            email: m.creator.email,
-          },
-          isCreator: isCreatorMeeting,
-          description: m.description,
-
-          participants:
-            m.participants?.map((p) => ({
-              email: p.user?.email,
-              role: p.role,
-              status: p.status,
-            })) || [],
-
-          devices: m.devices?.map((d) => d.device?.name) || [],
-          status: m.status,
-        },
-      };
-    });
-  };
-
   const handleUpdateEvent = (updatedEvent) => {
     setEvents((prevEvents) =>
       prevEvents.map((ev) =>
@@ -311,6 +259,11 @@ export default function DashboardUser() {
           (p) => p.user?.id === currentUserId && p.status === "ACCEPTED"
         );
 
+        const participantsCount = Array.isArray(meeting.participants)
+          ? meeting.participants.length
+          : 0;
+        const status = meeting.status ?? "UNKNOWN";
+
         let backgroundColor, borderColor;
 
         if (meeting.status === "CANCELLED") {
@@ -321,7 +274,7 @@ export default function DashboardUser() {
           borderColor = "#b1b1b1ff";
         } else {
           if (isCreator) {
-            backgroundColor = "#1976d2";
+            backgroundColor = "#3f9bf7ff";
             borderColor = "#1565c0";
           } else if (isParticipant) {
             backgroundColor = "#4caf50";
@@ -334,7 +287,7 @@ export default function DashboardUser() {
 
         return {
           id: meeting.id,
-          title: meeting.title,
+          title: `${meeting.title} – ${meeting.room?.name}\n${status} | ${participantsCount}`,
           start: meeting.startTime,
           end: meeting.endTime,
           backgroundColor,
@@ -395,21 +348,6 @@ export default function DashboardUser() {
   };
 
   const handleDeleteSuccess = () => {
-    // setEvents((prevEvents) =>
-    //   prevEvents.map((ev) =>
-    //     ev.id === selectedEvent.id
-    //       ? {
-    //           ...ev,
-    //           backgroundColor: "#f88a8aff",
-    //           borderColor: "#f88a8aff",
-    //           extendedProps: {
-    //             ...ev.extendedProps,
-    //             status: "CANCELLED",
-    //           },
-    //         }
-    //       : ev
-    //   )
-    // );
     fetchAllEvents();
   };
 
@@ -418,11 +356,6 @@ export default function DashboardUser() {
     const today = now.toISOString().split("T")[0];
     const currentEvents = events.filter((e) => e.start.startsWith(today));
     return [...new Set(currentEvents.map((e) => e.extendedProps.room.id))];
-  };
-
-  const getAvailableRooms = () => {
-    const booked = getBookedRooms();
-    return rooms.filter((r) => !booked.includes(r.id));
   };
 
   const handleMenuClick = (itemId) => {
@@ -481,24 +414,6 @@ export default function DashboardUser() {
             </span>
           </button>
 
-          {/* <button
-            className="meeting-btn-list"
-            onClick={() => {
-              setFilterMode((prev) => (prev === "created" ? "all" : "created"));
-            }}
-          >
-            + Booked Rooms List
-          </button>
-
-          <button
-            className="meeting-btn-invite"
-            onClick={() => {
-              setFilterMode((prev) => (prev === "invited" ? "all" : "invited"));
-            }}
-          >
-            + Invited Rooms List
-          </button> */}
-
           <button
             className="meeting-btn"
             onClick={() => setShowCreateModal(true)}
@@ -512,7 +427,7 @@ export default function DashboardUser() {
             <FullCalendar
               ref={calendarRef}
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-              initialView="timeGridWeek"
+              initialView="timeGridDay"
               locale="en-EN"
               events={filteredEvents}
               eventClick={handleEventClick}
@@ -527,9 +442,10 @@ export default function DashboardUser() {
                   click: handleTodayClick,
                 },
               }}
+              nowIndicator={true}
               slotMinTime="07:00:00"
               slotMaxTime="24:00:00"
-              slotDuration="00:30:00"
+              slotDuration="00:15:00"
               slotLabelInterval="01:00"
               height="100%"
               contentHeight="auto"
