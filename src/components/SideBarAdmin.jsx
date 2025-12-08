@@ -125,7 +125,7 @@ const SideBarAdmin = ({ activeItem, onItemClick, isOpen, onClose }) => {
       document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
     });
 
-    window.location.href = "/";
+    window.location.href = "/login";
   };
 
   return (
