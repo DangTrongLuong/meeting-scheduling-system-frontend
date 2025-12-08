@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -9,6 +9,7 @@ import { Search, CheckCircle, XCircle, Eye } from "lucide-react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import axios from "axios";
+import Pagination from "../../../components/Pagination.jsx";
 
 const MeetingManagement = () => {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ const MeetingManagement = () => {
   const [confirmAction, setConfirmAction] = useState(null);
   const [selectedMeeting, setSelectedMeeting] = useState(null);
   const [approveRejectLoading, setApproveRejectLoading] = useState(false);
+  const [direction, setDirection] = useState("asc");
 
   useEffect(() => {
     fetchAllMeetings();
@@ -328,6 +330,34 @@ const MeetingManagement = () => {
     setSidebarOpen(false);
   };
 
+  // ---------------------------
+      // [ADD] Phân trang client-side
+      // ---------------------------
+      const [currentPage, setCurrentPage] = useState(1); // 1-based
+        const pageSize = 10;      // số dòng/trang
+    
+      // [ADD] Khi search/sort đổi => quay về trang 1
+      useEffect(() => {
+        setCurrentPage(1);
+      }, [searchTerm, sortBy, direction]);
+  
+      const totalItems = filteredMeetings.length;
+      const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  
+      // Clamp currentPage khi data thay đổi (ví dụ sau khi xóa/search)
+        useEffect(() => {
+          if (currentPage > totalPages) setCurrentPage(totalPages);
+          if (currentPage < 1 && totalPages >= 1) setCurrentPage(1);
+        }, [totalPages, currentPage]);
+      
+        const startIndex = (currentPage - 1) * pageSize;
+  
+        // Dữ liệu hiển thị theo trang
+          const pagedMeetings = useMemo(
+            () => filteredMeetings.slice(startIndex, startIndex + pageSize),
+            [filteredMeetings, startIndex]
+          );
+
   return (
     <div className="my-project-container">
       <ToastContainer autoClose={1500} style={{ top: "70px" }} />
@@ -444,9 +474,9 @@ const MeetingManagement = () => {
                       </td>
                     </tr>
                   ) : (
-                    filteredMeetings.map((meeting, index) => (
+                    pagedMeetings.map((meeting, index) => (
                       <tr key={meeting.id}>
-                        <td>{index + 1}</td>
+                        <td>{startIndex + index + 1}</td>
                         <td className="mm-name-cells">
                           {meeting.title || "N/A"}
                         </td>
@@ -520,6 +550,17 @@ const MeetingManagement = () => {
           )}
         </main>
       </div>
+      {totalPages > 1 && (
+              <div className="pagination-container">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                showFirstLast
+                maxButtons={5}
+              /></div>
+            )}
+
 
       {/* Confirmation Modal */}
       {showConfirmModal && selectedMeeting && (
