@@ -37,17 +37,19 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Bỏ nền vàng của hôm nay */
 .fc .fc-day-today {
   background: transparent !important;
 }
 
+/* Slot height cho Day/Week */
 .fc-timeGridDay-view .fc-timegrid-slot,
 .fc-timeGridWeek-view .fc-timegrid-slot {
   height: 30px;
   line-height: 28px;
 }
 
-/* 2.3) Khu vực all-day cao hơn một chút */
+/* Khu vực all-day cao hơn */
 .fc-timeGridDay-view .fc-timegrid-allday {
   min-height: 50px;
 }
@@ -55,47 +57,50 @@
   min-height: 50px;
 }
 
-/* (Tuỳ chọn) Đường kẻ nhỏ giữa các slot cho dễ nhìn */
+/* Đường kẻ giữa các slot */
 .fc-timeGridDay-view .fc-timegrid-slot {
   border-bottom: 1px dashed #eee;
 }
 
+/* Style nút */
 .fc .fc-button-group .fc-button {
   color: #1a73e8;
   border: 0.5px solid gray;
 }
-
 .fc .fc-button.fc-button-active {
   color: white;
   background-color: #1a73e8 !important;
 }
-
 .fc .fc-button:not(.fc-button-active) {
   color: #086ff7;
   background-color: transparent;
 }
-
 .fc .fc-button:hover {
   background-color: #e3f2fd;
 }
 
+/* Toolbar title */
 .fc-toolbar-title {
   color: #127cf5;
 }
 
+/* Label giờ */
 .fc-timegrid-slot-label {
   color: #555;
 }
 
+/* Month view: chiều cao cell */
 .fc-dayGridMonth-view .fc-daygrid-day-frame {
   min-height: 110px;
 }
 
+/* Month view: event nhỏ */
 .fc-dayGridMonth-view .fc-daygrid-event {
   font-size: 12px;
   padding: 4px;
 }
 
+/* Hover event */
 .fc-dayGridMonth-view .fc-event:hover {
   background-color: #ececec !important;
   color: #2e2e2e;
@@ -105,19 +110,39 @@
   cursor: pointer;
 }
 
-.fc-timeGridDay-view .fc-event-title,
-.fc-timeGridWeek-view .fc-event-title {
-  white-space: pre-line;
-}
-
-.fc-dayGridMonth-view .fc-event-title {
-  white-space: pre-line;
-}
-
-.fc .fc-event-title,
+.fc .fc-event-main,
+.fc .fc-event-title-container,
 .fc .fc-event-main-frame {
-  overflow: visible;
-  white-space: pre-line;
+  min-width: 0;
+}
+
+.fc .fc-event-title {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.fc-timeGridDay-view .fc-event-extra,
+.fc-timeGridWeek-view .fc-event-extra {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.fc-dayGridMonth-view .fc-event-title,
+.fc-dayGridMonth-view .fc-event-time {
+  font-size: 11px;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.fc-dayGridMonth-view .fc-event-extra {
+  display: none;
 }
 
 .navbar-left {
