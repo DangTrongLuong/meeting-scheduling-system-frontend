@@ -298,7 +298,25 @@ const Rooms = () => {
             )}
 
             {/* [ADD] Thanh phân trang – nằm dưới bảng, không thay đổi layout/các class hiện có */}
-            {renderPagination()}
+            {/* {renderPagination()}
+
+            {deleteModal.isOpen && (
+              <div className="delete-modal-overlay" onClick={closeDeleteModal}>
+                <div
+                  className="delete-modal-content"
+                  onClick={(e) => e.stopPropagation()}
+                > */}
+            {/* Thanh phân trang – CHỈ dưới bảng, dùng component sẵn có */}
+            {totalPages > 1 && (
+              <div className="pagination-container">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                showFirstLast
+                maxButtons={5}
+              /></div>
+            )}
 
             {deleteModal.isOpen && (
               <div className="delete-modal-overlay" onClick={closeDeleteModal}>
