@@ -30,20 +30,20 @@ const SideBarUser = ({ activeItem, onItemClick, isOpen, onClose }) => {
       hasSubmenu: true,
       path: "/user/meeting-schedule",
     },
-    {
-      id: "message",
-      icon: MessageSquare,
-      label: "Chat",
-      hasSubmenu: true,
-      path: "/chat-message",
-    },
-    {
-      id: "call",
-      icon: PhoneCall,
-      label: "Call",
-      hasSubmenu: true,
-      path: "/call",
-    },
+    // {
+    //   id: "message",
+    //   icon: MessageSquare,
+    //   label: "Chat",
+    //   hasSubmenu: true,
+    //   path: "/chat-message",
+    // },
+    // {
+    //   id: "call",
+    //   icon: PhoneCall,
+    //   label: "Call",
+    //   hasSubmenu: true,
+    //   path: "/call",
+    // },
     {
       id: "search",
       icon: Search,
@@ -107,7 +107,7 @@ const SideBarUser = ({ activeItem, onItemClick, isOpen, onClose }) => {
       document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
     });
 
-    window.location.href = "/";
+    window.location.href = "/login";
   };
 
   return (
