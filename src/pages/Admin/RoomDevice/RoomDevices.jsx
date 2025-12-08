@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo  } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -6,6 +6,7 @@ import "../../../styles/RoomDevice/RoomDevices.css";
 import NavBar from "../../../components/NavBar";
 import SideBarAdmin from "../../../components/SideBarAdmin";
 import { Trash2, Edit, ChevronDown, Search } from "lucide-react";
+import Pagination from "../../../components/Pagination.jsx"; // [ADD]
 
 const RoomDevices = () => {
   const navigate = useNavigate();
@@ -13,6 +14,8 @@ const RoomDevices = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeMenuItem, setActiveMenuItem] = useState("device-room");
+  const [sortBy, setSortBy] = useState("name");
+  const [direction, setDirection] = useState("asc");
   const location = useLocation();
 
   const [deleteModal, setDeleteModal] = useState({
@@ -88,10 +91,10 @@ const RoomDevices = () => {
       setAssignments((prev) => prev.filter((a) => a.id !== id));
       toast.success("Device removed from room");
     } catch (err) {
-      toast.error(err.message || "Failed to remove");
-    } finally {
-      setDeleting(false);
-      closeDeleteModal();
+          toast.error(err.message || "Failed to delete room");
+        } finally {
+          setDeleting(false);
+          closeDeleteModal();
     }
   };
 
@@ -126,6 +129,7 @@ const RoomDevices = () => {
     );
   };
 
+
   const filteredAssignments = assignments.filter((a) => {
     const matchesSearch = a.roomName
       .toLowerCase()
@@ -154,6 +158,34 @@ const RoomDevices = () => {
     setSelectedStatuses([]);
     setSearchTerm("");
   };
+
+    // ---------------------------
+    // [ADD] Phân trang client-side
+    // ---------------------------
+    const [currentPage, setCurrentPage] = useState(1); // 1-based
+      const pageSize = 10;      // số dòng/trang
+  
+    // [ADD] Khi search/sort đổi => quay về trang 1
+    useEffect(() => {
+      setCurrentPage(1);
+    }, [searchTerm, sortBy, direction]);
+
+    const totalItems = filteredAssignments.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+    // Clamp currentPage khi data thay đổi (ví dụ sau khi xóa/search)
+      useEffect(() => {
+        if (currentPage > totalPages) setCurrentPage(totalPages);
+        if (currentPage < 1 && totalPages >= 1) setCurrentPage(1);
+      }, [totalPages, currentPage]);
+    
+      const startIndex = (currentPage - 1) * pageSize;
+
+      // Dữ liệu hiển thị theo trang
+        const pagedAssignments = useMemo(
+          () => filteredAssignments.slice(startIndex, startIndex + pageSize),
+          [filteredAssignments, startIndex]
+        );
 
   return (
     <div className="my-project-container">
@@ -319,6 +351,11 @@ const RoomDevices = () => {
 
           <div className="room-device-summary">
             Total: {filteredAssignments.length} / {assignments.length}
+            {filteredAssignments.length > 0 && (
+              <>{" "}
+              (Show {startIndex + 1}–{Math.min(startIndex + pageSize, filteredAssignments.length)} / {filteredAssignments.length})
+              </>
+            )}
           </div>
 
           <div className="room-device-list">
@@ -337,9 +374,9 @@ const RoomDevices = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredAssignments.map((a, index) => (
+                  {pagedAssignments.map((a, index) => (
                     <tr key={a.id}>
-                      <td>{index + 1}</td>
+                      <td>{startIndex + index + 1}</td>
                       <td>{a.roomName}</td>
                       <td>{a.deviceName}</td>
                       <td>{a.quantity}</td>
@@ -365,6 +402,17 @@ const RoomDevices = () => {
               </table>
             )}
           </div>
+
+            {totalPages > 1 && (
+              <div className="pagination-container">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                showFirstLast
+                maxButtons={5}
+              /></div>
+            )}
 
           {deleteModal.isOpen && (
             <div className="delete-modal-overlay" onClick={closeDeleteModal}>
