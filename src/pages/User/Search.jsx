@@ -70,57 +70,57 @@ export default function Search() {
   }
 
   // Check availability for a room in a time range (backend should accept date + start + end)
-async function checkRoomAvailability(roomId, date, start, end) {
-  try {
-    const res = await axios.get(`/api/meetings/rooms/${roomId}/availability`, {
-      params: { date, start, end },
-    });
+  async function checkRoomAvailability(roomId, date, start, end) {
+    try {
+      const res = await axios.get(
+        `/api/meetings/rooms/${roomId}/availability`,
+        {
+          params: { date, start, end },
+        }
+      );
 
-    // Thử lấy mọi dạng thường gặp
-    const raw =
-      res.data?.available ??
-      res.data?.data?.available ??
-      res.data?.result?.available ??
-      res.data?.isAvailable ??
-      null;
+      // Thử lấy mọi dạng thường gặp
+      const raw =
+        res.data?.available ??
+        res.data?.data?.available ??
+        res.data?.result?.available ??
+        res.data?.isAvailable ??
+        null;
 
-    // Chuẩn hoá: true/"true" → true, false/"false" → false
-    const available =
-      raw === true || raw === "true"
-        ? true
-        : raw === false || raw === "false"
-        ? false
-        : null;
+      // Chuẩn hoá: true/"true" → true, false/"false" → false
+      const available =
+        raw === true || raw === "true"
+          ? true
+          : raw === false || raw === "false"
+          ? false
+          : null;
 
-    return { available };
-  } catch (err) {
-    console.error("checkRoomAvailability err", err);
-    return { available: null };
+      return { available };
+    } catch (err) {
+      console.error("checkRoomAvailability err", err);
+      return { available: null };
+    }
   }
-}
-
 
   // Get schedule of a room for a whole day (used when user selects date + room but no times)
-async function fetchRoomScheduleForDay(roomId, date) {
-  try {
-    const startDate = `${date}T00:00:00`;
-    const endDate   = `${date}T23:59:59`;
+  async function fetchRoomScheduleForDay(roomId, date) {
+    try {
+      const startDate = `${date}T00:00:00`;
+      const endDate = `${date}T23:59:59`;
 
-    const res = await axios.get(`api/meetings/rooms/${roomId}/schedule`, {
-      params: { startDate, endDate },
-    });
+      const res = await axios.get(`api/meetings/rooms/${roomId}/schedule`, {
+        params: { startDate, endDate },
+      });
 
-    console.log("=== RAW SCHEDULE RESPONSE ===");
-    console.log(res.data);
+      console.log("=== RAW SCHEDULE RESPONSE ===");
+      console.log(res.data);
 
-    return Array.isArray(res.data) ? res.data : res.data?.data ?? [];
-  } catch (err) {
-    console.error("fetchRoomScheduleForDay err", err);
-    return [];
+      return Array.isArray(res.data) ? res.data : res.data?.data ?? [];
+    } catch (err) {
+      console.error("fetchRoomScheduleForDay err", err);
+      return [];
+    }
   }
-}
-
-
 
   // Find rooms that have a specific device (used to suggest borrow locations)
   async function findRoomsWithDevice(deviceId) {
@@ -184,7 +184,7 @@ async function fetchRoomScheduleForDay(roomId, date) {
           {
             _id: selectedRoom,
             name:
-              (rooms.find((r) => (r.id ?? r.roomId) === selectedRoom)?.name) ||
+              rooms.find((r) => (r.id ?? r.roomId) === selectedRoom)?.name ||
               `Phòng ${selectedRoom}`,
             _schedule: schedule.map((m) => ({
               startTime: m.startTime?.slice(11, 16) ?? m.start?.slice(11, 16),
@@ -225,8 +225,7 @@ async function fetchRoomScheduleForDay(roomId, date) {
       const evaluated = await Promise.all(
         roomsWithDevices.map(async (room) => {
           const capacity = room.capacity ?? room.maxCapacity ?? 0;
-          const capacityOk =
-            !participants || capacity >= Number(participants);
+          const capacityOk = !participants || capacity >= Number(participants);
 
           // device ids present in room
           const deviceIdsInRoom = (room._devices ?? []).map(
@@ -238,7 +237,6 @@ async function fetchRoomScheduleForDay(roomId, date) {
             (id) => !deviceIdsInRoom.includes(id)
           );
 
-          // for each missing device, find rooms that have it (to suggest borrow)
           let missingDevices = [];
           if (missingDeviceIds.length) {
             missingDevices = await Promise.all(
@@ -246,7 +244,8 @@ async function fetchRoomScheduleForDay(roomId, date) {
                 const devMeta =
                   activeDevices.find((d) => d.device.id === did) ??
                   activeDevices.find((d) => d.id === did);
-                const devName = devMeta?.device?.name ?? devMeta?.name ?? "Thiết bị";
+                const devName =
+                  devMeta?.device?.name ?? devMeta?.name ?? "Thiết bị";
 
                 const roomsWithIt = await findRoomsWithDevice(did);
                 const suggestions = (roomsWithIt || [])
@@ -260,7 +259,12 @@ async function fetchRoomScheduleForDay(roomId, date) {
           // if user provided start & end -> check availability
           let avail = null;
           if (startTime && endTime) {
-            const a = await checkRoomAvailability(room._id, date, startTime, endTime);
+            const a = await checkRoomAvailability(
+              room._id,
+              date,
+              startTime,
+              endTime
+            );
             avail = a.available;
           }
 
@@ -332,7 +336,9 @@ async function fetchRoomScheduleForDay(roomId, date) {
 
         <div className="search-header">
           <h1 className="search-title">Tìm phòng họp</h1>
-          <p className="search-subtitle">Lọc theo ngày, giờ, sức chứa và thiết bị</p>
+          <p className="search-subtitle">
+            Lọc theo ngày, giờ, sức chứa và thiết bị
+          </p>
         </div>
 
         {/* FORM */}
@@ -398,7 +404,10 @@ async function fetchRoomScheduleForDay(roomId, date) {
               >
                 <option value="">-- Chọn phòng --</option>
                 {rooms.map((room) => (
-                  <option key={room.id ?? room.roomId} value={room.id ?? room.roomId}>
+                  <option
+                    key={room.id ?? room.roomId}
+                    value={room.id ?? room.roomId}
+                  >
                     {room.name}
                   </option>
                 ))}
@@ -420,7 +429,8 @@ async function fetchRoomScheduleForDay(roomId, date) {
                   <label
                     key={id}
                     className={
-                      "device-chip" + (selectedDeviceIds.includes(id) ? " selected" : "")
+                      "device-chip" +
+                      (selectedDeviceIds.includes(id) ? " selected" : "")
                     }
                     onClick={() => toggleDevice(id)}
                   >
@@ -454,7 +464,11 @@ async function fetchRoomScheduleForDay(roomId, date) {
               {loading ? "Đang tìm…" : "Tìm phòng"}
             </button>
 
-            <button type="button" className="btn btn-outline" onClick={clearForm}>
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={clearForm}
+            >
               Xóa kết quả
             </button>
           </div>
@@ -502,36 +516,44 @@ async function fetchRoomScheduleForDay(roomId, date) {
                 <div className="search-card-body">
                   <div className="search-card-title">{room.name}</div>
                   <div className="search-card-desc">
-                    Sức chứa: {room._capacity ?? room.capacity ?? room.maxCapacity ?? "—"} người
+                    Sức chứa:{" "}
+                    {room._capacity ?? room.capacity ?? room.maxCapacity ?? "—"}{" "}
+                    người
                   </div>
 
                   {/* If this result is a daily schedule (case: selectedRoom && no times) */}
-                  {Array.isArray(room._schedule) && room._schedule.length > 0 && (
-                    <div className="room-schedule">
-                      <div className="schedule-title">Lịch trong ngày:</div>
-                      <ul>
-                        {room._schedule.map((s, i) => (
-                          <li key={i}>
-                            {s.startTime} — {s.endTime} : {s.title}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {Array.isArray(room._schedule) && room._schedule.length === 0 && (
-                    <div className="room-schedule empty">Phòng trống trong ngày</div>
-                  )}
+                  {Array.isArray(room._schedule) &&
+                    room._schedule.length > 0 && (
+                      <div className="room-schedule">
+                        <div className="schedule-title">Lịch trong ngày:</div>
+                        <ul>
+                          {room._schedule.map((s, i) => (
+                            <li key={i}>
+                              {s.startTime} — {s.endTime} : {s.title}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  {Array.isArray(room._schedule) &&
+                    room._schedule.length === 0 && (
+                      <div className="room-schedule empty">
+                        Phòng trống trong ngày
+                      </div>
+                    )}
 
                   {/* Capacity check */}
-                  {!Array.isArray(room._schedule) && room._capacity !== undefined && (
-                    <>
-                      {!room._capacityOk && (
-                        <div className="warning">
-                          <AlertCircle size={14} /> Không đủ sức chứa ({room._capacity} người)
-                        </div>
-                      )}
-                    </>
-                  )}
+                  {!Array.isArray(room._schedule) &&
+                    room._capacity !== undefined && (
+                      <>
+                        {!room._capacityOk && (
+                          <div className="warning">
+                            <AlertCircle size={14} /> Không đủ sức chứa (
+                            {room._capacity} người)
+                          </div>
+                        )}
+                      </>
+                    )}
 
                   {/* Missing devices info & suggestions */}
                   {!Array.isArray(room._schedule) &&
@@ -563,19 +585,20 @@ async function fetchRoomScheduleForDay(roomId, date) {
                     <div className="availability-detail">
                       {room._availability === true && (
                         <div className="available">
-                          <CheckCircle2 size={14} /> Phòng trống trong khoảng {startTime} —{" "}
-                          {endTime}. Bạn có thể đặt.
+                          <CheckCircle2 size={14} /> Phòng trống trong khoảng{" "}
+                          {startTime} — {endTime}. Bạn có thể đặt.
                         </div>
                       )}
                       {room._availability === false && (
                         <div className="busy">
-                          <AlertCircle size={14} /> Phòng bận trong khoảng {startTime} —{" "}
-                          {endTime}.
+                          <AlertCircle size={14} /> Phòng bận trong khoảng{" "}
+                          {startTime} — {endTime}.
                         </div>
                       )}
                       {room._availability === null && (
                         <div className="unknown">
-                          <AlertCircle size={14} /> Không thể kiểm tra trạng thái.
+                          <AlertCircle size={14} /> Không thể kiểm tra trạng
+                          thái.
                         </div>
                       )}
                     </div>

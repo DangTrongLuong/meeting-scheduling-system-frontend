@@ -13,12 +13,13 @@ import { useNavigate } from "react-router-dom";
 
 const ProfileContent = () => {
   const navigate = useNavigate();
-  
 
   const getHomeByRole = (role) => {
     const r = (role || "").toUpperCase();
     const adminRoles = ["ADMIN", "SUPERADMIN"];
-    return adminRoles.includes(r) ? "/admin/dashboard" : "/user/meeting-schedule";
+    return adminRoles.includes(r)
+      ? "/admin/dashboard"
+      : "/user/meeting-schedule";
   };
 
   const handleBack = () => {
@@ -494,34 +495,30 @@ const ProfileContent = () => {
       <div className="my-project-container">
         <NavBar />
         <div id="global-progress-bar" className="progress-bar"></div>
-        
-        
 
-<button
-      className="back-to-dashboard-btn"
-      style={{
-        position: "fixed",
-        bottom: 32,
-        left: 32,
-        zIndex: 1000,
-        padding: "8px 5px",
-        background: "#4e5964ff",
-        color: "#fff",
-        border: "none",
-        borderRadius: "6px",
-        cursor: "pointer",
-        fontWeight: "bold",
-        fontSize: "15px",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-      }}
-      onClick={handleBack}
-    >
-      ← Back
-    </button>
-
+        <button
+          className="back-to-dashboard-btn"
+          style={{
+            position: "fixed",
+            bottom: 32,
+            left: 32,
+            zIndex: 1000,
+            padding: "8px 5px",
+            background: "#4e5964ff",
+            color: "#fff",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontWeight: "bold",
+            fontSize: "15px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+          }}
+          onClick={handleBack}
+        >
+          ← Back
+        </button>
 
         <div className="content-container-profile">
-          
           <div className={`main-container-profile`}>
             <div className="profile-container-cover">
               <div className="cover-image">
@@ -634,7 +631,6 @@ const ProfileContent = () => {
                         )}
                       </>
                     )}
-                    
                   </div>
                   {showPasswordModal && (
                     <div className="modal-overlay-profile">
@@ -790,7 +786,7 @@ const ProfileContent = () => {
                         </form>
                       </div>
                     </div>
-                  )}                 
+                  )}
                   {showConfirmModal && (
                     <div className="modal-overlay-confirm-change">
                       <div className="modal-content-confirm-change">
@@ -1099,5 +1095,3 @@ const Profile = () => {
 };
 
 export default Profile;
-
-
