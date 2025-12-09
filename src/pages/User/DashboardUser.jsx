@@ -407,379 +407,270 @@ export default function DashboardUser() {
         </div>
 
         <div className="main-inner-calender">
-          <div className="calendar-container">
-            <FullCalendar
-              ref={calendarRef}
-              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-              initialView="timeGridDay"
-              locale="en-EN"
-              events={filteredEvents}
-              eventClick={handleEventClick}
-              headerToolbar={{
-                left: "prev,next customtoday",
-                center: "title",
-                right: "dayGridMonth,timeGridWeek,timeGridDay",
-              }}
-              customButtons={{
-                customtoday: {
-                  text: "Today",
-                  click: handleTodayClick,
-                },
-              }}
-              nowIndicator={true}
-              slotMinTime="07:00:00"
-              slotMaxTime="24:00:00"
-              slotDuration="00:15:00"
-              slotLabelInterval="01:00"
-              height="100%"
-              contentHeight="auto"
-              selectable={true}
-              selectMirror={true}
-              dayMaxEvents={true}
-              aspectRatio={2.5}
-              dateClick={(arg) => {
-                const clickedDate = arg.date;
-                setSelectedDate(clickedDate);
-                const dateStr = clickedDate.toISOString().split("T")[0];
-                const hours = clickedDate
-                  .getHours()
-                  .toString()
-                  .padStart(2, "0");
-                const minutes = clickedDate
-                  .getMinutes()
-                  .toString()
-                  .padStart(2, "0");
-                const timeStr = `${hours}:${minutes}`;
+          <div className="layout-calendar">
+            <div className="calendar-container">
+              <FullCalendar
+                ref={calendarRef}
+                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                initialView="timeGridDay"
+                locale="en-EN"
+                events={filteredEvents}
+                eventClick={handleEventClick}
+                headerToolbar={{
+                  left: "prev,next customtoday",
+                  center: "title",
+                  right: "dayGridMonth,timeGridWeek,timeGridDay",
+                }}
+                customButtons={{
+                  customtoday: {
+                    text: "Today",
+                    click: handleTodayClick,
+                  },
+                }}
+                nowIndicator={true}
+                slotMinTime="07:00:00"
+                slotMaxTime="24:00:00"
+                slotDuration="00:15:00"
+                slotLabelInterval="01:00"
+                height="100%"
+                contentHeight="auto"
+                selectable={true}
+                selectMirror={true}
+                dayMaxEvents={true}
+                aspectRatio={2.5}
+                dateClick={(arg) => {
+                  const clickedDate = arg.date;
+                  setSelectedDate(clickedDate);
+                  const dateStr = clickedDate.toISOString().split("T")[0];
+                  const hours = clickedDate
+                    .getHours()
+                    .toString()
+                    .padStart(2, "0");
+                  const minutes = clickedDate
+                    .getMinutes()
+                    .toString()
+                    .padStart(2, "0");
+                  const timeStr = `${hours}:${minutes}`;
 
-                // Thay vì cộng 30 phút, cộng 15 phút thôi
-                let endHour = clickedDate.getHours();
-                let endMinute = clickedDate.getMinutes() + 15;
-                if (endMinute >= 60) {
-                  endHour += 1;
-                  endMinute -= 60;
-                }
-                const endTimeStr = `${endHour
-                  .toString()
-                  .padStart(2, "0")}:${endMinute.toString().padStart(2, "0")}`;
-                setPreFillData({
-                  date: dateStr,
-                  startTime: timeStr,
-                  endTime: endTimeStr,
-                });
-                setShowCreateModal(true);
-              }}
-              select={(arg) => {
-                // DEBUG: Log để xem giá trị thật
-                console.log("Start:", arg.start);
-                console.log("End:", arg.end);
-                console.log("Start time:", arg.start.toISOString());
-                console.log("End time:", arg.end.toISOString());
-
-                const startDate = arg.start;
-                const endDate = arg.end;
-
-                setSelectedDate(startDate);
-
-                const dateStr = startDate.toISOString().split("T")[0];
-                const startHours = startDate
-                  .getHours()
-                  .toString()
-                  .padStart(2, "0");
-                const startMinutes = startDate
-                  .getMinutes()
-                  .toString()
-                  .padStart(2, "0");
-                const startTimeStr = `${startHours}:${startMinutes}`;
-
-                const endHours = endDate.getHours().toString().padStart(2, "0");
-                const endMinutes = endDate
-                  .getMinutes()
-                  .toString()
-                  .padStart(2, "0");
-                const endTimeStr = `${endHours}:${endMinutes}`;
-
-                console.log("Prefill Data:", {
-                  date: dateStr,
-                  startTime: startTimeStr,
-                  endTime: endTimeStr,
-                });
-
-                setPreFillData({
-                  date: dateStr,
-                  startTime: startTimeStr,
-                  endTime: endTimeStr,
-                });
-                setShowCreateModal(true);
-              }}
-              dayCellClassNames={(arg) => {
-                if (!selectedDate) return [];
-                const sel = new Date(selectedDate);
-                const cell = new Date(arg.date);
-                if (
-                  sel.getFullYear() === cell.getFullYear() &&
-                  sel.getMonth() === cell.getMonth() &&
-                  sel.getDate() === cell.getDate()
-                ) {
-                  return ["fc-selected-date"];
-                }
-                return [];
-              }}
-              eventDidMount={(info) => {
-                const el = info.el;
-
-                const meeting = info.event.extendedProps;
-                const status = meeting.status ?? "UNKNOWN";
-                const participantsCount = meeting.participants?.length ?? 0;
-
-                info.el.setAttribute(
-                  "title",
-                  `${info.event.title}\nStatus: ${status}\nParticipants: ${participantsCount}`
-                );
-
-                const frame = el.querySelector(".fc-event-main-frame");
-                if (frame) {
-                  const meta = document.createElement("div");
-                  meta.className = "fc-event-extra";
-                  meta.textContent = `${status}`;
-
-                  frame.appendChild(meta);
-                }
-
-                el.style.margin = "3px 2px";
-                el.style.borderRadius = "5px";
-                el.style.border = "none";
-                el.style.color = "#5d4037";
-              }}
-            />
-          </div>
-
-          <aside className="sidebar-user-calender">
-            {/* Mini Calendar */}
-            <div className="mini-calendar">
-              <Calendar
-                key={miniCalendarKey}
-                value={selectedDate || new Date()}
-                onClickDay={(date) => {
-                  setSelectedDate(date);
-                  if (calendarRef.current) {
-                    calendarRef.current.getApi().gotoDate(date);
+                  // Thay vì cộng 30 phút, cộng 15 phút thôi
+                  let endHour = clickedDate.getHours();
+                  let endMinute = clickedDate.getMinutes() + 15;
+                  if (endMinute >= 60) {
+                    endHour += 1;
+                    endMinute -= 60;
                   }
+                  const endTimeStr = `${endHour
+                    .toString()
+                    .padStart(2, "0")}:${endMinute
+                    .toString()
+                    .padStart(2, "0")}`;
+                  setPreFillData({
+                    date: dateStr,
+                    startTime: timeStr,
+                    endTime: endTimeStr,
+                  });
+                  setShowCreateModal(true);
                 }}
-                tileClassName={({ date, view }) => {
-                  if (view === "month") {
-                    const today = new Date();
-                    if (date.toDateString() === today.toDateString())
-                      return "calendar-today";
-                    if (
-                      selectedDate &&
-                      date.toDateString() === selectedDate.toDateString()
-                    )
-                      return "calendar-selected";
+                select={(arg) => {
+                  // DEBUG: Log để xem giá trị thật
+                  console.log("Start:", arg.start);
+                  console.log("End:", arg.end);
+                  console.log("Start time:", arg.start.toISOString());
+                  console.log("End time:", arg.end.toISOString());
+
+                  const startDate = arg.start;
+                  const endDate = arg.end;
+
+                  setSelectedDate(startDate);
+
+                  const dateStr = startDate.toISOString().split("T")[0];
+                  const startHours = startDate
+                    .getHours()
+                    .toString()
+                    .padStart(2, "0");
+                  const startMinutes = startDate
+                    .getMinutes()
+                    .toString()
+                    .padStart(2, "0");
+                  const startTimeStr = `${startHours}:${startMinutes}`;
+
+                  const endHours = endDate
+                    .getHours()
+                    .toString()
+                    .padStart(2, "0");
+                  const endMinutes = endDate
+                    .getMinutes()
+                    .toString()
+                    .padStart(2, "0");
+                  const endTimeStr = `${endHours}:${endMinutes}`;
+
+                  console.log("Prefill Data:", {
+                    date: dateStr,
+                    startTime: startTimeStr,
+                    endTime: endTimeStr,
+                  });
+
+                  setPreFillData({
+                    date: dateStr,
+                    startTime: startTimeStr,
+                    endTime: endTimeStr,
+                  });
+                  setShowCreateModal(true);
+                }}
+                dayCellClassNames={(arg) => {
+                  if (!selectedDate) return [];
+                  const sel = new Date(selectedDate);
+                  const cell = new Date(arg.date);
+                  if (
+                    sel.getFullYear() === cell.getFullYear() &&
+                    sel.getMonth() === cell.getMonth() &&
+                    sel.getDate() === cell.getDate()
+                  ) {
+                    return ["fc-selected-date"];
                   }
-                  return null;
+                  return [];
                 }}
-              />
-              <div className="current-time">{currentTime}</div>
-            </div>
+                eventDidMount={(info) => {
+                  const el = info.el;
 
-            <div className="meeting-notes">
-              <h4 className="meeting-notes-title">Meeting Notes</h4>
-              <div className="meeting-notes-days">
-                <div className="notes-row">
-                  <div className="note-item">
-                    <span
-                      className="note-color"
-                      style={{ backgroundColor: "#1976d2" }}
-                    ></span>
-                    My Meetings
-                  </div>
-                </div>
-                <div className="notes-row">
-                  <div className="note-item">
-                    <span
-                      className="note-color"
-                      style={{ backgroundColor: "#4caf50" }}
-                    ></span>
-                    Other Meetings
-                  </div>
-                </div>
+                  const meeting = info.event.extendedProps;
+                  const status = meeting.status ?? "UNKNOWN";
+                  const participantsCount = meeting.participants?.length ?? 0;
 
-                <div className="notes-row">
-                  <div className="note-item">
-                    <span
-                      className="note-color"
-                      style={{ backgroundColor: "#ccc" }}
-                    ></span>
-                    Pending
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="room-box" style={{ marginTop: "20px" }}>
-              <h4 className="room-box-title">Rooms Booked Today</h4>
-              <ul
-                className="room-list"
-                style={{ maxHeight: "120px", overflowY: "auto" }}
-              >
-                {getBookedRooms().length > 0 ? (
-                  getBookedRooms().map((roomId, i) => {
-                    const event = events.find(
-                      (e) => e.extendedProps.room.id === roomId
-                    );
-                    return (
-                      <li key={i} className="room-item">
-                        <span
-                          className="room-dot"
-                          style={{ backgroundColor: "#e74c3c" }}
-                        ></span>
-                        {event?.extendedProps.room.name || "Unknown Room"}
-                      </li>
-                    );
-                  })
-                ) : (
-                  <li className="room-item" style={{ color: "#999" }}>
-                    No rooms booked today
-                  </li>
-                )}
-              </ul>
-            </div>
-
-            <div className="room-filter-panel" style={{ marginTop: "20px" }}>
-              <h3 className="sidebar-title">Filter by Room</h3>
-
-              <input
-                type="text"
-                placeholder="Search room name..."
-                value={roomSearchTerm}
-                onChange={(e) => setRoomSearchTerm(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  borderRadius: "8px",
-                  border: "1px solid #ccc",
-                  fontSize: "14px",
-                  marginBottom: "12px",
-                }}
-              />
-
-              <div
-                style={{
-                  maxHeight: "200px",
-                  overflowY: "auto",
-                  border: "1px solid #e0e0e0",
-                  borderRadius: "8px",
-                  padding: "8px",
-                  backgroundColor: "#fafafa",
-                }}
-              >
-                {filteredRoomsForSidebar.map((room) => {
-                  const isFullyBooked = isRoomFullyBookedToday(room.id);
-                  const isSelected = selectedRoomIds.includes(room.id);
-
-                  return (
-                    <label
-                      key={room.id}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        padding: "10px 8px",
-                        margin: "4px 0",
-                        backgroundColor: isSelected ? "#e3f2fd" : "white",
-                        borderRadius: "6px",
-                        cursor: "pointer",
-                        border: isSelected
-                          ? "2px solid #2196f3"
-                          : "1px solid #eee",
-                        opacity: isFullyBooked ? 0.7 : 1,
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => toggleRoomSelection(room.id)}
-                        style={{ marginRight: "10px" }}
-                      />
-                      <span
-                        style={{ fontWeight: "500", fontSize: "14px", flex: 1 }}
-                      >
-                        {room.name}
-                      </span>
-                      {isFullyBooked && (
-                        <span
-                          style={{
-                            backgroundColor: "#c62828",
-                            color: "white",
-                            padding: "2px 8px",
-                            borderRadius: "12px",
-                            fontSize: "10px",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          FULL
-                        </span>
-                      )}
-                    </label>
+                  info.el.setAttribute(
+                    "title",
+                    `${info.event.title}\nStatus: ${status}\nParticipants: ${participantsCount}`
                   );
-                })}
 
-                {filteredRoomsForSidebar.length === 0 && (
-                  <p
-                    style={{
-                      textAlign: "center",
-                      color: "#999",
-                      padding: "20px",
-                      fontStyle: "italic",
-                    }}
-                  >
-                    No rooms match
-                  </p>
-                )}
-              </div>
+                  const frame = el.querySelector(".fc-event-main-frame");
+                  if (frame) {
+                    const meta = document.createElement("div");
+                    meta.className = "fc-event-extra";
+                    meta.textContent = `${status}`;
 
-              <div style={{ marginTop: "12px", textAlign: "center" }}>
-                <button
-                  onClick={() =>
-                    setSelectedRoomIds(
-                      selectedRoomIds.length === rooms.length
-                        ? []
-                        : rooms.map((r) => r.id)
-                    )
+                    frame.appendChild(meta);
                   }
-                  style={{
-                    padding: "8px 16px",
-                    backgroundColor: "#1976d2",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "6px",
-                    fontSize: "13px",
-                    cursor: "pointer",
-                  }}
-                >
-                  {selectedRoomIds.length === rooms.length
-                    ? "Unselect All"
-                    : "Select All"}
-                </button>
-              </div>
+
+                  el.style.margin = "3px 2px";
+                  el.style.borderRadius = "5px";
+                  el.style.border = "none";
+                  el.style.color = "#5d4037";
+                }}
+              />
             </div>
 
-            <div className="room-box" style={{ marginTop: "20px" }}>
-              <h4 className="room-box-title">All Rooms</h4>
-              <ul
-                className="room-list"
-                style={{ maxHeight: "150px", overflowY: "auto" }}
-              >
-                {rooms.map((room) => (
-                  <li key={room.id} className="room-item">
-                    <span
-                      className="room-dot"
-                      style={{ backgroundColor: "#3498db" }}
-                    ></span>
-                    {room.name}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </aside>
+            <aside className="sidebar-user-calender">
+              {/* Mini Calendar */}
+              <div className="mini-calendar">
+                <Calendar
+                  key={miniCalendarKey}
+                  value={selectedDate || new Date()}
+                  onClickDay={(date) => {
+                    setSelectedDate(date);
+                    if (calendarRef.current) {
+                      calendarRef.current.getApi().gotoDate(date);
+                    }
+                  }}
+                  tileClassName={({ date, view }) => {
+                    if (view === "month") {
+                      const today = new Date();
+                      if (date.toDateString() === today.toDateString())
+                        return "calendar-today";
+                      if (
+                        selectedDate &&
+                        date.toDateString() === selectedDate.toDateString()
+                      )
+                        return "calendar-selected";
+                    }
+                    return null;
+                  }}
+                />
+                <div className="current-time">{currentTime}</div>
+              </div>
+
+              <div className="meeting-notes">
+                <h4 className="meeting-notes-title">Meeting Notes</h4>
+                <div className="meeting-notes-days">
+                  <div className="notes-row">
+                    <div className="note-item">
+                      <span
+                        className="note-color"
+                        style={{ backgroundColor: "#1976d2" }}
+                      ></span>
+                      My Meetings
+                    </div>
+                  </div>
+                  <div className="notes-row">
+                    <div className="note-item">
+                      <span
+                        className="note-color"
+                        style={{ backgroundColor: "#4caf50" }}
+                      ></span>
+                      Other Meetings
+                    </div>
+                  </div>
+
+                  <div className="notes-row">
+                    <div className="note-item">
+                      <span
+                        className="note-color"
+                        style={{ backgroundColor: "#ccc" }}
+                      ></span>
+                      Pending
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="room-box" style={{ marginTop: "20px" }}>
+                <h4 className="room-box-title">Rooms Booked Today</h4>
+                <ul
+                  className="room-list"
+                  style={{ maxHeight: "120px", overflowY: "auto" }}
+                >
+                  {getBookedRooms().length > 0 ? (
+                    getBookedRooms().map((roomId, i) => {
+                      const event = events.find(
+                        (e) => e.extendedProps.room.id === roomId
+                      );
+                      return (
+                        <li key={i} className="room-item">
+                          <span
+                            className="room-dot"
+                            style={{ backgroundColor: "#e74c3c" }}
+                          ></span>
+                          {event?.extendedProps.room.name || "Unknown Room"}
+                        </li>
+                      );
+                    })
+                  ) : (
+                    <li className="room-item" style={{ color: "#999" }}>
+                      No rooms booked today
+                    </li>
+                  )}
+                </ul>
+              </div>
+
+              {/* */}
+
+              <div className="room-box" style={{ marginTop: "20px" }}>
+                <h4 className="room-box-title">All Rooms</h4>
+                <ul
+                  className="room-list"
+                  style={{ maxHeight: "180px", overflowY: "auto" }}
+                >
+                  {rooms.map((room) => (
+                    <li key={room.id} className="room-item">
+                      <span
+                        className="room-dot"
+                        style={{ backgroundColor: "#3498db" }}
+                      ></span>
+                      {room.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </aside>
+          </div>
         </div>
       </div>
 
