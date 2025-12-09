@@ -28,11 +28,10 @@ export default function DashboardUser() {
   const [toastMessage, setToastMessage] = useState("");
 
   const [roomSearchTerm, setRoomSearchTerm] = useState("");
-  const [selectedRoomIds, setSelectedRoomIds] = useState([]); // Thay cho filterRoomId
+  const [selectedRoomIds, setSelectedRoomIds] = useState([]);
 
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
 
-  // Khởi tạo mặc định chọn hết phòng
   useEffect(() => {
     if (rooms.length > 0 && selectedRoomIds.length === 0) {
       setSelectedRoomIds(rooms.map((r) => r.id));
@@ -51,9 +50,8 @@ export default function DashboardUser() {
     startTime: "07:00",
     endTime: "07:30",
   });
-  //
+
   const [showEdit, setShowEdit] = useState(false);
-  //
   const [currentTime, setCurrentTime] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeMenuItem, setActiveMenuItem] = useState("meetting");
@@ -97,7 +95,6 @@ export default function DashboardUser() {
           return;
         }
 
-        // Redirect trực tiếp - KHÔNG dùng axios
         window.location.href = `http://localhost:8080/api/google-calendar/connect?userId=${userId}`;
       } catch (error) {
         console.error("Error initiating Google connection:", error);
@@ -122,7 +119,7 @@ export default function DashboardUser() {
 
         if (response.data.code === 200) {
           toast.success(`Synced ${response.data.data.syncedCount} meetings!`);
-          handleCreateSuccess(); // Refresh meetings
+          handleCreateSuccess();
         }
       } catch (error) {
         console.error("Error syncing:", error);
@@ -138,7 +135,6 @@ export default function DashboardUser() {
       const token = localStorage.getItem("accessToken");
       const userId = localStorage.getItem("userId");
 
-      // Gọi API DELETE tới backend
       await axios.delete("/api/google-calendar/disconnect", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -146,7 +142,6 @@ export default function DashboardUser() {
         },
       });
 
-      // Cập nhật UI
       setIsGoogleConnected(false);
       toast.success("Disconnected Google Calendar!");
     } catch (error) {
@@ -162,7 +157,6 @@ export default function DashboardUser() {
 
     return events.filter((event) => {
       const eventRoomId = event.extendedProps?.room?.id;
-
       return selectedRoomIds.includes(eventRoomId);
     });
   }, [events, selectedRoomIds]);
@@ -176,7 +170,6 @@ export default function DashboardUser() {
     return roomEvents.length >= 10;
   };
 
-  // Toggle chọn phòng
   const toggleRoomSelection = (roomId) => {
     setSelectedRoomIds((prev) =>
       prev.includes(roomId)
@@ -185,7 +178,6 @@ export default function DashboardUser() {
     );
   };
 
-  // Lọc phòng theo từ khóa tìm kiếm
   const filteredRoomsForSidebar = rooms
     .filter((room) =>
       room.name.toLowerCase().includes(roomSearchTerm.toLowerCase())
@@ -233,25 +225,24 @@ export default function DashboardUser() {
     setToastMessage("Meeting updated successfully!");
   };
 
-  // Fetch meetings lần đầu
   const currentUserId = localStorage.getItem("userId");
 
+  // ✅ THAY ĐỔI: Gọi API /my-meetings thay vì /getAllMeetings
   const fetchAllEvents = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("accessToken");
+      const userId = localStorage.getItem("userId");
 
-      const res = await axios.get("/api/meetings/getAllMeetings", {
-        headers: { Authorization: `Bearer ${token}` },
-        params: {
-          page: 0,
-          size: 1000,
-          sortBy: "startTime",
-          direction: "desc",
+      const res = await axios.get("/api/meetings/my-meetings", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          userId: userId,
         },
       });
 
-      const meetings = res.data.data?.content || res.data.data || [];
+      // API trả về List<MeetingResponse> trực tiếp, không phải Page
+      const meetings = Array.isArray(res.data) ? res.data : res.data.data || [];
       const visibleMeetings = meetings.filter((m) => m.status !== "CANCELLED");
 
       const formattedEvents = visibleMeetings.map((meeting) => {
@@ -459,8 +450,10 @@ export default function DashboardUser() {
                   .toString()
                   .padStart(2, "0");
                 const timeStr = `${hours}:${minutes}`;
+
+                // Thay vì cộng 30 phút, cộng 15 phút thôi
                 let endHour = clickedDate.getHours();
-                let endMinute = clickedDate.getMinutes() + 30;
+                let endMinute = clickedDate.getMinutes() + 15;
                 if (endMinute >= 60) {
                   endHour += 1;
                   endMinute -= 60;
@@ -471,6 +464,49 @@ export default function DashboardUser() {
                 setPreFillData({
                   date: dateStr,
                   startTime: timeStr,
+                  endTime: endTimeStr,
+                });
+                setShowCreateModal(true);
+              }}
+              select={(arg) => {
+                // DEBUG: Log để xem giá trị thật
+                console.log("Start:", arg.start);
+                console.log("End:", arg.end);
+                console.log("Start time:", arg.start.toISOString());
+                console.log("End time:", arg.end.toISOString());
+
+                const startDate = arg.start;
+                const endDate = arg.end;
+
+                setSelectedDate(startDate);
+
+                const dateStr = startDate.toISOString().split("T")[0];
+                const startHours = startDate
+                  .getHours()
+                  .toString()
+                  .padStart(2, "0");
+                const startMinutes = startDate
+                  .getMinutes()
+                  .toString()
+                  .padStart(2, "0");
+                const startTimeStr = `${startHours}:${startMinutes}`;
+
+                const endHours = endDate.getHours().toString().padStart(2, "0");
+                const endMinutes = endDate
+                  .getMinutes()
+                  .toString()
+                  .padStart(2, "0");
+                const endTimeStr = `${endHours}:${endMinutes}`;
+
+                console.log("Prefill Data:", {
+                  date: dateStr,
+                  startTime: startTimeStr,
+                  endTime: endTimeStr,
+                });
+
+                setPreFillData({
+                  date: dateStr,
+                  startTime: startTimeStr,
                   endTime: endTimeStr,
                 });
                 setShowCreateModal(true);
@@ -502,7 +538,6 @@ export default function DashboardUser() {
 
                 const frame = el.querySelector(".fc-event-main-frame");
                 if (frame) {
-                  // Tạo dòng meta: "Status | 👥N"
                   const meta = document.createElement("div");
                   meta.className = "fc-event-extra";
                   meta.textContent = `${status}`;
@@ -510,11 +545,9 @@ export default function DashboardUser() {
                   frame.appendChild(meta);
                 }
 
-                // Reset mọi style mặc định của FullCalendar
                 el.style.margin = "3px 2px";
                 el.style.borderRadius = "5px";
                 el.style.border = "none";
-                // el.style.backgroundColor = "#fff8c5";
                 el.style.color = "#5d4037";
               }}
             />
@@ -552,7 +585,6 @@ export default function DashboardUser() {
             <div className="meeting-notes">
               <h4 className="meeting-notes-title">Meeting Notes</h4>
               <div className="meeting-notes-days">
-                {/* Hàng 1 */}
                 <div className="notes-row">
                   <div className="note-item">
                     <span
@@ -572,7 +604,6 @@ export default function DashboardUser() {
                   </div>
                 </div>
 
-                {/* Hàng 2 */}
                 <div className="notes-row">
                   <div className="note-item">
                     <span
@@ -616,7 +647,6 @@ export default function DashboardUser() {
             <div className="room-filter-panel" style={{ marginTop: "20px" }}>
               <h3 className="sidebar-title">Filter by Room</h3>
 
-              {/* Ô tìm kiếm */}
               <input
                 type="text"
                 placeholder="Search room name..."
@@ -632,7 +662,6 @@ export default function DashboardUser() {
                 }}
               />
 
-              {/* Danh sách phòng với checkbox */}
               <div
                 style={{
                   maxHeight: "200px",
@@ -707,7 +736,6 @@ export default function DashboardUser() {
                 )}
               </div>
 
-              {/* Nút Select All / Unselect All */}
               <div style={{ marginTop: "12px", textAlign: "center" }}>
                 <button
                   onClick={() =>
@@ -734,7 +762,6 @@ export default function DashboardUser() {
               </div>
             </div>
 
-            {/* PHẦN 3: All Rooms (GIỮ LẠI ĐỂ XEM NHANH) */}
             <div className="room-box" style={{ marginTop: "20px" }}>
               <h4 className="room-box-title">All Rooms</h4>
               <ul
