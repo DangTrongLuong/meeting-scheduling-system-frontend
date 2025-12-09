@@ -37,6 +37,11 @@ export default function CreateNewEvent({
   const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef(null);
 
+  // Dropdown time picker states
+  const [startTimeDropdownOpen, setStartTimeDropdownOpen] = useState(false);
+  const [endTimeDropdownOpen, setEndTimeDropdownOpen] = useState(false);
+  const [inputTimeMode, setInputTimeMode] = useState(false); // Toggle mode: dropdown or input
+
   const filteredRooms = rooms.filter((room) =>
     room.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -44,8 +49,25 @@ export default function CreateNewEvent({
   const handleSelect = (roomId) => {
     setFormData({ ...formData, roomId });
     setOpen(false);
-    setSearchTerm(""); // reset search
+    setSearchTerm("");
   };
+
+  // Tạo time slots: mỗi 15 phút
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 15) {
+        slots.push(
+          `${hour.toString().padStart(2, "0")}:${minute
+            .toString()
+            .padStart(2, "0")}`
+        );
+      }
+    }
+    return slots;
+  };
+
+  const timeSlots = generateTimeSlots();
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -65,14 +87,17 @@ export default function CreateNewEvent({
     }
   }, [formData.roomId]);
 
+  // Cập nhật khi prefill thay đổi (khi click hoặc kéo trên calendar)
   useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      date: prefill.date,
-      startTime: prefill.startTime,
-      endTime: prefill.endTime,
-    }));
-  }, [prefill]);
+    if (isOpen && prefill.startTime && prefill.endTime) {
+      setFormData((prev) => ({
+        ...prev,
+        date: prefill.date || today,
+        startTime: prefill.startTime,
+        endTime: prefill.endTime,
+      }));
+    }
+  }, [prefill, isOpen]);
 
   useEffect(() => {
     fetchAllDevices();
@@ -84,9 +109,9 @@ export default function CreateNewEvent({
         setFormData({
           title: "",
           description: "",
-          date: today , 
-          startTime: prefill.startTime || "07:00",
-          endTime: prefill.endTime || "07:30",
+          date: today,
+          startTime: "07:00",
+          endTime: "07:30",
           roomId: "",
           participants: [],
           borrowedDevices: [],
@@ -95,10 +120,11 @@ export default function CreateNewEvent({
         setRoomDevices([]);
         setSearchEmail("");
         setSearchResults([]);
+        setInputTimeMode(false);
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, prefill]);
+  }, [isOpen, today]);
 
   const fetchRoomDevices = async (roomId) => {
     try {
@@ -172,25 +198,11 @@ export default function CreateNewEvent({
     setFormData({ ...formData, borrowedDevices: newDevices });
   };
 
-  const generateTimeSlots = () => {
-    const slots = [];
-    for (let hour = 0; hour < 24; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        slots.push(
-          `${hour.toString().padStart(2, "0")}:${minute
-            .toString()
-            .padStart(2, "0")}`
-        );
-      }
-    }
-    return slots;
-  };
-
   const resetForm = () => {
     setFormData({
       title: "",
       description: "",
-      date: "",
+      date: today,
       startTime: "07:00",
       endTime: "07:30",
       roomId: "",
@@ -209,6 +221,7 @@ export default function CreateNewEvent({
       `${formData.date}T${formData.startTime}:00`
     );
 
+    // Validation
     if (formData.title.length < 5) {
       toast.error("Title must be at least 5 characters long!");
       return;
@@ -231,6 +244,17 @@ export default function CreateNewEvent({
     }
     if (!formData.roomId) {
       toast.error("Please select a room!");
+      return;
+    }
+
+    // Validate time format
+    const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(formData.startTime)) {
+      toast.error("Invalid start time format (HH:MM)");
+      return;
+    }
+    if (!timeRegex.test(formData.endTime)) {
+      toast.error("Invalid end time format (HH:MM)");
       return;
     }
 
@@ -327,8 +351,6 @@ export default function CreateNewEvent({
 
   if (!isOpen) return null;
 
-  const timeSlots = generateTimeSlots();
-
   return (
     <div className="modal" onClick={onClose}>
       <ToastContainer
@@ -348,7 +370,7 @@ export default function CreateNewEvent({
           {/* Title */}
           <div className="create-event-form-group">
             <label className="create-event-label">
-              Title <span class="create-meeting-important">*</span>{" "}
+              Title <span className="create-meeting-important">*</span>
             </label>
             <input
               type="text"
@@ -369,10 +391,7 @@ export default function CreateNewEvent({
               <CKEditor
                 editor={ClassicEditor}
                 data={formData.description}
-                onReady={(editor) => {
-                  //   // Lưu editor instance để dùng sau (nếu cần)
-                  //   console.log("Editor is ready!", editor);
-                }}
+                onReady={(editor) => {}}
                 onChange={(event, editor) => {
                   const data = editor.getData();
                   setFormData({ ...formData, description: data });
@@ -412,7 +431,7 @@ export default function CreateNewEvent({
           {/* Date */}
           <div className="create-event-form-group">
             <label className="create-event-label">
-              Date <span class="create-meeting-important">*</span>
+              Date <span className="create-meeting-important">*</span>
             </label>
             <input
               type="date"
@@ -427,7 +446,6 @@ export default function CreateNewEvent({
           </div>
 
           {/* Room */}
-
           <div className="custom-select-container" ref={dropdownRef}>
             <label className="create-event-label">
               Room <span className="create-meeting-important">*</span>
@@ -502,46 +520,95 @@ export default function CreateNewEvent({
             </div>
           )}
 
+          {/* Time Input Mode Toggle */}
+          <div style={{ marginBottom: "15px" }}>
+            <label style={{ fontSize: "12px", color: "#666" }}>
+              <input
+                type="checkbox"
+                checked={inputTimeMode}
+                onChange={(e) => setInputTimeMode(e.target.checked)}
+                style={{ marginRight: "8px" }}
+              />
+              Free time input (disable dropdown)
+            </label>
+          </div>
+
           {/* Start Time */}
           <div className="create-event-form-group">
             <label className="create-event-label">
-              Start Time <span class="create-meeting-important">*</span>
+              Start Time <span className="create-meeting-important">*</span>
             </label>
-            <select
-              className="create-event-select"
-              value={formData.startTime}
-              onChange={(e) =>
-                setFormData({ ...formData, startTime: e.target.value })
-              }
-              disabled={loading}
-            >
-              {timeSlots.map((time) => (
-                <option key={time} value={time}>
-                  {time}
-                </option>
-              ))}
-            </select>
+            {!inputTimeMode ? (
+              <select
+                className="create-event-select"
+                value={formData.startTime}
+                onChange={(e) =>
+                  setFormData({ ...formData, startTime: e.target.value })
+                }
+                disabled={loading}
+              >
+                {timeSlots.map((time) => (
+                  <option key={time} value={time}>
+                    {time}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="time"
+                className="create-event-input"
+                value={formData.startTime}
+                onChange={(e) =>
+                  setFormData({ ...formData, startTime: e.target.value })
+                }
+                disabled={loading}
+                style={{
+                  padding: "8px 12px",
+                  fontSize: "14px",
+                  borderRadius: "4px",
+                  border: "1px solid #ccc",
+                }}
+              />
+            )}
           </div>
 
           {/* End Time */}
           <div className="create-event-form-group">
             <label className="create-event-label">
-              End Time <span class="create-meeting-important">*</span>
+              End Time <span className="create-meeting-important">*</span>
             </label>
-            <select
-              className="create-event-select"
-              value={formData.endTime}
-              onChange={(e) =>
-                setFormData({ ...formData, endTime: e.target.value })
-              }
-              disabled={loading}
-            >
-              {timeSlots.map((time) => (
-                <option key={time} value={time}>
-                  {time}
-                </option>
-              ))}
-            </select>
+            {!inputTimeMode ? (
+              <select
+                className="create-event-select"
+                value={formData.endTime}
+                onChange={(e) =>
+                  setFormData({ ...formData, endTime: e.target.value })
+                }
+                disabled={loading}
+              >
+                {timeSlots.map((time) => (
+                  <option key={time} value={time}>
+                    {time}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="time"
+                className="create-event-input"
+                value={formData.endTime}
+                onChange={(e) =>
+                  setFormData({ ...formData, endTime: e.target.value })
+                }
+                disabled={loading}
+                style={{
+                  padding: "8px 12px",
+                  fontSize: "14px",
+                  borderRadius: "4px",
+                  border: "1px solid #ccc",
+                }}
+              />
+            )}
           </div>
 
           {/* Participants */}
