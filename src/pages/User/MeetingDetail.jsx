@@ -47,7 +47,7 @@ const MeetingDetail = () => {
     return date.toLocaleString("vi-VN", { hour12: false });
   };
 
-  return (
+return (
     <div style={{
       padding: "20px",
       maxWidth: "600px",
@@ -58,11 +58,12 @@ const MeetingDetail = () => {
     }}>
       <h2 style={{ marginBottom: "20px" }}>Chi tiết cuộc họp</h2>
       <p><strong>Tiêu đề:</strong> {meeting.title}</p>
-      <p><strong>Phòng:</strong> {meeting.roomName}</p>
+     <p><strong>Phòng:</strong> {meeting.roomName}</p>
+     <p><strong>Phòng:</strong> {meeting.room?.name}</p>
       <p><strong>Bắt đầu:</strong> {formatDateTime(meeting.startTime)}</p>
       <p><strong>Kết thúc:</strong> {formatDateTime(meeting.endTime)}</p>
-      <p><strong>Người tạo:</strong> {meeting.createdBy}</p>
-      <p><strong>Trạng thái:</strong> {meeting.status}</p>
+     <p><strong>Người tạo:</strong> {meeting.createdBy}</p>
+     <p><strong>Người tạo:</strong> {meeting.creator?.name} ({meeting.creator?.email})</p>
 
       {meeting.status === "ACTIVE" && (
         <button
