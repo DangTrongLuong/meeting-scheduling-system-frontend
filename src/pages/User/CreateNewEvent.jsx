@@ -148,21 +148,24 @@ export default function CreateNewEvent({
     }
   };
 
-  const handleSearchEmail = async (value) => {
-    setSearchEmail(value);
-    if (value.length > 3) {
-      try {
-        const response = await axios.get(
-          `http://localhost:8080/api/meetings/users/search?email=${value}`
-        );
-        setSearchResults(response.data || []);
-      } catch (error) {
-        console.error("Error searching users:", error);
-      }
-    } else {
-      setSearchResults([]);
+const handleSearchEmail = async (value) => {
+  setSearchEmail(value);
+  if (value.length > 3) {
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/meetings/users/search?email=${value}`
+      );
+      const currentEmail = auth.user.email; // lấy từ context
+      setSearchResults((response.data || []).filter(u =>
+        u.email?.toLowerCase() !== currentEmail.toLowerCase()
+      ));
+    } catch (error) {
+      console.error("Error searching users:", error);
     }
-  };
+  } else {
+    setSearchResults([]);
+  }
+};
 
   const addParticipant = (user) => {
     const newParticipants = [
