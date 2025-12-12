@@ -10,6 +10,7 @@ import {
   MessageSquare,
   PhoneCall,
   Search,
+  Rose,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Admin/SideBarAdmin.css";
@@ -44,6 +45,13 @@ const SideBarUser = ({ activeItem, onItemClick, isOpen, onClose }) => {
     //   hasSubmenu: true,
     //   path: "/call",
     // },
+    {
+      id: "room-meeting",
+      icon: Rose,
+      label: "Rooms",
+      hasSubmenu: true,
+      path: "/user/room-meeting",
+    },
     {
       id: "search",
       icon: Search,
