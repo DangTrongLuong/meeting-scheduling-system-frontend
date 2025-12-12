@@ -15,21 +15,18 @@ import CryptoJS from "crypto-js";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const encryptedEmail = params.get("email");
   let decryptedEmail = "";
 
   if (encryptedEmail) {
-    // const secretKey = import.meta.env.VITE_SECRET_KEY;
     const secretKey = "mySuperSecretKey_2025!@#%&*ABCxyz123";
     const bytes = CryptoJS.AES.decrypt(encryptedEmail, secretKey);
     decryptedEmail = bytes.toString(CryptoJS.enc.Utf8);
   }
 
   const [email, setEmail] = useState(decryptedEmail || "");
-
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
@@ -44,10 +41,16 @@ export default function LoginPage() {
   const [totpCode, setTotpCode] = useState("");
   const [isSettingUp2FA, setIsSettingUp2FA] = useState(false);
 
+  // First Login Flow
   const [isFirstLogin, setIsFirstLogin] = useState(false);
+  const [firstLoginStep, setFirstLoginStep] = useState(1); // 1: nhập code, 2: đổi password
+  const [verificationCode, setVerificationCode] = useState("");
+  const [codeError, setCodeError] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changePassError, setChangePassError] = useState("");
+  const [resendTimer, setResendTimer] = useState(60);
+  const [canResend, setCanResend] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -57,10 +60,21 @@ export default function LoginPage() {
     if (error === "google_login_failed" && message) {
       const decoded = decodeURIComponent(message);
       setGeneralError(decoded);
-
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, [location]);
+
+  // Resend timer for first login code
+  useEffect(() => {
+    if (resendTimer > 0 && isFirstLogin && firstLoginStep === 1 && !canResend) {
+      const interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    } else if (resendTimer === 0) {
+      setCanResend(true);
+    }
+  }, [resendTimer, isFirstLogin, firstLoginStep, canResend]);
 
   // Validation functions
   const validateEmail = (emailValue) => {
@@ -88,23 +102,15 @@ export default function LoginPage() {
       passwordValue
     );
 
-    if (!hasLower) {
-      return "Password must contain at least one lowercase letter";
-    }
-    if (!hasUpper) {
-      return "Password must contain at least one uppercase letter";
-    }
-    if (!hasNumber) {
-      return "Password must contain at least one number";
-    }
-    if (!hasSpecial) {
+    if (!hasLower) return "Password must contain at least one lowercase letter";
+    if (!hasUpper) return "Password must contain at least one uppercase letter";
+    if (!hasNumber) return "Password must contain at least one number";
+    if (!hasSpecial)
       return "Password must contain at least one special character";
-    }
 
     return "";
   };
 
-  // Handle blur events
   const handleEmailBlur = () => {
     setTouched({ ...touched, email: true });
     const error = validateEmail(email);
@@ -117,7 +123,6 @@ export default function LoginPage() {
     setPasswordError(error);
   };
 
-  // Handle input changes
   const handleEmailChange = (e) => {
     const value = e.target.value;
     setEmail(value);
@@ -145,7 +150,55 @@ export default function LoginPage() {
     }
   };
 
-  const handleFirstLoginChangePassword = async () => {
+  const sendFirstLoginCode = async () => {
+    try {
+      await axios.post("/api/auth/send-first-login-code", {
+        email: email.trim(),
+      });
+      toast.success("Verification code sent! Please check your email.");
+      setResendTimer(60);
+      setCanResend(false);
+    } catch (err) {
+      toast.error("Failed to send code. Please try again.");
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (verificationCode.length !== 6) {
+      setCodeError("Please enter a 6-digit code");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await axios.post("/api/auth/verify-first-login-code", {
+        email: email.trim(),
+        code: verificationCode,
+      });
+
+      if (res.data.status === "success") {
+        toast.success("Code verified! Please set your new password.");
+        setFirstLoginStep(2);
+        setCodeError("");
+      }
+    } catch (err) {
+      setCodeError(err.response?.data?.message || "Invalid or expired code");
+      toast.error("Invalid or expired code");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendCode = () => {
+    sendFirstLoginCode();
+  };
+
+  const handleChangePassword = async () => {
+    // Validate ngay khi nhấn nút
+    if (!newPassword || newPassword.length < 8) {
+      setChangePassError("Password must be at least 8 characters");
+      return;
+    }
     if (newPassword !== confirmPassword) {
       setChangePassError("Passwords do not match");
       return;
@@ -157,7 +210,17 @@ export default function LoginPage() {
       return;
     }
 
+    // Check nếu mật khẩu mới trùng với mật khẩu cũ
+    if (newPassword === password) {
+      setChangePassError(
+        "New password cannot be the same as your current password"
+      );
+      return;
+    }
+
     setLoading(true);
+    setChangePassError(""); // Clear error trước khi gọi API
+
     try {
       const res = await axios.post("/api/auth/update-password-first-login", {
         email: email.trim(),
@@ -166,19 +229,55 @@ export default function LoginPage() {
 
       if (res.data.success) {
         toast.success("Password changed successfully! Logging you in...");
-        localStorage.removeItem("lastUsedDefaultPassword");
 
-        // Tự động đăng nhập lại với mật khẩu mới
-        setPassword(newPassword);
-        setIsFirstLogin(false);
+        // Auto login với password mới
+        const loginRes = await axios.post("/api/auth/login", {
+          email: email.trim(),
+          password: newPassword,
+        });
+
+        const result = loginRes.data.data;
+
+        // Lưu đầy đủ thông tin vào localStorage
+        localStorage.setItem("accessToken", result.accessToken);
+        localStorage.setItem("jwtToken", result.accessToken);
+        const threeDays = 3 * 24 * 60 * 60 * 1000;
+        localStorage.setItem("tokenExpiresAt", Date.now() + threeDays);
+        localStorage.setItem("userId", result.id);
+        localStorage.setItem("userEmail", result.email);
+        localStorage.setItem(
+          "userName",
+          result.name || result.email.split("@")[0] || "User"
+        );
+        localStorage.setItem("role", result.role || "USER");
+        localStorage.setItem(
+          "created_at",
+          result.createdAt || new Date().toISOString().split("T")[0]
+        );
+        localStorage.setItem(
+          "avatarUrl",
+          result.avatarUrl || "/uploads/avatars/user-avatar.png"
+        );
+        localStorage.setItem("backgroundUrl", result.backgroundUrl || null);
+        localStorage.setItem("authProvider", result.authProvider || "LOCAL");
+
+        // Trigger storage event để các component khác cập nhật
+        window.dispatchEvent(new Event("storage"));
+
         setTimeout(() => {
-          handleSubmit(new Event("submit"));
-        }, 1500);
+          navigate(
+            result.role === "ADMIN" || result.role === "SUPERADMIN"
+              ? "/admin/dashboard"
+              : "/user/meeting-schedule",
+            { replace: true }
+          );
+        }, 1200);
       }
     } catch (err) {
-      setChangePassError(
-        err.response?.data?.message || "Failed to update password"
-      );
+      const errorMsg =
+        err.response?.data?.message || "Failed to update password";
+      setChangePassError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -188,14 +287,17 @@ export default function LoginPage() {
     e.preventDefault();
     setGeneralError("");
     setLoading(true);
-    setShow2FAModal(false);
-    setQrCodeUrl("");
-    setTotpCode("");
-    setIsSettingUp2FA(false);
+
+    // Lưu password để check sau này
+    const currentPassword = password;
 
     const isFirst = await checkFirstLogin(email);
     if (isFirst) {
       setIsFirstLogin(true);
+      setFirstLoginStep(1);
+      // Lưu password cũ vào state để so sánh sau
+      setPassword(currentPassword);
+      await sendFirstLoginCode();
       setLoading(false);
       return;
     }
@@ -210,10 +312,8 @@ export default function LoginPage() {
 
       localStorage.setItem("accessToken", result.accessToken);
       localStorage.setItem("jwtToken", result.accessToken);
-
       const threeDays = 3 * 24 * 60 * 60 * 1000;
       localStorage.setItem("tokenExpiresAt", Date.now() + threeDays);
-
       localStorage.setItem("userId", result.id);
       localStorage.setItem("userEmail", result.email);
       localStorage.setItem("userName", result.name || "User");
@@ -244,13 +344,12 @@ export default function LoginPage() {
         const status = error.response.status;
         const data = error.response.data;
 
-        // 2FA REQUIRED → hiện modal
+        // 2FA REQUIRED
         if (
           status === 428 ||
           (data?.message && data.message.toLowerCase().includes("2fa"))
         ) {
           setShow2FAModal(true);
-
           try {
             const res = await axios.post("/api/auth/2fa/setup", null, {
               params: { email: email.trim() },
@@ -264,7 +363,6 @@ export default function LoginPage() {
           return;
         }
 
-        // Các lỗi khác
         const msg = data?.message || "Login failed";
         if (msg.includes("not activated")) {
           setGeneralError("Account not activated. Please check your email!");
@@ -291,6 +389,7 @@ export default function LoginPage() {
     e.preventDefault();
     navigate("/register");
   };
+
   const handleForgotPasswordClick = (e) => {
     e.preventDefault();
     navigate("/forgot_password");
@@ -330,19 +429,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* <div className="login-google">
-              <button className="btn btn-login-gg" onClick={googleLogin}>
-                <FcGoogle size={20} />
-                Sign in with Google
-              </button>
-            </div>
-
-            <div className="device-login">
-              <span className="device-login-text">
-                or sign in with your account
-              </span>
-            </div> */}
-
             {!isFirstLogin ? (
               <form className="login-form" onSubmit={handleSubmit}>
                 <div className="login-form-group">
@@ -368,7 +454,6 @@ export default function LoginPage() {
                   style={{ position: "relative" }}
                 >
                   <label className="login-form-label">Password</label>
-
                   <div className="password-wrapper">
                     <input
                       type={showPassword ? "text" : "password"}
@@ -394,7 +479,6 @@ export default function LoginPage() {
                         />
                       ))}
                   </div>
-
                   {touched.password && passwordError && (
                     <span className="login-error-text">{passwordError}</span>
                   )}
@@ -418,204 +502,184 @@ export default function LoginPage() {
               </form>
             ) : (
               <div className="login-form">
-                <h3 className="login-first-login-title">First Time Login</h3>
-                <p className="login-first-login-subtitle">
-                  For security, please change your default password before
-                  continuing.
-                </p>
+                {firstLoginStep === 1 ? (
+                  <>
+                    <h3 className="login-first-login-title">
+                      First Time Login - Verification
+                    </h3>
+                    <p className="login-first-login-subtitle">
+                      A verification code has been sent to your email. Please
+                      check your inbox and enter the code below.
+                    </p>
 
-                {/* New Password */}
-                <div className="login-input-group">
-                  <label>New Password</label>
-                  <div className="login-password-wrapper">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={newPassword}
-                      onChange={(e) => {
-                        setNewPassword(e.target.value);
+                    <div className="login-input-group">
+                      <label>Verification Code</label>
+                      <input
+                        type="text"
+                        maxLength="6"
+                        value={verificationCode}
+                        onChange={(e) => {
+                          setVerificationCode(
+                            e.target.value.replace(/\D/g, "")
+                          );
+                          setCodeError("");
+                        }}
+                        placeholder="Enter 6-digit code"
+                        className={`login-form-input ${
+                          codeError ? "input-error" : ""
+                        }`}
+                        style={{
+                          textAlign: "center",
+                          letterSpacing: "5px",
+                          fontSize: "18px",
+                        }}
+                      />
+                      {codeError && (
+                        <span className="login-error-text">{codeError}</span>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      className="login-form-button"
+                      disabled={loading || verificationCode.length !== 6}
+                      onClick={handleVerifyCode}
+                    >
+                      {loading ? "Verifying..." : "Verify Code"}
+                    </button>
+
+                    <div
+                      className="forgotpassword-resend"
+                      style={{ textAlign: "center", marginTop: "15px" }}
+                    >
+                      <button
+                        type="button"
+                        onClick={handleResendCode}
+                        disabled={!canResend || loading}
+                        className="forgotpassword-resend-button"
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: canResend ? "#007bff" : "#999",
+                          cursor: canResend ? "pointer" : "not-allowed",
+                          textDecoration: "underline",
+                        }}
+                      >
+                        Resend Code
+                      </button>
+                      {!canResend && resendTimer > 0 && (
+                        <span style={{ marginLeft: "8px", color: "#666" }}>
+                          ({Math.floor(resendTimer / 60)}:
+                          {(resendTimer % 60).toString().padStart(2, "0")})
+                        </span>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      className="login-form-button"
+                      style={{ background: "#888", marginTop: "10px" }}
+                      onClick={() => {
+                        setIsFirstLogin(false);
+                        setVerificationCode("");
+                        setCodeError("");
+                      }}
+                    >
+                      Back to Login
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="login-first-login-title">
+                      Set New Password
+                    </h3>
+                    <p className="login-first-login-subtitle">
+                      Please create a strong password for your account.
+                    </p>
+
+                    <div className="login-input-group">
+                      <label>New Password</label>
+                      <div className="login-password-wrapper">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          value={newPassword}
+                          onChange={(e) => {
+                            setNewPassword(e.target.value);
+                            setChangePassError("");
+                          }}
+                          placeholder="Enter new password"
+                          required
+                        />
+                        <span
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="login-toggle-password"
+                        >
+                          {showPassword ? (
+                            <AiOutlineEyeInvisible />
+                          ) : (
+                            <AiOutlineEye />
+                          )}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="login-input-group">
+                      <label>Confirm New Password</label>
+                      <div className="login-password-wrapper">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          value={confirmPassword}
+                          onChange={(e) => {
+                            setConfirmPassword(e.target.value);
+                            setChangePassError("");
+                          }}
+                          placeholder="Confirm new password"
+                          required
+                        />
+                        <span
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="login-toggle-password"
+                        >
+                          {showPassword ? (
+                            <AiOutlineEyeInvisible />
+                          ) : (
+                            <AiOutlineEye />
+                          )}
+                        </span>
+                      </div>
+                    </div>
+
+                    {changePassError && (
+                      <div className="login-first-login-error">
+                        {changePassError}
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      className="login-form-button"
+                      disabled={loading}
+                      onClick={handleChangePassword}
+                    >
+                      {loading ? "Processing..." : "Change Password & Continue"}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="login-form-button"
+                      style={{ background: "#888", marginTop: "10px" }}
+                      onClick={() => {
+                        setFirstLoginStep(1);
+                        setNewPassword("");
+                        setConfirmPassword("");
                         setChangePassError("");
                       }}
-                      placeholder="Enter new password"
-                      required
-                    />
-                    <span
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="login-toggle-password"
+                      disabled={loading}
                     >
-                      {showPassword ? (
-                        <AiOutlineEyeInvisible />
-                      ) : (
-                        <AiOutlineEye />
-                      )}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Confirm Password */}
-                <div className="login-input-group">
-                  <label>Confirm New Password</label>
-                  <div className="login-password-wrapper">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={confirmPassword}
-                      onChange={(e) => {
-                        setConfirmPassword(e.target.value);
-                        setChangePassError("");
-                      }}
-                      placeholder="Confirm new password"
-                      required
-                    />
-                    <span
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="login-toggle-password"
-                    >
-                      {showPassword ? (
-                        <AiOutlineEyeInvisible />
-                      ) : (
-                        <AiOutlineEye />
-                      )}
-                    </span>
-                  </div>
-                </div>
-
-                {/* HIỂN THỊ LỖI NGAY KHI ẤN NÚT (không cần blur) */}
-                {changePassError && (
-                  <div className="login-first-login-error">
-                    {changePassError}
-                  </div>
+                      Back
+                    </button>
+                  </>
                 )}
-
-                <div className="login-first-login-buttons">
-                  <button
-                    type="button"
-                    className="login-form-button"
-                    disabled={loading}
-                    onClick={async () => {
-                      // === VALIDATE NGAY KHI ẤN NÚT ===
-                      if (!newPassword || newPassword.length < 8) {
-                        setChangePassError(
-                          "Password must be at least 8 characters"
-                        );
-                        return;
-                      }
-                      if (newPassword !== confirmPassword) {
-                        setChangePassError("Passwords do not match");
-                        return;
-                      }
-                      if (
-                        !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(
-                          newPassword
-                        )
-                      ) {
-                        setChangePassError(
-                          "Password must contain uppercase, lowercase, number and special character"
-                        );
-                        return;
-                      }
-
-                      setLoading(true);
-                      setChangePassError("");
-
-                      try {
-                        const res = await axios.post(
-                          "/api/auth/update-password-first-login",
-                          {
-                            email: email.trim(),
-                            newPassword,
-                          }
-                        );
-
-                        if (res.data.success) {
-                          toast.success(
-                            "Password changed successfully! Logging you in..."
-                          );
-
-                          const loginRes = await axios.post("/api/auth/login", {
-                            email: email.trim(),
-                            password: newPassword,
-                          });
-
-                          const result = loginRes.data.data;
-
-                          // Lưu token như bình thường
-                          localStorage.setItem(
-                            "accessToken",
-                            result.accessToken
-                          );
-                          localStorage.setItem("jwtToken", result.accessToken);
-                          const threeDays = 3 * 24 * 60 * 60 * 1000;
-                          localStorage.setItem(
-                            "tokenExpiresAt",
-                            Date.now() + threeDays
-                          );
-                          localStorage.setItem("userId", result.id);
-                          localStorage.setItem("userEmail", result.email);
-                          localStorage.setItem(
-                            "userName",
-                            result.name || "User"
-                          );
-                          localStorage.setItem("role", result.role || "USER");
-                          localStorage.setItem(
-                            "created_at",
-                            result.createdAt ||
-                              new Date().toISOString().split("T")[0]
-                          );
-                          localStorage.setItem(
-                            "avatarUrl",
-                            result.avatarUrl ||
-                              "/uploads/avatars/user-avatar.png"
-                          );
-                          localStorage.setItem(
-                            "backgroundUrl",
-                            result.backgroundUrl || null
-                          );
-                          localStorage.setItem(
-                            "authProvider",
-                            result.authProvider || "LOCAL"
-                          );
-
-                          // Xóa pass cũ trong localStorage
-                          localStorage.removeItem("lastUsedDefaultPassword");
-
-                          // Chuyển hướng ngay
-                          setTimeout(() => {
-                            navigate(
-                              result.role === "ADMIN" ||
-                                result.role === "SUPERADMIN"
-                                ? "/admin/dashboard"
-                                : "/user/meeting-schedule",
-                              { replace: true }
-                            );
-                          }, 1200);
-                        }
-                      } catch (err) {
-                        setChangePassError(
-                          err.response?.data?.message ||
-                            "Failed to update password"
-                        );
-                      } finally {
-                        setLoading(false);
-                      }
-                    }}
-                  >
-                    {loading ? "Processing..." : "Change Password & Continue"}
-                  </button>
-
-                  <button
-                    type="button"
-                    className="login-form-button"
-                    style={{ background: "#888" }}
-                    onClick={() => {
-                      setIsFirstLogin(false);
-                      setNewPassword("");
-                      setConfirmPassword("");
-                      setChangePassError("");
-                    }}
-                    disabled={loading}
-                  >
-                    Back to Login
-                  </button>
-                </div>
               </div>
             )}
 
@@ -625,15 +689,10 @@ export default function LoginPage() {
                 Click here !
               </a>
             </div>
-            {/* <div className="login-form-footer">
-              Don't have an account?{" "}
-              <a href="/register" onClick={handleRegisterClick}>
-                Register now!
-              </a>
-            </div> */}
           </div>
         </div>
       </div>
+
       {show2FAModal && (
         <div
           className="modal-overlay"

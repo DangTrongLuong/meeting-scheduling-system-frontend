@@ -16,11 +16,25 @@ const CreateUser = () => {
   const [defaultPassword, setDefaultPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [users, setUsers] = useState([{ name: "", emailPrefix: "" }]);
+  const [formError, setFormError] = useState("");
 
   const validatePassword = (pwd) => {
+    // 8+ ký tự, có ít nhất 1 thường, 1 hoa, 1 số, 1 ký tự đặc biệt trong nhóm này
     const regex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     return regex.test(pwd);
+  };
+
+  const getPasswordErrorMessage = (pwd) => {
+    if (!pwd || pwd.trim() === "") return "";
+    if (!pwd || pwd.length < 8)
+      return "Password must be at least 8 characters.";
+    const errs = [];
+    if (!/[a-z]/.test(pwd)) errs.push("lowercase letter");
+    if (!/[A-Z]/.test(pwd)) errs.push("uppercase letter");
+    if (!/\d/.test(pwd)) errs.push("number");
+    if (!/[@$!%*?&]/.test(pwd)) errs.push("special character (@$!%*?&)");
+    return errs.length ? "Password must include: " + errs.join(", ") : "";
   };
 
   const handleAddUser = () => {
@@ -57,15 +71,25 @@ const CreateUser = () => {
     const validUsers = users
       .map((u) => ({
         name: u.name.trim(),
-        emailPrefix: u.emailPrefix.trim(),
+        emailPrefix: u.emailPrefix.trim().toLowerCase(),
       }))
       .filter((u) => u.name && u.emailPrefix);
 
     if (validUsers.length === 0) {
-      toast.error("Please add at least one user");
+      setFormError("Please add at least one user");
       return;
     }
 
+    // 1) Check trùng ngay trong form (payload)
+    const prefixes = validUsers.map((u) => u.emailPrefix);
+    const dupInForm = prefixes.filter((p, i) => prefixes.indexOf(p) !== i);
+    if (dupInForm.length > 0) {
+      const emails = [...new Set(dupInForm)].map((p) => `${p}@gmail.com`);
+      setFormError(`Duplicate emails in form: ${emails.join(", ")}`);
+      return;
+    }
+
+    // Chuẩn bị payload
     const payload = validUsers.map((u) => ({
       name: u.name,
       email: `${u.emailPrefix}@gmail.com`,
@@ -83,13 +107,31 @@ const CreateUser = () => {
 
       if (data.success) {
         localStorage.setItem("lastUsedDefaultPassword", defaultPassword);
-        toast.success(`Successfully created ${data.createdCount} account(s)!`);
-        setTimeout(() => navigate("/admin/managementUsers"), 2000);
+
+        navigate("/admin/managementUsers");
       } else {
-        toast.error(data.message || "Failed to create some accounts");
+        setFormError(data.message ?? "Failed to create accounts");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "System error occurred");
+      const resp = error.response?.data;
+      if (error.response?.status === 400 && resp) {
+        const dupPayload = resp.duplicateInPayload || [];
+        const dupDb = resp.duplicateInDb || [];
+
+        // Tạo thông điệp chi tiết hiển thị ngay trên nút
+        let parts = [];
+        if (dupPayload.length > 0) {
+          parts.push(`Duplicate in form: ${dupPayload.join(", ")}`);
+        }
+        if (dupDb.length > 0) {
+          parts.push(`Already exists in system: ${dupDb.join(", ")}`);
+        }
+        setFormError(
+          parts.length ? parts.join(" | ") : resp.message || "Validation error"
+        );
+      } else {
+        setFormError(resp?.message ?? "System error occurred");
+      }
     }
   };
 
@@ -163,7 +205,7 @@ const CreateUser = () => {
                       }}
                     >
                       {/* Name */}
-                      <div style={{ flex: 1 }}>
+                      <div style={{ flex: 1, width: "100%" }}>
                         <input
                           type="text"
                           placeholder="Full Name"
@@ -178,7 +220,7 @@ const CreateUser = () => {
                       </div>
 
                       {/* Email Prefix + @gmail.com */}
-                      <div style={{ flex: 1, display: "flex" }}>
+                      <div style={{ flex: 1, display: "flex", width: "100%" }}>
                         <input
                           type="text"
                           placeholder="Enter email"
@@ -269,9 +311,17 @@ const CreateUser = () => {
                     type="password"
                     value={defaultPassword}
                     onChange={(e) => {
-                      setDefaultPassword(e.target.value);
-                      setPasswordError("");
+                      const pwd = e.target.value;
+                      setDefaultPassword(pwd);
+
+                      const msg = getPasswordErrorMessage(pwd);
+                      setPasswordError(msg);
                     }}
+                    onBlur={(e) => {
+                      const msg = getPasswordErrorMessage(e.target.value);
+                      setPasswordError(msg);
+                    }}
+                    aria-invalid={!!passwordError}
                     required
                     minLength={8}
                     placeholder="Enter strong default password"
@@ -279,7 +329,15 @@ const CreateUser = () => {
                   <small className="um-field-hint">
                     This password will be used for all created accounts
                   </small>
+
+                  {passwordError && (
+                    <div className="um-input-error">{passwordError}</div>
+                  )}
                 </div>
+
+                {formError && (
+                  <div className="um-error-inline">{formError}</div>
+                )}
 
                 {/* Footer */}
                 <div className="um-modal-bottom">

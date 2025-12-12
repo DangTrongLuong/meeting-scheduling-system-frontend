@@ -480,10 +480,10 @@ export default function ForgotPasswordPage() {
 
             <div className="forgotpassword-form-footer">
               <a
-                href="/"
+                href="/login"
                 onClick={(e) => {
                   e.preventDefault();
-                  navigate("/");
+                  navigate("/login");
                 }}
               >
                 Back to Login

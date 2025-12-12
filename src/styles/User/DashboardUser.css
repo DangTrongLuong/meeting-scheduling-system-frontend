@@ -326,12 +326,13 @@
 }
 
 .sidebar-user-calender {
-  position: relative;
+  position: sticky;
   right: 0;
-  top: 20px;
+  top: 40px;
   width: auto;
   background: #f8f8f8;
   padding: 20px;
+  height: 100vh;
   border-right: 1px solid #ddd;
   overflow-y: auto;
 }
@@ -450,6 +451,9 @@
   width: 14px;
   height: 14px;
   border-radius: 3px;
+}
+.layout-calendar {
+  display: flex;
 }
 
 /* Responsive */

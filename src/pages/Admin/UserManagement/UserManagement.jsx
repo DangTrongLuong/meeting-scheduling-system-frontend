@@ -38,15 +38,34 @@ const UserManagement = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("accessToken");
-
       const { data } = await axios.get("/api/auth/page", {
         params: { page: pageNumber, size: 10 },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      setUsers(data.content);
+      // Lấy danh sách ban đầu
+      const base = data.content;
+
+      // Bổ sung trạng thái 2FA cho từng user
+      const statusList = await Promise.all(
+        base.map((u) =>
+          axios
+            .get("/api/auth/2fa/status", { params: { email: u.email } })
+            .then((res) => {
+              const raw =
+                res.data?.two_factor_enabled ?? res.data?.twoFactorEnabled ?? 0;
+              return { email: u.email, enabled: Boolean(raw) };
+            })
+            .catch(() => ({ email: u.email, enabled: false }))
+        )
+      );
+      const statusMap = new Map(statusList.map((s) => [s.email, s.enabled]));
+      const enriched = base.map((u) => ({
+        ...u,
+        twoFactorEnabled: statusMap.get(u.email) ?? false,
+      }));
+
+      setUsers(enriched);
       setPage(data.number);
       setTotalPages(data.totalPages);
     } catch (error) {
@@ -54,6 +73,27 @@ const UserManagement = () => {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDisable2FA = async (user) => {
+    try {
+      const response = await axios.post("/api/auth/2fa/disable", null, {
+        params: { email: user.email },
+      });
+      const ok = response.data === "2FA disabled" || response.data?.success;
+      if (ok) {
+        toast.success(`2FA disabled for ${user.email}`);
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === user.id ? { ...u, twoFactorEnabled: false } : u
+          )
+        );
+      } else {
+        toast.error(response.data?.message ?? "Failed to disable 2FA");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message ?? "Failed to disable 2FA");
     }
   };
 
@@ -258,8 +298,7 @@ const UserManagement = () => {
                     <th>Email</th>
                     <th>Role</th>
                     <th>Status</th>
-                    <th>Age</th>
-                    <th>Address</th>
+                    <th>2FA</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -348,10 +387,33 @@ const UserManagement = () => {
                           </span>
                         </td>
 
-                        <td>{user.age || "N/A"}</td>
-                        <td className="um-address-cell">
-                          {user.address || "N/A"}
+                        <td onClick={(e) => e.stopPropagation()}>
+                          <button
+                            className={`um-2fa-switch ${
+                              user.twoFactorEnabled ? "on" : "off"
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (user.twoFactorEnabled) {
+                                // Đang bật → cho phép tắt
+                                handleDisable2FA(user);
+                              } else {
+                                // Đang tắt → không cho bật
+                                toast.info(
+                                  "2FA cannot be enabled from User Management"
+                                );
+                              }
+                            }}
+                            title={
+                              user.twoFactorEnabled
+                                ? "Click to disable 2FA"
+                                : "2FA is OFF (cannot enable)"
+                            }
+                          >
+                            {user.twoFactorEnabled ? "ON" : "OFF"}
+                          </button>
                         </td>
+
                         <td>
                           <div className="um-action-group">
                             {user.role !== "SUPERADMIN" && (
