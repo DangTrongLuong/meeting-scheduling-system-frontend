@@ -35,6 +35,7 @@ import InviteDecline from "./pages/Verify/InviteDecline.jsx";
 import { UserProvider } from "./context/UserContext.jsx";
 import AuthMiddleware from "./middlewares/AuthMiddleware.jsx";
 import Search from "./pages/User/Search.jsx";
+import RoomMeeting from "./pages/User/RoomMeeting.jsx";
 import "./App.css";
 
 function App() {
@@ -52,7 +53,6 @@ function App() {
           <Route path="/invite/accept" element={<InviteAccept />} />
           <Route path="/invite/decline" element={<InviteDecline />} />
           <Route path="/user/search" element={<Search />} />
-
 
           <Route
             path="/"
@@ -133,6 +133,14 @@ function App() {
             element={
               <AuthMiddleware>
                 <DashboardUser />
+              </AuthMiddleware>
+            }
+          />
+          <Route
+            path="/user/room-meeting"
+            element={
+              <AuthMiddleware>
+                <RoomMeeting />
               </AuthMiddleware>
             }
           />

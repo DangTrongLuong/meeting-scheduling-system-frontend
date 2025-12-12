@@ -1,0 +1,508 @@
+/* Room Meeting Styles */
+
+/* Container */
+.room-meeting-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.main-content-i {
+  flex: 1;
+  margin-left: 120px !important;
+  min-height: calc(100vh - 70px);
+  padding: 20px 40px;
+  margin: 0;
+  position: relative;
+  background-color: #ffffff;
+}
+
+/* Header */
+.room-meeting-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 16px;
+  margin-top: 30px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.room-meeting-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #374151 !important;
+  margin: 0 0 8px 0;
+}
+
+.room-meeting-header p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+.room-meeting-header-icon {
+  padding: 12px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Main Content */
+.room-meeting-main-content {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 24px;
+  flex: 1;
+}
+
+/* Left Panel */
+.room-meeting-left-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Right Panel */
+.room-meeting-right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Search Container */
+.room-meeting-search-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.room-meeting-search-input {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 14px;
+  color: #333;
+  font-family: inherit;
+}
+
+.room-meeting-search-input::placeholder {
+  color: #a0aec0;
+}
+
+/* Rooms Section */
+.room-meeting-rooms-section {
+  background-color: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.room-meeting-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 16px 0;
+}
+
+.room-meeting-rooms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  max-height: 600px;
+}
+
+/* Room Item */
+.room-meeting-room-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #f8fafc;
+}
+
+.room-meeting-room-item:hover {
+  border-color: #cbd5e1;
+  background-color: #f1f5f9;
+}
+
+.room-meeting-room-item.active {
+  background-color: #eff6ff;
+  border: 2px solid #2563eb;
+}
+
+.room-meeting-room-item-content {
+  flex: 1;
+}
+
+.room-meeting-room-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.room-meeting-room-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.room-meeting-room-capacity {
+  font-size: 12px;
+  color: #64748b;
+  margin: 4px 0 0 0;
+}
+
+.room-meeting-room-location {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 2px 0 0 0;
+}
+
+/* Loading & Empty State */
+.room-meeting-loading-text {
+  text-align: center;
+  padding: 24px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.room-meeting-empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+/* Selected Room Header */
+.room-meeting-selected-room-header {
+  background-color: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #2563eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.room-meeting-selected-room-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+}
+
+.room-meeting-selected-room-info {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Calendar Trigger */
+.room-meeting-calendar-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.room-meeting-calendar-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: #eff6ff;
+  color: #2563eb;
+  border: 2px solid #2563eb;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.room-meeting-calendar-btn:hover {
+  background-color: #2563eb;
+  color: white;
+}
+
+.room-meeting-clear-date-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.room-meeting-clear-date-btn:hover {
+  background-color: #fecaca;
+}
+
+/* Calendar Wrapper */
+.room-meeting-calendar-wrapper {
+  background-color: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
+}
+
+.room-meeting-mini-calendar {
+  width: 100%;
+  border: none;
+  font-family: inherit;
+}
+
+.room-meeting-mini-calendar .react-calendar {
+  border: none;
+  font-size: 13px;
+}
+
+.room-meeting-mini-calendar button {
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.room-meeting-mini-calendar button:hover {
+  background-color: #e0e7ff;
+}
+
+.room-meeting-mini-calendar .react-calendar__tile--active {
+  background-color: #2563eb;
+  color: white;
+}
+
+/* Meetings Section */
+.room-meeting-meetings-section {
+  background-color: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.room-meeting-meetings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  max-height: 500px;
+}
+
+/* Meeting Card */
+.room-meeting-card {
+  border-left: 4px solid #3b82f6;
+  background-color: #f8fafc;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.room-meeting-card:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.room-meeting-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.room-meeting-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+}
+
+.room-meeting-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.room-meeting-status-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.room-meeting-status-scheduled {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.room-meeting-status-cancelled {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.room-meeting-status-completed {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.room-meeting-status-pending-approval {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+/* Meeting Description */
+.room-meeting-description {
+  font-size: 13px;
+  color: #475569;
+  margin: 0 0 12px 0;
+  font-style: italic;
+}
+
+/* Participants Section */
+.room-meeting-participants-section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.room-meeting-participants-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.room-meeting-participants-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.room-meeting-participant-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #2563eb;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.room-meeting-participant-badge:hover {
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+  transform: scale(1.1);
+}
+
+.room-meeting-participant-badge-more {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #cbd5e1;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Creator Info */
+.room-meeting-creator-info {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 8px 0 0 0;
+}
+
+/* No Room Selected */
+.room-meeting-no-room-selected {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  gap: 16px;
+  color: #94a3b8;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .room-meeting-main-content {
+    grid-template-columns: 300px 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .room-meeting-header {
+    margin-bottom: 24px;
+  }
+
+  .room-meeting-header h1 {
+    font-size: 22px;
+  }
+
+  .room-meeting-main-content {
+    grid-template-columns: 1fr;
+  }
+
+  .room-meeting-left-panel {
+    max-height: 400px;
+  }
+
+  .room-meeting-rooms-list {
+    max-height: 300px;
+  }
+
+  .room-meeting-meetings-list {
+    max-height: 400px;
+  }
+
+  .room-meeting-selected-room-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .room-meeting-calendar-trigger {
+    width: 100%;
+    margin-top: 12px;
+  }
+
+  .room-meeting-calendar-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
