@@ -246,44 +246,61 @@ export default function DashboardUser() {
       const visibleMeetings = meetings.filter((m) => m.status !== "CANCELLED");
 
       const formattedEvents = visibleMeetings.map((meeting) => {
-        const isCreator = meeting.creator?.id === currentUserId;
-        const isParticipant = meeting.participants?.some(
-          (p) => p.user?.id === currentUserId && p.status === "ACCEPTED"
-        );
+        
+const isCreator = meeting.creator?.id === currentUserId;
+const isParticipant = meeting.participants?.some(
+  (p) => p.user?.id === currentUserId && p.status === "ACCEPTED"
+);
 
-        let backgroundColor, borderColor;
+// Đã quá giờ (local time)?
+const nowMs = Date.now();
+const endMs = meeting?.endTime ? new Date(meeting.endTime).getTime() : NaN;
+const ended =
+  meeting?.hasConcluded === true
+    ? true
+    : (Number.isFinite(endMs) ? endMs < nowMs : false);
 
-        if (meeting.status === "CANCELLED") {
-          backgroundColor = "#f88a8aff";
-          borderColor = "#f88a8aff";
-        } else if (meeting.status === "PENDING_APPROVAL") {
-          backgroundColor = "#b1b1b1ff";
-          borderColor = "#b1b1b1ff";
-        } else {
-          if (isCreator || isParticipant) {
-            backgroundColor = "#3f9bf7ff";
-            borderColor = "#1565c0";
-          } else {
-            backgroundColor = "#00ce22ff";
-            borderColor = "#27e900ff";
-          }
-        }
+let backgroundColor, borderColor;
+if (meeting.status === "CANCELLED") {
+  backgroundColor = "#f88a8aff";
+  borderColor = "#f88a8aff";
+} else if (meeting.status === "PENDING_APPROVAL") {
+  if (ended) {
+    backgroundColor = "#f88a8aff";
+    borderColor = "#f88a8aff";
+  } else {
+    backgroundColor = "#b1b1b1ff";
+    borderColor = "#b1b1b1ff";
+  }
+} else {
+  if (ended) {
+    backgroundColor = "#f88a8aff";
+    borderColor = "#f88a8aff";
+  } else if (isCreator || isParticipant) {
+    backgroundColor = "#3f9bf7ff";
+    borderColor = "#1565c0";
+  } else {
+    backgroundColor = "#00ce22ff";
+    borderColor = "#27e900ff";
+  }
+}
 
-        return {
-          id: meeting.id,
-          title: `${meeting.title} – ${meeting.room?.name}`,
-          start: meeting.startTime,
-          end: meeting.endTime,
-          backgroundColor,
-          borderColor,
-          textColor: "white",
-          extendedProps: {
-            ...meeting,
-            isCreator,
-            isParticipant,
-            isMyMeeting: isCreator || isParticipant,
-          },
-        };
+return {
+  id: meeting.id,
+  title: `${meeting.title} – ${meeting.room?.name}`,
+  start: meeting.startTime,
+  end: meeting.endTime,
+  backgroundColor,
+  borderColor,
+  textColor: "white",
+  extendedProps: {
+    ...meeting,
+    isCreator,
+    isParticipant,
+    isMyMeeting: isCreator || isParticipant,
+    ended, // dùng cho eventDidMount & modal
+  },
+};
       });
 
       setEvents(formattedEvents);
@@ -407,57 +424,195 @@ export default function DashboardUser() {
         </div>
 
         <div className="main-inner-calender">
-          <div className="layout-calendar">
-            <div className="calendar-container">
-              <FullCalendar
-                ref={calendarRef}
-                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                initialView="timeGridDay"
-                locale="en-EN"
-                events={filteredEvents}
-                eventClick={handleEventClick}
-                headerToolbar={{
-                  left: "prev,next customtoday",
-                  center: "title",
-                  right: "dayGridMonth,timeGridWeek,timeGridDay",
-                }}
-                customButtons={{
-                  customtoday: {
-                    text: "Today",
-                    click: handleTodayClick,
-                  },
-                }}
-                nowIndicator={true}
-                slotMinTime="07:00:00"
-                slotMaxTime="24:00:00"
-                slotDuration="00:15:00"
-                slotLabelInterval="01:00"
-                height="100%"
-                contentHeight="auto"
-                selectable={true}
-                selectMirror={true}
-                dayMaxEvents={true}
-                aspectRatio={2.5}
-                dateClick={(arg) => {
-                  const clickedDate = arg.date;
-                  setSelectedDate(clickedDate);
-                  const dateStr = clickedDate.toISOString().split("T")[0];
-                  const hours = clickedDate
-                    .getHours()
-                    .toString()
-                    .padStart(2, "0");
-                  const minutes = clickedDate
-                    .getMinutes()
-                    .toString()
-                    .padStart(2, "0");
-                  const timeStr = `${hours}:${minutes}`;
+          <div className="calendar-container">
+            <FullCalendar
+              ref={calendarRef}
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+              initialView="timeGridDay"
+              locale="en-EN"
+              events={filteredEvents}
+              eventClick={handleEventClick}
+              headerToolbar={{
+                left: "prev,next customtoday",
+                center: "title",
+                right: "dayGridMonth,timeGridWeek,timeGridDay",
+              }}
+              customButtons={{
+                customtoday: {
+                  text: "Today",
+                  click: handleTodayClick,
+                },
+              }}
+              nowIndicator={true}
+              slotMinTime="07:00:00"
+              slotMaxTime="24:00:00"
+              slotDuration="00:15:00"
+              slotLabelInterval="01:00"
+              height="100%"
+              contentHeight="auto"
+              selectable={true}
+              selectMirror={true}
+              dayMaxEvents={true}
+              aspectRatio={2.5}
+              dateClick={(arg) => {
+                const clickedDate = arg.date;
+                setSelectedDate(clickedDate);
+                const dateStr = clickedDate.toISOString().split("T")[0];
+                const hours = clickedDate
+                  .getHours()
+                  .toString()
+                  .padStart(2, "0");
+                const minutes = clickedDate
+                  .getMinutes()
+                  .toString()
+                  .padStart(2, "0");
+                const timeStr = `${hours}:${minutes}`;
 
-                  // Thay vì cộng 30 phút, cộng 15 phút thôi
-                  let endHour = clickedDate.getHours();
-                  let endMinute = clickedDate.getMinutes() + 15;
-                  if (endMinute >= 60) {
-                    endHour += 1;
-                    endMinute -= 60;
+                // Thay vì cộng 30 phút, cộng 15 phút thôi
+                let endHour = clickedDate.getHours();
+                let endMinute = clickedDate.getMinutes() + 15;
+                if (endMinute >= 60) {
+                  endHour += 1;
+                  endMinute -= 60;
+                }
+                const endTimeStr = `${endHour
+                  .toString()
+                  .padStart(2, "0")}:${endMinute.toString().padStart(2, "0")}`;
+                setPreFillData({
+                  date: dateStr,
+                  startTime: timeStr,
+                  endTime: endTimeStr,
+                });
+                setShowCreateModal(true);
+              }}
+              select={(arg) => {
+                // DEBUG: Log để xem giá trị thật
+                console.log("Start:", arg.start);
+                console.log("End:", arg.end);
+                console.log("Start time:", arg.start.toISOString());
+                console.log("End time:", arg.end.toISOString());
+
+                const startDate = arg.start;
+                const endDate = arg.end;
+
+                setSelectedDate(startDate);
+
+                const dateStr = startDate.toISOString().split("T")[0];
+                const startHours = startDate
+                  .getHours()
+                  .toString()
+                  .padStart(2, "0");
+                const startMinutes = startDate
+                  .getMinutes()
+                  .toString()
+                  .padStart(2, "0");
+                const startTimeStr = `${startHours}:${startMinutes}`;
+
+                const endHours = endDate.getHours().toString().padStart(2, "0");
+                const endMinutes = endDate
+                  .getMinutes()
+                  .toString()
+                  .padStart(2, "0");
+                const endTimeStr = `${endHours}:${endMinutes}`;
+
+                console.log("Prefill Data:", {
+                  date: dateStr,
+                  startTime: startTimeStr,
+                  endTime: endTimeStr,
+                });
+
+                setPreFillData({
+                  date: dateStr,
+                  startTime: startTimeStr,
+                  endTime: endTimeStr,
+                });
+                setShowCreateModal(true);
+              }}
+              dayCellClassNames={(arg) => {
+                if (!selectedDate) return [];
+                const sel = new Date(selectedDate);
+                const cell = new Date(arg.date);
+                if (
+                  sel.getFullYear() === cell.getFullYear() &&
+                  sel.getMonth() === cell.getMonth() &&
+                  sel.getDate() === cell.getDate()
+                ) {
+                  return ["fc-selected-date"];
+                }
+                return [];
+              }}
+              
+            eventDidMount={(info) => {
+              const el = info.el;
+              const meeting = info.event.extendedProps;
+              // Tooltip
+              const statusText = meeting?.ended
+                ? "This meeting has concluded"
+                : (meeting.status ?? "UNKNOWN");
+              const participantsCount = meeting.participants?.length ?? 0;
+              info.el.setAttribute(
+                "title",
+                `${info.event.title}\nStatus: ${statusText}\nParticipants: ${participantsCount}`
+              );
+              // Badge trên khung event
+              const frame = el.querySelector(".fc-event-main-frame");
+              if (frame) {
+                const meta = document.createElement("div");
+                meta.className = "fc-event-extra";
+                meta.textContent = statusText;
+                
+              if (meeting?.ended) {
+                // ❗ Bỏ nền đỏ: chỉ chữ đỏ đậm, uppercase, giống pending nhưng màu đỏ
+                meta.style.background   = "transparent";
+                meta.style.color        = "#c62828";
+                meta.style.padding      = "0";               // không pill
+                meta.style.borderRadius = "0";               // không bo tròn
+                meta.style.marginLeft   = "6px";
+                meta.style.fontWeight   = "700";
+                meta.style.textTransform= "uppercase";
+                meta.style.letterSpacing= "0.3px";
+                }
+                frame.appendChild(meta);
+              }
+              // Style cơ bản (giữ UI)
+              el.style.margin = "3px 2px";
+              el.style.borderRadius = "5px";
+              el.style.color = "#ffffff";
+              el.style.border = `1px solid ${info.event.borderColor || "#ddd"}`;
+
+              // Nếu đã kết thúc: đỏ chót + gạch đen + overlay kéo dài
+              if (meeting?.ended === true) {
+                el.style.backgroundColor = info.event.backgroundColor || "#f88a8aff";
+                el.style.borderColor = info.event.borderColor || "#f88a8aff";
+
+                // Gạch đen qua nội dung
+                const strike = document.createElement("div");
+                strike.className = "fc-black-strike";
+                strike.style.position = "absolute";
+                strike.style.left = "4px";
+                strike.style.right = "4px";
+                strike.style.top = "50%";
+                strike.style.height = "2px";
+                strike.style.background = "#000";
+                strike.style.opacity = "0.8";
+                strike.style.pointerEvents = "none";
+                el.appendChild(strike);
+
+              }
+            }}
+            />
+          </div>
+
+          <aside className="sidebar-user-calender">
+            {/* Mini Calendar */}
+            <div className="mini-calendar">
+              <Calendar
+                key={miniCalendarKey}
+                value={selectedDate || new Date()}
+                onClickDay={(date) => {
+                  setSelectedDate(date);
+                  if (calendarRef.current) {
+                    calendarRef.current.getApi().gotoDate(date);
                   }
                   const endTimeStr = `${endHour
                     .toString()
