@@ -246,44 +246,61 @@ export default function DashboardUser() {
       const visibleMeetings = meetings.filter((m) => m.status !== "CANCELLED");
 
       const formattedEvents = visibleMeetings.map((meeting) => {
-        const isCreator = meeting.creator?.id === currentUserId;
-        const isParticipant = meeting.participants?.some(
-          (p) => p.user?.id === currentUserId && p.status === "ACCEPTED"
-        );
+        
+const isCreator = meeting.creator?.id === currentUserId;
+const isParticipant = meeting.participants?.some(
+  (p) => p.user?.id === currentUserId && p.status === "ACCEPTED"
+);
 
-        let backgroundColor, borderColor;
+// Đã quá giờ (local time)?
+const nowMs = Date.now();
+const endMs = meeting?.endTime ? new Date(meeting.endTime).getTime() : NaN;
+const ended =
+  meeting?.hasConcluded === true
+    ? true
+    : (Number.isFinite(endMs) ? endMs < nowMs : false);
 
-        if (meeting.status === "CANCELLED") {
-          backgroundColor = "#f88a8aff";
-          borderColor = "#f88a8aff";
-        } else if (meeting.status === "PENDING_APPROVAL") {
-          backgroundColor = "#b1b1b1ff";
-          borderColor = "#b1b1b1ff";
-        } else {
-          if (isCreator || isParticipant) {
-            backgroundColor = "#3f9bf7ff";
-            borderColor = "#1565c0";
-          } else {
-            backgroundColor = "#00ce22ff";
-            borderColor = "#27e900ff";
-          }
-        }
+let backgroundColor, borderColor;
+if (meeting.status === "CANCELLED") {
+  backgroundColor = "#f88a8aff";
+  borderColor = "#f88a8aff";
+} else if (meeting.status === "PENDING_APPROVAL") {
+  if (ended) {
+    backgroundColor = "#f88a8aff";
+    borderColor = "#f88a8aff";
+  } else {
+    backgroundColor = "#b1b1b1ff";
+    borderColor = "#b1b1b1ff";
+  }
+} else {
+  if (ended) {
+    backgroundColor = "#f88a8aff";
+    borderColor = "#f88a8aff";
+  } else if (isCreator || isParticipant) {
+    backgroundColor = "#3f9bf7ff";
+    borderColor = "#1565c0";
+  } else {
+    backgroundColor = "#00ce22ff";
+    borderColor = "#27e900ff";
+  }
+}
 
-        return {
-          id: meeting.id,
-          title: `${meeting.title} – ${meeting.room?.name}`,
-          start: meeting.startTime,
-          end: meeting.endTime,
-          backgroundColor,
-          borderColor,
-          textColor: "white",
-          extendedProps: {
-            ...meeting,
-            isCreator,
-            isParticipant,
-            isMyMeeting: isCreator || isParticipant,
-          },
-        };
+return {
+  id: meeting.id,
+  title: `${meeting.title} – ${meeting.room?.name}`,
+  start: meeting.startTime,
+  end: meeting.endTime,
+  backgroundColor,
+  borderColor,
+  textColor: "white",
+  extendedProps: {
+    ...meeting,
+    isCreator,
+    isParticipant,
+    isMyMeeting: isCreator || isParticipant,
+    ended, // dùng cho eventDidMount & modal
+  },
+};
       });
 
       setEvents(formattedEvents);
@@ -524,32 +541,65 @@ export default function DashboardUser() {
                 }
                 return [];
               }}
-              eventDidMount={(info) => {
-                const el = info.el;
-
-                const meeting = info.event.extendedProps;
-                const status = meeting.status ?? "UNKNOWN";
-                const participantsCount = meeting.participants?.length ?? 0;
-
-                info.el.setAttribute(
-                  "title",
-                  `${info.event.title}\nStatus: ${status}\nParticipants: ${participantsCount}`
-                );
-
-                const frame = el.querySelector(".fc-event-main-frame");
-                if (frame) {
-                  const meta = document.createElement("div");
-                  meta.className = "fc-event-extra";
-                  meta.textContent = `${status}`;
-
-                  frame.appendChild(meta);
+              
+            eventDidMount={(info) => {
+              const el = info.el;
+              const meeting = info.event.extendedProps;
+              // Tooltip
+              const statusText = meeting?.ended
+                ? "This meeting has concluded"
+                : (meeting.status ?? "UNKNOWN");
+              const participantsCount = meeting.participants?.length ?? 0;
+              info.el.setAttribute(
+                "title",
+                `${info.event.title}\nStatus: ${statusText}\nParticipants: ${participantsCount}`
+              );
+              // Badge trên khung event
+              const frame = el.querySelector(".fc-event-main-frame");
+              if (frame) {
+                const meta = document.createElement("div");
+                meta.className = "fc-event-extra";
+                meta.textContent = statusText;
+                
+              if (meeting?.ended) {
+                // ❗ Bỏ nền đỏ: chỉ chữ đỏ đậm, uppercase, giống pending nhưng màu đỏ
+                meta.style.background   = "transparent";
+                meta.style.color        = "#c62828";
+                meta.style.padding      = "0";               // không pill
+                meta.style.borderRadius = "0";               // không bo tròn
+                meta.style.marginLeft   = "6px";
+                meta.style.fontWeight   = "700";
+                meta.style.textTransform= "uppercase";
+                meta.style.letterSpacing= "0.3px";
                 }
+                frame.appendChild(meta);
+              }
+              // Style cơ bản (giữ UI)
+              el.style.margin = "3px 2px";
+              el.style.borderRadius = "5px";
+              el.style.color = "#ffffff";
+              el.style.border = `1px solid ${info.event.borderColor || "#ddd"}`;
 
-                el.style.margin = "3px 2px";
-                el.style.borderRadius = "5px";
-                el.style.border = "none";
-                el.style.color = "#5d4037";
-              }}
+              // Nếu đã kết thúc: đỏ chót + gạch đen + overlay kéo dài
+              if (meeting?.ended === true) {
+                el.style.backgroundColor = info.event.backgroundColor || "#f88a8aff";
+                el.style.borderColor = info.event.borderColor || "#f88a8aff";
+
+                // Gạch đen qua nội dung
+                const strike = document.createElement("div");
+                strike.className = "fc-black-strike";
+                strike.style.position = "absolute";
+                strike.style.left = "4px";
+                strike.style.right = "4px";
+                strike.style.top = "50%";
+                strike.style.height = "2px";
+                strike.style.background = "#000";
+                strike.style.opacity = "0.8";
+                strike.style.pointerEvents = "none";
+                el.appendChild(strike);
+
+              }
+            }}
             />
           </div>
 

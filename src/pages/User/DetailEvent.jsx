@@ -32,9 +32,11 @@ export default function DetailEvent({
       (p) => p.user?.id === currentUserId && p.status === "ACCEPTED"
     );
 
-  const canEdit = isCreator;
-  const cancelled = event?.status || "";
-
+  const canEdit = isCreator; 
+  const ended =
+    event?.ended === true
+      ? true
+      : (event?.end ? new Date(event.end).getTime() < Date.now() : false);
   // useEffect(() => {
   //   if (event) {
   //     console.log("Event details:", event);
@@ -349,25 +351,38 @@ export default function DetailEvent({
             </ul>
           </div>
 
-          {/* Status */}
-          <div style={{ marginBottom: "16px" }}>
-            <strong>Status:</strong>
-            <p style={{ color: statusColor_Meeting, fontWeight: "bold" }}>
-              {event.status}
-            </p>
-          </div>
+          {/* Status */}         
+        <div style={{ marginBottom: "16px" }}>
+          <strong>Status:</strong>
+          <p style={{ fontWeight: "bold", margin: 0 }}>
+            {ended ? (
+              // ❗ Không nền, chỉ chữ đỏ đậm, caps (giống pending_approval style nhưng đổi sang đỏ)
+              <span
+                style={{
+                  color: "#c62828",
+                  fontWeight: 700,
+                  letterSpacing: "0.3px",
+                  textTransform: "uppercase",
+                }}
+              >
+                This meeting has concluded
+              </span>
+            ) : (
+              // Giữ nguyên cách hiển thị status khi chưa concluded
+              <span style={{ color: statusColor_Meeting, textTransform: "uppercase" }}>
+                {event.status}
+              </span>
+            )}
+          </p>
         </div>
 
+        </div>       
         <div className="detail-event-modal-footer">
-          {canEdit && cancelled !== "CANCELLED" ? (
+          {!ended && canEdit ? (
             <>
-              <button
-                className="detail-event-update-btn"
-                onClick={() => onEdit(event)}
-              >
+              <button className="detail-event-update-btn" onClick={() => onEdit(event)}>
                 Update
               </button>
-
               <button
                 className="detail-event-delete-btn"
                 onClick={handleDeleteClick}
@@ -376,10 +391,7 @@ export default function DetailEvent({
                 {isDeleting ? "Deleting..." : "Delete"}
               </button>
             </>
-          ) : (
-            <p style={{ color: "#999", fontSize: "14px" }}></p>
-          )}
-
+          ) : null}
           <button
             className="detail-event-close-btn"
             onClick={onClose}
