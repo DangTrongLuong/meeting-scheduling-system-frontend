@@ -443,4 +443,8 @@
   .hero-content h1 {
     font-size: 2rem;
   }
+  .check-email {
+    display: flex;
+    flex-direction: column;
+  }
 }
