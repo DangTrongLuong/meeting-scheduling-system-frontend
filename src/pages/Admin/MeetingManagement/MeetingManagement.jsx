@@ -48,6 +48,8 @@ const MeetingManagement = () => {
       });
 
       const meetings = res.data.data?.content || [];
+      console.log("Fetched meetings:", meetings);
+
       setAllMeetings(Array.isArray(meetings) ? meetings : []);
     } catch (error) {
       console.error("Error fetching all meetings:", error);
@@ -158,12 +160,20 @@ const MeetingManagement = () => {
 
       const approvedMeeting = approveRes.data?.data;
 
-      // Gửi webhook (không chờ phản hồi)
+      // Gửi webhook nếu có
       if (approvedMeeting) {
         sendWebhookNotification(approvedMeeting, "approve");
       }
 
-      toast.success("Meeting approved successfully!");
+      // Nếu là repeat meeting, hiển thị thông báo
+      if (selectedMeeting.isRepeat && selectedMeeting.repeatGroupId) {
+        toast.success(
+          `✓ Meeting and all repeat sessions approved successfully!`
+        );
+      } else {
+        toast.success("✓ Meeting approved successfully!");
+      }
+
       fetchAllMeetings();
     } catch (error) {
       console.error("Error approving meeting:", error);
@@ -196,12 +206,18 @@ const MeetingManagement = () => {
 
       const rejectedMeeting = rejectRes.data?.data;
 
-      // Gửi webhook (không chờ phản hồi)
+      // Gửi webhook nếu có
       if (rejectedMeeting) {
         sendWebhookNotification(rejectedMeeting, "reject");
       }
 
-      toast.error("Meeting rejected!");
+      // Nếu là repeat meeting, hiển thị thông báo
+      if (selectedMeeting.isRepeat && selectedMeeting.repeatGroupId) {
+        toast.error(`✗ Meeting and all repeat sessions have been rejected!`);
+      } else {
+        toast.error("✗ Meeting rejected!");
+      }
+
       fetchAllMeetings();
     } catch (error) {
       console.error("Error rejecting meeting:", error);
@@ -357,6 +373,7 @@ const MeetingManagement = () => {
     () => filteredMeetings.slice(startIndex, startIndex + pageSize),
     [filteredMeetings, startIndex]
   );
+  console.log("Paged meetings:", pagedMeetings);
 
   return (
     <div className="my-project-container">
@@ -461,7 +478,7 @@ const MeetingManagement = () => {
                     <th>Creator</th>
                     <th>Room</th>
                     <th>Time</th>
-                    <th>Participants</th>
+                    <th>Repeat</th>
                     <th>Status</th>
                     <th>Actions</th>
                   </tr>
@@ -490,8 +507,42 @@ const MeetingManagement = () => {
                           {formatTime(meeting.startTime)} -{" "}
                           {formatTime(meeting.endTime)}
                         </td>
-                        <td className="mm-participant-cell">
-                          {meeting.participants?.length || 0}
+                        <td className="mm-name-cells">
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                            }}
+                          >
+                            {meeting.repeat ? (
+                              <span
+                                style={{
+                                  backgroundColor: "#ff9800",
+                                  color: "white",
+                                  padding: "2px 6px",
+                                  borderRadius: "3px",
+                                  fontSize: "11px",
+                                  fontWeight: "bold",
+                                }}
+                              >
+                                REPEAT
+                              </span>
+                            ) : (
+                              <span
+                                style={{
+                                  backgroundColor: "#e3e3e3ff",
+                                  color: "black",
+                                  padding: "2px 6px",
+                                  borderRadius: "3px",
+                                  fontSize: "11px",
+                                  fontWeight: "bold",
+                                }}
+                              >
+                                NO REPEAT
+                              </span>
+                            )}
+                          </div>
                         </td>
 
                         <td>
