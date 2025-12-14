@@ -488,6 +488,40 @@ export default function EditEvent({
             </div>
           </div>
 
+          <div className="edit-event-form-group">
+            <label className="edit-event-label">Start Time *</label>
+            <select
+              className="edit-event-select"
+              value={formData.startTime}
+              onChange={(e) =>
+                setFormData({ ...formData, startTime: e.target.value })
+              }
+            >
+              {timeSlots.map((time) => (
+                <option key={time} value={time}>
+                  {time}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="edit-event-form-group">
+            <label className="edit-event-label">End Time *</label>
+            <select
+              className="edit-event-select"
+              value={formData.endTime}
+              onChange={(e) =>
+                setFormData({ ...formData, endTime: e.target.value })
+              }
+            >
+              {timeSlots.map((time) => (
+                <option key={time} value={time}>
+                  {time}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Borrow Devices */}
           <div className="edit-event-form-group">
             <label className="edit-event-label">
@@ -618,39 +652,6 @@ export default function EditEvent({
           </div>
 
           {/* Start & End Time */}
-          <div className="edit-event-form-group">
-            <label className="edit-event-label">Start Time *</label>
-            <select
-              className="edit-event-select"
-              value={formData.startTime}
-              onChange={(e) =>
-                setFormData({ ...formData, startTime: e.target.value })
-              }
-            >
-              {timeSlots.map((time) => (
-                <option key={time} value={time}>
-                  {time}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="edit-event-form-group">
-            <label className="edit-event-label">End Time *</label>
-            <select
-              className="edit-event-select"
-              value={formData.endTime}
-              onChange={(e) =>
-                setFormData({ ...formData, endTime: e.target.value })
-              }
-            >
-              {timeSlots.map((time) => (
-                <option key={time} value={time}>
-                  {time}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
 
         {/* Footer */}

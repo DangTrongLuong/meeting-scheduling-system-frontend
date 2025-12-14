@@ -45,13 +45,7 @@ const SideBarUser = ({ activeItem, onItemClick, isOpen, onClose }) => {
     //   hasSubmenu: true,
     //   path: "/call",
     // },
-    {
-      id: "room-meeting",
-      icon: Rose,
-      label: "Rooms",
-      hasSubmenu: true,
-      path: "/user/room-meeting",
-    },
+
     {
       id: "search",
       icon: Search,

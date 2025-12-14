@@ -57,6 +57,10 @@
   min-height: 50px;
 }
 
+.fc .fc-timegrid-slot-label .fc-timegrid-slot-label-frame {
+  text-transform: uppercase;
+}
+
 /* Đường kẻ giữa các slot */
 .fc-timeGridDay-view .fc-timegrid-slot {
   border-bottom: 1px dashed #eee;
@@ -245,10 +249,10 @@
 .google-calendar-btn {
   display: flex;
   align-items: center;
-  background-color: #ffffff; /* same as meeting-btn-list */
-  color: black;
-  border: 1px solid #000000; /* thêm viền đen */
-  padding: 10px 16px;
+  background-color: #f8691d; /* same as meeting-btn-list */
+  color: rgb(255, 255, 255);
+  border: none;
+  padding: 5px 16px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
@@ -257,13 +261,13 @@
 }
 
 .google-calendar-btn:hover {
-  background-color: #65aaf8; /* hover effect */
+  background-color: #df6100; /* hover effect */
   color: white; /* đổi màu chữ khi hover */
 }
 
 .google-calendar-icon {
-  width: 20px; /* adjust size */
-  height: 20px;
+  width: 30px; /* adjust size */
+  height: 30px;
   margin-right: 8px; /* space between icon and text */
 }
 
@@ -481,6 +485,11 @@
     margin: 8px 0;
     flex-wrap: wrap;
   }
+  .navbar-right {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+  }
 
   .calendar-container {
     max-width: 100%;
@@ -502,7 +511,8 @@
 
   .meeting-btn,
   .meeting-btn-list,
-  .meeting-btn-invite {
+  .meeting-btn-invite,
+  .google-calendar-btn {
     width: auto;
     margin-top: 8px;
     font-size: 13px;
@@ -545,9 +555,226 @@
     font-size: 12px;
     gap: 6px;
   }
+
+  .fc {
+    font-size: 13px; /* Tăng kích thước chữ tổng thể một chút */
+  }
+
+  /* Tăng kích thước chữ giờ bên trái (7:00 AM, 8:00 AM...) */
+  .fc .fc-timegrid-slot-label-cushion {
+    font-size: 14px !important;
+    font-weight: 600;
+    padding: 4px 2px !important;
+  }
+
+  /* Tăng chiều cao mỗi slot giờ để dễ đọc và chạm hơn trên mobile */
+  .fc-timegrid-slot {
+    height: 50px !important; /* Hoặc 45-55px tùy ý, làm các giờ cách xa nhau */
+    min-height: 50px !important;
+  }
+
+  /* Toolbar: làm button và title dễ đọc hơn, tránh dính */
+  .fc-toolbar {
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .fc-toolbar .fc-toolbar-title {
+    font-size: 16px !important;
+    margin: 0;
+  }
+
+  .fc-toolbar .fc-button {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+
+  /* Event: tránh text tràn ra ngoài, wrap nếu cần hoặc ellipsis */
+  .fc-event {
+    font-size: 12px !important;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    padding: 2px 4px !important;
+  }
+
+  .fc-event-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Axis (cột giờ bên trái) rộng hơn một chút để chữ không bị cắt */
+  .fc-timegrid-axis {
+    width: 60px !important;
+  }
+
+  /* Scroller: đảm bảo scroll ngang nếu cần (trên mobile nhỏ) */
+  .fc-scroller-harness {
+    overflow: auto;
+  }
+
+  /* Optional: làm event dễ chạm hơn (tăng padding) */
+  .fc-event {
+    touch-action: manipulation;
+  }
 }
 
 .calendar-selected {
   background-color: #e4e4e4 !important;
   color: rgb(0, 0, 0) !important;
+}
+
+.room-filter-dropdown {
+  position: relative;
+  display: inline-block;
+  width: 280px; /* hoặc để auto tùy layout */
+}
+
+/* Nút chính */
+.filter-btn {
+  width: 100%;
+  padding: 10px 16px;
+  background-color: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between; /* Văn bản bên trái, mũi tên bên phải */
+  align-items: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.filter-btn:hover {
+  background-color: #eef2f6;
+  border-color: #c0c0c0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.filter-btn-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  text-align: left;
+}
+
+.filter-btn-arrow {
+  font-size: 12px;
+  margin-left: 8px;
+  color: #666;
+}
+
+/* Dropdown menu */
+.filter-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+  overflow: hidden;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Ô tìm kiếm */
+.filter-search-box {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.filter-search-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: border 0.2s;
+}
+
+.filter-search-input:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+/* Item trong list */
+.filter-item {
+  padding: 11px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  user-select: none;
+}
+
+.filter-item:hover {
+  background-color: #f5f9ff;
+}
+
+.filter-item.active {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  font-weight: 600;
+}
+
+.filter-room-list {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+/* Scrollbar đẹp hơn (optional) */
+.filter-room-list::-webkit-scrollbar {
+  width: 6px;
+}
+.filter-room-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+.filter-room-list::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border-radius: 10px;
+}
+.filter-room-list::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.filter-no-results {
+  padding: 16px;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+}
+.fc-timegrid-slot.fc-timegrid-slot-past {
+  background-color: #f5f5f5;
+}
+
+/* Ô click quá khứ */
+.fc-timegrid-col.fc-day-past {
+  background-color: #f4f4f4;
+}
+.fc-slot-past-now {
+  background-color: #f9f9f9 !important;
+}
+
+/* Giữ event vẫn nổi */
+.fc-event {
+  z-index: 5;
 }

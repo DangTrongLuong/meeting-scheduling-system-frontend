@@ -5,7 +5,15 @@ import axios from "axios";
 import "../../styles/User/CreateNewEvent.css";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
-import Select from "react-select";
+
+const WEEKDAYS = [
+  { id: 1, label: "Monday", dayNum: 1, value: "MONDAY" },
+  { id: 2, label: "Tuesday", dayNum: 2, value: "TUESDAY" },
+  { id: 3, label: "Wednesday", dayNum: 3, value: "WEDNESDAY" },
+  { id: 4, label: "Thursday", dayNum: 4, value: "THURSDAY" },
+  { id: 5, label: "Friday", dayNum: 5, value: "FRIDAY" },
+  { id: 6, label: "Saturday", dayNum: 6, value: "SATURDAY" },
+];
 
 export default function CreateNewEvent({
   isOpen,
@@ -25,6 +33,8 @@ export default function CreateNewEvent({
     roomId: "",
     participants: [],
     borrowedDevices: [],
+    isRepeat: false,
+    repeatDays: [],
   });
 
   const [selectedRoom, setSelectedRoom] = useState(null);
@@ -32,15 +42,12 @@ export default function CreateNewEvent({
   const [searchEmail, setSearchEmail] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [allDevices, setAllDevices] = useState([]);
-
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showRepeatDropdown, setShowRepeatDropdown] = useState(false);
+  const [inputTimeMode, setInputTimeMode] = useState(false);
   const dropdownRef = useRef(null);
-
-  // Dropdown time picker states
-  const [startTimeDropdownOpen, setStartTimeDropdownOpen] = useState(false);
-  const [endTimeDropdownOpen, setEndTimeDropdownOpen] = useState(false);
-  const [inputTimeMode, setInputTimeMode] = useState(false); // Toggle mode: dropdown or input
+  const repeatDropdownRef = useRef(null);
 
   const filteredRooms = rooms.filter((room) =>
     room.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -52,7 +59,6 @@ export default function CreateNewEvent({
     setSearchTerm("");
   };
 
-  // Tạo time slots: mỗi 15 phút
   const generateTimeSlots = () => {
     const slots = [];
     for (let hour = 0; hour < 24; hour++) {
@@ -69,10 +75,100 @@ export default function CreateNewEvent({
 
   const timeSlots = generateTimeSlots();
 
+  /**
+   * Lấy tuần của ngày được chọn (date param)
+   * Trả về object với key = dayName, value = date string
+   */
+  const getWeekDatesForDate = (dateString) => {
+    const selectedDate = new Date(dateString);
+    const currentDayOfWeek = selectedDate.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+
+    // Tính Monday của tuần chứa ngày được chọn
+    const monday = new Date(selectedDate);
+    monday.setDate(selectedDate.getDate() - (currentDayOfWeek - 1));
+
+    const dates = {};
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const dayName = WEEKDAYS[i].value;
+      dates[dayName] = d.toISOString().split("T")[0];
+    }
+    return dates;
+  };
+
+  // Lấy dates dựa vào date hiện tại trong form
+  const weekDates = getWeekDatesForDate(formData.date);
+
+  /**
+   * Kiểm tra ngày có trong quá khứ không
+   * So với hôm nay (today)
+   */
+  const isPastDate = (dateString) => {
+    const selectedDate = new Date(dateString);
+    const todayDate = new Date(today);
+    return selectedDate < todayDate;
+  };
+
+  const handleToggleRepeatDay = (dayValue) => {
+    const dateString = weekDates[dayValue];
+
+    // Kiểm tra nếu ngày đó đã qua
+    if (isPastDate(dateString)) {
+      toast.error(`Cannot select ${dayValue} - it's already passed`);
+      return;
+    }
+
+    setFormData((prev) => {
+      const updated = prev.repeatDays.includes(dayValue)
+        ? prev.repeatDays.filter((d) => d !== dayValue)
+        : [...prev.repeatDays, dayValue];
+      return { ...prev, repeatDays: updated };
+    });
+  };
+
+  const handleSelectAllDays = () => {
+    // Lọc chỉ những ngày chưa qua
+    const availableDays = WEEKDAYS.filter(
+      (d) => !isPastDate(weekDates[d.value])
+    ).map((d) => d.value);
+
+    if (availableDays.length === 0) {
+      toast.error("All days in this week have already passed");
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      repeatDays:
+        prev.repeatDays.length === availableDays.length ? [] : availableDays,
+    }));
+  };
+
+  // Kiểm tra ngày bị disable
+  const isDateDisabled = (dayValue) => {
+    return isPastDate(weekDates[dayValue]);
+  };
+
+  // Reset repeatDays khi chuyển date
+  useEffect(() => {
+    // Khi date thay đổi, reset repeatDays để tránh conflicts
+    setFormData((prev) => ({
+      ...prev,
+      repeatDays: [],
+    }));
+  }, [formData.date]);
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setOpen(false);
+      }
+      if (
+        repeatDropdownRef.current &&
+        !repeatDropdownRef.current.contains(e.target)
+      ) {
+        setShowRepeatDropdown(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -87,7 +183,6 @@ export default function CreateNewEvent({
     }
   }, [formData.roomId]);
 
-  // Cập nhật khi prefill thay đổi (khi click hoặc kéo trên calendar)
   useEffect(() => {
     if (isOpen && prefill.startTime && prefill.endTime) {
       setFormData((prev) => ({
@@ -115,6 +210,8 @@ export default function CreateNewEvent({
           roomId: "",
           participants: [],
           borrowedDevices: [],
+          isRepeat: false,
+          repeatDays: [],
         });
         setSelectedRoom(null);
         setRoomDevices([]);
@@ -148,24 +245,27 @@ export default function CreateNewEvent({
     }
   };
 
-const handleSearchEmail = async (value) => {
-  setSearchEmail(value);
-  if (value.length > 3) {
-    try {
-      const response = await axios.get(
-        `http://localhost:8080/api/meetings/users/search?email=${value}`
-      );
-      const currentEmail = auth.user.email; // lấy từ context
-      setSearchResults((response.data || []).filter(u =>
-        u.email?.toLowerCase() !== currentEmail.toLowerCase()
-      ));
-    } catch (error) {
-      console.error("Error searching users:", error);
+  const currentEmailLocal = localStorage.getItem("userEmail") || "";
+  const handleSearchEmail = async (value) => {
+    setSearchEmail(value);
+    if (value.length > 3) {
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/api/meetings/users/search?email=${value}`
+        );
+        const currentEmail = currentEmailLocal;
+        setSearchResults(
+          (response.data || []).filter(
+            (u) => u.email?.toLowerCase() !== currentEmail.toLowerCase()
+          )
+        );
+      } catch (error) {
+        console.error("Error searching users:", error);
+      }
+    } else {
+      setSearchResults([]);
     }
-  } else {
-    setSearchResults([]);
-  }
-};
+  };
 
   const addParticipant = (user) => {
     const newParticipants = [
@@ -211,6 +311,8 @@ const handleSearchEmail = async (value) => {
       roomId: "",
       participants: [],
       borrowedDevices: [],
+      isRepeat: false,
+      repeatDays: [],
     });
     setSelectedRoom(null);
     setRoomDevices([]);
@@ -227,13 +329,6 @@ const handleSearchEmail = async (value) => {
     // Validation
     if (formData.title.length < 5) {
       toast.error("Title must be at least 5 characters long!");
-      return;
-    }
-
-    if (selectedDateTime < now) {
-      toast.error(
-        "Cannot create meeting in the past! Please choose a future time."
-      );
       return;
     }
 
@@ -273,22 +368,32 @@ const handleSearchEmail = async (value) => {
       return;
     }
 
-    try {
-      const startDateTime = `${formData.date}T${formData.startTime}:00`;
-      const endDateTime = `${formData.date}T${formData.endTime}:00`;
+    // Validate repeat days if enabled
+    if (formData.isRepeat && formData.repeatDays.length === 0) {
+      toast.error("Please select at least one day for repeat!");
+      return;
+    }
 
+    try {
       const room = rooms.find((r) => r.id === formData.roomId);
       const roomName = room ? room.name : "";
+
+      console.log("Form data before submit:", formData);
 
       const meetingData = {
         title: formData.title,
         description: formData.description,
-        startTime: startDateTime,
-        endTime: endDateTime,
+        date: formData.date,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
         roomId: formData.roomId,
         participants: formData.participants,
         borrowedDevices: formData.borrowedDevices.filter((d) => d.deviceId),
+        isRepeat: formData.isRepeat,
+        repeatDays: formData.isRepeat ? formData.repeatDays : [],
       };
+
+      console.log("Meeting data sending to API:", meetingData);
 
       const token = localStorage.getItem("accessToken");
       const userId = localStorage.getItem("userId");
@@ -305,42 +410,50 @@ const handleSearchEmail = async (value) => {
           },
         }
       );
+
       console.log("Meeting created successfully:", response.data);
-      toast.success("Meeting booked successfully!");
+
+      const meetingCount = formData.isRepeat ? formData.repeatDays.length : 1;
+      toast.success(`${meetingCount} meeting(s) booked successfully!`);
+
       resetForm();
       setTimeout(() => {
         onSuccess();
         onClose();
       }, 1200);
 
+      // Send emails for participants
       if (formData.participants && formData.participants.length > 0) {
         const baseUrl = "http://localhost:5173";
-        const meetingId = response.data.data.id;
+        const meetingIds = Array.isArray(response.data.data)
+          ? response.data.data.map((m) => m.id)
+          : [response.data.data.id];
 
         for (const p of formData.participants) {
           const email = typeof p === "string" ? p : p.email;
-
-          const acceptUrl = `${baseUrl}/invite/accept?email=${encodeURIComponent(
-            email
-          )}&mid=${meetingId}`;
-          const declineUrl = `${baseUrl}/invite/decline?email=${encodeURIComponent(
-            email
-          )}&mid=${meetingId}`;
-          try {
-            await axios.post(
-              "https://n8n.quanliduan-pms.site/webhook/send-email",
-              {
-                ...meetingData,
-                meetingId: response.data.data.id,
-                createdBy: userName,
-                createdByEmail: userEmail,
-                roomName: roomName,
-                acceptUrl: acceptUrl,
-                declineUrl: declineUrl,
-              }
-            );
-          } catch (emailError) {
-            console.error("Error sending email:", emailError);
+          for (const meetingId of meetingIds) {
+            const acceptUrl = `${baseUrl}/invite/accept?email=${encodeURIComponent(
+              email
+            )}&mid=${meetingId}`;
+            const declineUrl = `${baseUrl}/invite/decline?email=${encodeURIComponent(
+              email
+            )}&mid=${meetingId}`;
+            try {
+              await axios.post(
+                "https://n8n.quanliduan-pms.site/webhook/send-email",
+                {
+                  ...meetingData,
+                  meetingId: meetingId,
+                  createdBy: userName,
+                  createdByEmail: userEmail,
+                  roomName: roomName,
+                  acceptUrl: acceptUrl,
+                  declineUrl: declineUrl,
+                }
+              );
+            } catch (emailError) {
+              console.error("Error sending email:", emailError);
+            }
           }
         }
       }
@@ -394,14 +507,9 @@ const handleSearchEmail = async (value) => {
               <CKEditor
                 editor={ClassicEditor}
                 data={formData.description}
-                onReady={(editor) => {}}
                 onChange={(event, editor) => {
                   const data = editor.getData();
                   setFormData({ ...formData, description: data });
-                }}
-                onBlur={(event, editor) => {}}
-                onFocus={(event, editor) => {
-                  editor.editing.view.focus();
                 }}
                 config={{
                   toolbar: [
@@ -614,15 +722,179 @@ const handleSearchEmail = async (value) => {
             )}
           </div>
 
+          {/* REPEAT SELECTOR */}
+          <div className="create-event-form-group">
+            <label className="create-event-label">Repeat Meeting</label>
+            <div ref={repeatDropdownRef} style={{ position: "relative" }}>
+              <div
+                className="custom-select"
+                onClick={() => setShowRepeatDropdown(!showRepeatDropdown)}
+                style={{ cursor: "pointer" }}
+              >
+                <span className="selected-value">
+                  {!formData.isRepeat
+                    ? "No Repeat"
+                    : `Repeat - ${formData.repeatDays.length} day(s)`}
+                </span>
+                <span className="arrow">{showRepeatDropdown ? "▲" : "▼"}</span>
+              </div>
+
+              {showRepeatDropdown && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    right: 0,
+                    backgroundColor: "white",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                    zIndex: 10,
+                    padding: "12px",
+                    marginTop: "4px",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  {/* No Repeat */}
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      cursor: "pointer",
+                      marginBottom: "12px",
+                      paddingBottom: "12px",
+                      borderBottom: "1px solid #eee",
+                      fontWeight: "500",
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="repeatType"
+                      checked={!formData.isRepeat}
+                      onChange={() =>
+                        setFormData({
+                          ...formData,
+                          isRepeat: false,
+                          repeatDays: [],
+                        })
+                      }
+                      style={{ marginRight: "8px", cursor: "pointer" }}
+                    />
+                    No Repeat
+                  </label>
+
+                  {/* Repeat This Week */}
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      cursor: "pointer",
+                      marginBottom: "12px",
+                      fontWeight: "500",
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="repeatType"
+                      checked={formData.isRepeat}
+                      onChange={() =>
+                        setFormData({ ...formData, isRepeat: true })
+                      }
+                      style={{ marginRight: "8px", cursor: "pointer" }}
+                    />
+                    Repeat This Week
+                  </label>
+
+                  {/* Days Selection */}
+                  {formData.isRepeat && (
+                    <div
+                      style={{
+                        marginTop: "12px",
+                        paddingTop: "12px",
+                        borderTop: "1px solid #eee",
+                      }}
+                    >
+                      <label
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          cursor: "pointer",
+                          marginBottom: "10px",
+                          padding: "8px",
+                          backgroundColor: "#f5f5f5",
+                          borderRadius: "4px",
+                          fontWeight: "600",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={
+                            WEEKDAYS.filter((d) => !isDateDisabled(d.value))
+                              .length > 0 &&
+                            formData.repeatDays.length ===
+                              WEEKDAYS.filter((d) => !isDateDisabled(d.value))
+                                .length
+                          }
+                          onChange={handleSelectAllDays}
+                          style={{ marginRight: "8px", cursor: "pointer" }}
+                        />
+                        Select All Available
+                      </label>
+
+                      <div style={{ marginTop: "10px" }}>
+                        {WEEKDAYS.map((day) => (
+                          <label
+                            key={day.value}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              cursor: isDateDisabled(day.value)
+                                ? "not-allowed"
+                                : "pointer",
+                              marginBottom: "8px",
+                              padding: "8px",
+                              borderRadius: "4px",
+                              backgroundColor: formData.repeatDays.includes(
+                                day.value
+                              )
+                                ? "#e7f3ff"
+                                : "transparent",
+                              opacity: isDateDisabled(day.value) ? 0.5 : 1,
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={formData.repeatDays.includes(day.value)}
+                              onChange={() => handleToggleRepeatDay(day.value)}
+                              disabled={isDateDisabled(day.value)}
+                              style={{ marginRight: "8px", cursor: "pointer" }}
+                            />
+                            {day.label}
+                            {isDateDisabled(day.value) && (
+                              <span
+                                style={{
+                                  marginLeft: "auto",
+                                  fontSize: "12px",
+                                  color: "#999",
+                                }}
+                              >
+                                (Passed)
+                              </span>
+                            )}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Participants */}
           <div className="create-event-form-group">
             <label className="create-event-label">Invite People (Email)</label>
-            <div
-              style={{
-                position: "relative",
-                marginBottom: "10px",
-              }}
-            >
+            <div style={{ position: "relative", marginBottom: "10px" }}>
               <input
                 type="text"
                 className="create-event-input"
@@ -703,7 +975,7 @@ const handleSearchEmail = async (value) => {
                         marginBottom: "5px",
                       }}
                     >
-                      <span>{participant.email} </span>
+                      <span>{participant.email}</span>
                       <div>
                         <select
                           value={participant.role}
@@ -719,7 +991,6 @@ const handleSearchEmail = async (value) => {
                             marginLeft: "10px",
                             marginRight: "10px",
                             padding: "4px",
-                            gap: "10px",
                           }}
                           className="create-event-select-role"
                         >
