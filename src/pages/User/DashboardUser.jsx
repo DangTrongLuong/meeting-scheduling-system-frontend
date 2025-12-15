@@ -32,7 +32,7 @@ export default function DashboardUser() {
 
   // Room filter state
   const [showRoomFilter, setShowRoomFilter] = useState(false);
-  const [filterMode, setFilterMode] = useState("my-meetings"); // "my-meetings" hoặc room ID
+  const [filterMode, setFilterMode] = useState("my-meetings");
   const [roomSearchTerm, setRoomSearchTerm] = useState("");
 
   const [selectedDate, setSelectedDate] = useState(null);
@@ -180,6 +180,8 @@ export default function DashboardUser() {
       });
     }
   }, [events, filterMode]);
+
+  console.log("Get: ", getFilteredEvents);
 
   const handleEditClick = (event) => {
     setSelectedEvent(event);
@@ -372,6 +374,7 @@ export default function DashboardUser() {
         pauseOnFocusLoss
         draggable
         pauseOnHover
+        style={{ top: "70px" }}
       />
 
       <NavBar onToggleSidebar={toggleSidebar} />
