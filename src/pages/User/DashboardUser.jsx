@@ -21,21 +21,25 @@ import { useNavigate } from "react-router-dom";
 export default function DashboardUser() {
   const navigate = useNavigate();
   const calendarRef = useRef(null);
-  const filterDropdownRef = useRef(null);
 
   const [rooms, setRooms] = useState([]);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
+  const [roomSearchTerm, setRoomSearchTerm] = useState("");
+  const [selectedRoomIds, setSelectedRoomIds] = useState([]);
+
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
 
-  // Room filter state
-  const [showRoomFilter, setShowRoomFilter] = useState(false);
-  const [filterMode, setFilterMode] = useState("my-meetings"); // "my-meetings" hoặc room ID
-  const [roomSearchTerm, setRoomSearchTerm] = useState("");
+  useEffect(() => {
+    if (rooms.length > 0 && selectedRoomIds.length === 0) {
+      setSelectedRoomIds(rooms.map((r) => r.id));
+    }
+  }, [rooms]);
 
   const [selectedDate, setSelectedDate] = useState(null);
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [openDetail, setOpenDetail] = useState(false);
@@ -52,25 +56,6 @@ export default function DashboardUser() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeMenuItem, setActiveMenuItem] = useState("meetting");
   const [miniCalendarKey, setMiniCalendarKey] = useState(0);
-
-  // Lọc phòng theo search term
-  const filteredRoomsForFilter = rooms.filter((room) =>
-    room.name.toLowerCase().includes(roomSearchTerm.toLowerCase())
-  );
-
-  // Close dropdown khi click outside
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (
-        filterDropdownRef.current &&
-        !filterDropdownRef.current.contains(e.target)
-      ) {
-        setShowRoomFilter(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const handleTodayClick = () => {
     const calendarApi = calendarRef.current.getApi();
@@ -167,19 +152,37 @@ export default function DashboardUser() {
     }
   };
 
-  // Filter events dựa trên filter mode
-  const getFilteredEvents = React.useMemo(() => {
-    if (filterMode === "my-meetings") {
-      // Hiển thị tất cả meetings
-      return events;
-    } else {
-      // Hiển thị chỉ meetings của phòng được chọn
-      return events.filter((event) => {
-        const eventRoomId = event.extendedProps?.room?.id;
-        return eventRoomId === filterMode;
-      });
-    }
-  }, [events, filterMode]);
+  const filteredEvents = React.useMemo(() => {
+    if (selectedRoomIds.length === 0) return events;
+
+    return events.filter((event) => {
+      const eventRoomId = event.extendedProps?.room?.id;
+      return selectedRoomIds.includes(eventRoomId);
+    });
+  }, [events, selectedRoomIds]);
+
+  const isRoomFullyBookedToday = (roomId) => {
+    const today = new Date().toISOString().split("T")[0];
+    const roomEvents = events.filter(
+      (e) => e.extendedProps.roomId === roomId && e.start.startsWith(today)
+    );
+
+    return roomEvents.length >= 10;
+  };
+
+  const toggleRoomSelection = (roomId) => {
+    setSelectedRoomIds((prev) =>
+      prev.includes(roomId)
+        ? prev.filter((id) => id !== roomId)
+        : [...prev, roomId]
+    );
+  };
+
+  const filteredRoomsForSidebar = rooms
+    .filter((room) =>
+      room.name.toLowerCase().includes(roomSearchTerm.toLowerCase())
+    )
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   const handleEditClick = (event) => {
     setSelectedEvent(event);
@@ -222,86 +225,76 @@ export default function DashboardUser() {
     setToastMessage("Meeting updated successfully!");
   };
 
-  const fetchEvents = async () => {
+  const currentUserId = localStorage.getItem("userId");
+
+  // ✅ THAY ĐỔI: Gọi API /my-meetings thay vì /getAllMeetings
+  const fetchAllEvents = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("accessToken");
       const userId = localStorage.getItem("userId");
 
-      let meetings = [];
+      const res = await axios.get("/api/meetings/my-meetings", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          userId: userId,
+        },
+      });
 
-      if (filterMode === "my-meetings") {
-        // Lấy các cuộc họp của tôi (có thể bao gồm cả đã kết thúc)
-        const res = await axios.get("/api/meetings/my-meetings", {
-          headers: { Authorization: `Bearer ${token}`, userId },
-        });
-        meetings = res.data.data || res.data || [];
-      } else {
-        const res = await axios.get(
-          `/api/meetings/room/${filterMode}/scheduled-active`,
-          {
-            headers: { Authorization: `Bearer ${token}`, userId },
-          }
-        );
-        meetings = res.data.data || [];
-      }
+      // API trả về List<MeetingResponse> trực tiếp, không phải Page
+      const meetings = Array.isArray(res.data) ? res.data : res.data.data || [];
 
-      // Lọc thêm CANCELLED phòng hờ (dù backend đã lọc rồi)
-      const visibleMeetings = meetings.filter((m) => m.status !== "CANCELLED");
+      
+// KHÔNG lọc bỏ CANCELLED
+const formattedEvents = meetings.map((meeting) => {
+  const isCreator = meeting.creator?.id === userId;
+  const isParticipant = meeting.participants?.some(
+    (p) => p.user?.id === userId && p.status === "ACCEPTED"
+  );
+  const isMyMeeting = isCreator || isParticipant;
+  const ended = meeting.hasConcluded === true;
 
-      const formattedEvents = visibleMeetings.map((meeting) => {
-        const isCreator = meeting.creator?.id === userId;
-        const isParticipant = meeting.participants?.some(
-          (p) => p.user?.id === userId && p.status === "ACCEPTED"
-        );
-        const isMyMeeting = isCreator || isParticipant;
+  let backgroundColor = "#3f9bf7ff";
+  let borderColor = "#1565c0";
+  if (ended || meeting.status === "CANCELLED") {
+    backgroundColor = "#f88a8aff";
+    borderColor = "#f88a8aff";
+  } else if (meeting.status === "PENDING_APPROVAL") {
+    backgroundColor = "#b1b1b1ff";
+    borderColor = "#b1b1b1ff";
+  } else if (!isMyMeeting) {
+    backgroundColor = "#00ce22ff";
+    borderColor = "#27e900ff";
+  }
 
-        const ended = meeting.hasConcluded === true;
-
-        let backgroundColor = "#3f9bf7ff"; // mặc định xanh dương
-        let borderColor = "#1565c0";
-
-        if (ended || meeting.status === "CANCELLED") {
-          backgroundColor = "#f88a8aff";
-          borderColor = "#f88a8aff";
-        } else if (meeting.status === "PENDING_APPROVAL") {
-          backgroundColor = "#b1b1b1ff";
-          borderColor = "#b1b1b1ff";
-        } else if (!isMyMeeting) {
-          // Của người khác → xanh lá
-          backgroundColor = "#00ce22ff";
-          borderColor = "#27e900ff";
-        }
-        // Nếu isMyMeeting → giữ nguyên xanh dương
-
-        return {
-          id: meeting.id,
-          title: `${meeting.title} – ${meeting.room?.name || "Unknown Room"}`,
-          start: meeting.startTime,
-          end: meeting.endTime,
-          backgroundColor,
-          borderColor,
-          textColor: "white",
-          extendedProps: {
-            ...meeting,
-            isMyMeeting,
-            ended,
-          },
-        };
+  return {
+    id: meeting.id,
+    title: `${meeting.title} – ${meeting.room?.name ?? "Unknown Room"}`,
+    start: meeting.startTime,
+    end: meeting.endTime,
+    backgroundColor,
+    borderColor,
+    textColor: "white",
+    extendedProps: {
+      ...meeting,
+      isMyMeeting,
+      ended,
+       },
+  };
       });
 
       setEvents(formattedEvents);
     } catch (error) {
-      console.error("Error fetching events:", error);
-      toast.error("Không thể tải lịch họp");
+      console.error("Error loading meetings:", error);
+      toast.error("Không tải được lịch họp");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchEvents();
-  }, [filterMode]);
+    fetchAllEvents();
+  }, []);
 
   // Update current time
   useEffect(() => {
@@ -332,19 +325,17 @@ export default function DashboardUser() {
   };
 
   const handleCreateSuccess = () => {
-    fetchEvents();
+    fetchAllEvents();
   };
 
   const handleDeleteSuccess = () => {
-    fetchEvents();
+    fetchAllEvents();
   };
 
   const getBookedRooms = () => {
     const now = new Date();
     const today = now.toISOString().split("T")[0];
-    const currentEvents = getFilteredEvents.filter((e) =>
-      e.start.startsWith(today)
-    );
+    const currentEvents = events.filter((e) => e.start.startsWith(today));
     return [...new Set(currentEvents.map((e) => e.extendedProps.room.id))];
   };
 
@@ -385,79 +376,6 @@ export default function DashboardUser() {
         />
 
         <div className="navbar-right">
-          {/* Room/Meeting Filter Dropdown */}
-          <div ref={filterDropdownRef} className="room-filter-dropdown">
-            {/* Nút chính */}
-            <button
-              className="filter-btn"
-              onClick={() => setShowRoomFilter(!showRoomFilter)}
-            >
-              <span className="filter-btn-text">
-                {filterMode === "my-meetings"
-                  ? "My Meetings"
-                  : rooms.find((r) => r.id === filterMode)?.name ||
-                    "Select Room"}
-              </span>
-              <span className="filter-btn-arrow">
-                {showRoomFilter ? "▲" : "▼"}
-              </span>
-            </button>
-
-            {/* Dropdown menu */}
-            {showRoomFilter && (
-              <div className="filter-dropdown-menu">
-                {/* Ô tìm kiếm */}
-                <div className="filter-search-box">
-                  <input
-                    type="text"
-                    placeholder="Search rooms..."
-                    value={roomSearchTerm}
-                    onChange={(e) => setRoomSearchTerm(e.target.value)}
-                    className="filter-search-input"
-                    autoFocus
-                  />
-                </div>
-
-                {/* Option My Meetings */}
-                <div
-                  className={`filter-item ${
-                    filterMode === "my-meetings" ? "active" : ""
-                  }`}
-                  onClick={() => {
-                    setFilterMode("my-meetings");
-                    setShowRoomFilter(false);
-                    setRoomSearchTerm("");
-                  }}
-                >
-                  ⭐ My Meetings
-                </div>
-
-                {/* Danh sách phòng */}
-                <div className="filter-room-list">
-                  {filteredRoomsForFilter.length > 0 ? (
-                    filteredRoomsForFilter.map((room) => (
-                      <div
-                        key={room.id}
-                        className={`filter-item ${
-                          filterMode === room.id ? "active" : ""
-                        }`}
-                        onClick={() => {
-                          setFilterMode(room.id);
-                          setShowRoomFilter(false);
-                          setRoomSearchTerm("");
-                        }}
-                      >
-                        {room.name}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="filter-no-results">No rooms found</div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
           <button
             className="google-calendar-btn"
             onClick={
@@ -492,7 +410,7 @@ export default function DashboardUser() {
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
               initialView="timeGridDay"
               locale="en-EN"
-              events={getFilteredEvents}
+              events={filteredEvents}
               eventClick={handleEventClick}
               headerToolbar={{
                 left: "prev,next customtoday",
@@ -505,29 +423,18 @@ export default function DashboardUser() {
                   click: handleTodayClick,
                 },
               }}
-              allDaySlot={false}
               nowIndicator={true}
               slotMinTime="07:00:00"
               slotMaxTime="24:00:00"
-              slotDuration="00:30:00"
+              slotDuration="00:15:00"
               slotLabelInterval="01:00"
               height="100%"
               contentHeight="auto"
-              slotLabelFormat={{
-                hour: "numeric",
-                hour12: true,
-                meridiem: "short",
-              }}
               selectable={true}
               selectMirror={true}
               dayMaxEvents={true}
               aspectRatio={2.5}
               dateClick={(arg) => {
-                const now = new Date();
-                if (arg.date < now) {
-                  toast.warn("Unable to create past meetings.");
-                  return;
-                }
                 const clickedDate = arg.date;
                 setSelectedDate(clickedDate);
                 const dateStr = clickedDate.toISOString().split("T")[0];
@@ -541,8 +448,9 @@ export default function DashboardUser() {
                   .padStart(2, "0");
                 const timeStr = `${hours}:${minutes}`;
 
+                // Thay vì cộng 30 phút, cộng 15 phút thôi
                 let endHour = clickedDate.getHours();
-                let endMinute = clickedDate.getMinutes() + 30;
+                let endMinute = clickedDate.getMinutes() + 15;
                 if (endMinute >= 60) {
                   endHour += 1;
                   endMinute -= 60;
@@ -558,10 +466,12 @@ export default function DashboardUser() {
                 setShowCreateModal(true);
               }}
               select={(arg) => {
-                const now = new Date();
-                if (arg.start < now) {
-                  return;
-                }
+                // DEBUG: Log để xem giá trị thật
+                console.log("Start:", arg.start);
+                console.log("End:", arg.end);
+                console.log("Start time:", arg.start.toISOString());
+                console.log("End time:", arg.end.toISOString());
+
                 const startDate = arg.start;
                 const endDate = arg.end;
 
@@ -585,6 +495,12 @@ export default function DashboardUser() {
                   .padStart(2, "0");
                 const endTimeStr = `${endHours}:${endMinutes}`;
 
+                console.log("Prefill Data:", {
+                  date: dateStr,
+                  startTime: startTimeStr,
+                  endTime: endTimeStr,
+                });
+
                 setPreFillData({
                   date: dateStr,
                   startTime: startTimeStr,
@@ -605,97 +521,63 @@ export default function DashboardUser() {
                 }
                 return [];
               }}
-              eventDidMount={(info) => {
-                const el = info.el;
-                const meeting = info.event.extendedProps;
-
-                const statusText = meeting?.ended
-                  ? "This meeting has concluded"
-                  : meeting.status ?? "UNKNOWN";
-                const participantsCount = meeting.participants?.length ?? 0;
-                info.el.setAttribute(
-                  "title",
-                  `${info.event.title}\nStatus: ${statusText}\nParticipants: ${participantsCount}`
-                );
-
-                const frame = el.querySelector(".fc-event-main-frame");
-                if (frame) {
-                  const meta = document.createElement("div");
-                  meta.className = "fc-event-extra";
-                  meta.textContent = statusText;
-
-                  if (meeting?.ended) {
-                    meta.style.background = "transparent";
-                    meta.style.color = "#c62828";
-                    meta.style.padding = "0";
-                    meta.style.borderRadius = "0";
-                    meta.style.marginLeft = "6px";
-                    meta.style.fontWeight = "700";
-                    meta.style.textTransform = "uppercase";
-                    meta.style.letterSpacing = "0.3px";
-                  }
-                  frame.appendChild(meta);
+            eventDidMount={(info) => {
+              const el = info.el;
+              const meeting = info.event.extendedProps;
+              // Tooltip
+              const statusText = meeting?.ended
+                ? "This meeting has concluded"
+                : (meeting.status ?? "UNKNOWN");
+              const participantsCount = meeting.participants?.length ?? 0;
+              info.el.setAttribute(
+                "title",
+                `${info.event.title}\nStatus: ${statusText}\nParticipants: ${participantsCount}`
+              );
+              // Badge trên khung event
+              const frame = el.querySelector(".fc-event-main-frame");
+              if (frame) {
+                const meta = document.createElement("div");
+                meta.className = "fc-event-extra";
+                meta.textContent = statusText;
+                
+              if (meeting?.ended) {
+                // ❗ Bỏ nền đỏ: chỉ chữ đỏ đậm, uppercase, giống pending nhưng màu đỏ
+                meta.style.background   = "transparent";
+                meta.style.color        = "#c62828";
+                meta.style.padding      = "0";               // không pill
+                meta.style.borderRadius = "0";               // không bo tròn
+                meta.style.marginLeft   = "6px";
+                meta.style.fontWeight   = "700";
+                meta.style.textTransform= "uppercase";
+                meta.style.letterSpacing= "0.3px";
                 }
+                frame.appendChild(meta);
+              }
+              // Style cơ bản (giữ UI)
+              el.style.margin = "3px 2px";
+              el.style.borderRadius = "5px";
+              el.style.color = "#ffffff";
+              el.style.border = `1px solid ${info.event.borderColor || "#ddd"}`;
 
-                el.style.margin = "3px 2px";
-                el.style.borderRadius = "5px";
+              // Nếu đã kết thúc: đỏ chót + gạch đen + overlay kéo dài
+              if (meeting?.ended === true) {
+                el.style.backgroundColor = info.event.backgroundColor || "#f88a8aff";
+                el.style.borderColor = info.event.borderColor || "#f88a8aff";
 
-                if (meeting?.ended === true) {
-                  el.style.backgroundColor =
-                    info.event.backgroundColor || "#f88a8aff";
-                  el.style.borderColor = info.event.borderColor || "#f88a8aff";
-
-                  const titleContainer = el.querySelector(".fc-event-title");
-                  const timeContainer = el.querySelector(".fc-event-time");
-                  const startTime = info.event.start
-                    ? new Date(info.event.start)
-                    : null;
-                  const endTime = info.event.end
-                    ? new Date(info.event.end)
-                    : null;
-                  let durationMinutes = 0;
-
-                  if (startTime && endTime) {
-                    durationMinutes = (endTime - startTime) / (1000 * 60);
-                  }
-                  if (durationMinutes > 30) {
-                    if (titleContainer) {
-                      const strike = document.createElement("div");
-                      strike.style.position = "absolute";
-                      strike.style.left = "0";
-                      strike.style.right = "0";
-                      strike.style.top = "50%";
-                      strike.style.transform = "translateY(-50%)";
-                      strike.style.height = "2px";
-                      strike.style.background = "#000";
-                      strike.style.opacity = "0.75";
-                      strike.style.pointerEvents = "none";
-                      strike.style.zIndex = "10";
-                      strike.style.margin = "0 6px";
-
-                      titleContainer.style.position = "relative";
-                      titleContainer.appendChild(strike);
-                    }
-                  }
-                  if (timeContainer) {
-                    const strike = document.createElement("div");
-                    strike.style.position = "absolute";
-                    strike.style.left = "0";
-                    strike.style.right = "0";
-                    strike.style.top = "50%";
-                    strike.style.transform = "translateY(-50%)";
-                    strike.style.height = "2px";
-                    strike.style.background = "#000";
-                    strike.style.opacity = "0.75";
-                    strike.style.pointerEvents = "none";
-                    strike.style.zIndex = "10";
-                    strike.style.margin = "0 6px";
-
-                    timeContainer.style.position = "relative";
-                    timeContainer.appendChild(strike);
+                // Gạch đen qua nội dung
+                
+              const main = el.querySelector(".fc-event-main");
+                  if (main) {
+                    // Nếu muốn chỉ gạch tiêu đề (tuỳ chọn), dùng đoạn dưới thay vì gạch main:
+                     const titleNode = main.querySelector(".fc-event-title");
+                     if (titleNode) {
+                       titleNode.style.textDecoration          = "line-through";
+                       titleNode.style.textDecorationColor     = "#000";
+                       titleNode.style.textDecorationThickness = "2px";
+                     }
                   }
                 }
-              }}
+            }}
             />
           </div>
 
@@ -705,7 +587,6 @@ export default function DashboardUser() {
               <Calendar
                 key={miniCalendarKey}
                 value={selectedDate || new Date()}
-                locale="en-EN"
                 onClickDay={(date) => {
                   setSelectedDate(date);
                   if (calendarRef.current) {
@@ -740,21 +621,14 @@ export default function DashboardUser() {
                     ></span>
                     My Meetings
                   </div>
-                  <div className="note-item">
-                    <span
-                      className="note-color"
-                      style={{ backgroundColor: "#19d24aff" }}
-                    ></span>
-                    Other Meetings
-                  </div>
                 </div>
                 <div className="notes-row">
                   <div className="note-item">
                     <span
                       className="note-color"
-                      style={{ backgroundColor: "rgb(248, 138, 138)" }}
+                      style={{ backgroundColor: "#4caf50" }}
                     ></span>
-                    Meetings Ended
+                    Other Meetings
                   </div>
                 </div>
 
@@ -769,7 +643,6 @@ export default function DashboardUser() {
                 </div>
               </div>
             </div>
-
             <div className="room-box" style={{ marginTop: "20px" }}>
               <h4 className="room-box-title">Rooms Booked Today</h4>
               <ul
@@ -778,7 +651,7 @@ export default function DashboardUser() {
               >
                 {getBookedRooms().length > 0 ? (
                   getBookedRooms().map((roomId, i) => {
-                    const event = getFilteredEvents.find(
+                    const event = events.find(
                       (e) => e.extendedProps.room.id === roomId
                     );
                     return (
@@ -799,11 +672,129 @@ export default function DashboardUser() {
               </ul>
             </div>
 
+            <div className="room-filter-panel" style={{ marginTop: "20px" }}>
+              <h3 className="sidebar-title">Filter by Room</h3>
+
+              <input
+                type="text"
+                placeholder="Search room name..."
+                value={roomSearchTerm}
+                onChange={(e) => setRoomSearchTerm(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: "8px",
+                  border: "1px solid #ccc",
+                  fontSize: "14px",
+                  marginBottom: "12px",
+                }}
+              />
+
+              <div
+                style={{
+                  maxHeight: "200px",
+                  overflowY: "auto",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: "8px",
+                  padding: "8px",
+                  backgroundColor: "#fafafa",
+                }}
+              >
+                {filteredRoomsForSidebar.map((room) => {
+                  const isFullyBooked = isRoomFullyBookedToday(room.id);
+                  const isSelected = selectedRoomIds.includes(room.id);
+
+                  return (
+                    <label
+                      key={room.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        padding: "10px 8px",
+                        margin: "4px 0",
+                        backgroundColor: isSelected ? "#e3f2fd" : "white",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        border: isSelected
+                          ? "2px solid #2196f3"
+                          : "1px solid #eee",
+                        opacity: isFullyBooked ? 0.7 : 1,
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleRoomSelection(room.id)}
+                        style={{ marginRight: "10px" }}
+                      />
+                      <span
+                        style={{ fontWeight: "500", fontSize: "14px", flex: 1 }}
+                      >
+                        {room.name}
+                      </span>
+                      {isFullyBooked && (
+                        <span
+                          style={{
+                            backgroundColor: "#c62828",
+                            color: "white",
+                            padding: "2px 8px",
+                            borderRadius: "12px",
+                            fontSize: "10px",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          FULL
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
+
+                {filteredRoomsForSidebar.length === 0 && (
+                  <p
+                    style={{
+                      textAlign: "center",
+                      color: "#999",
+                      padding: "20px",
+                      fontStyle: "italic",
+                    }}
+                  >
+                    No rooms match
+                  </p>
+                )}
+              </div>
+
+              <div style={{ marginTop: "12px", textAlign: "center" }}>
+                <button
+                  onClick={() =>
+                    setSelectedRoomIds(
+                      selectedRoomIds.length === rooms.length
+                        ? []
+                        : rooms.map((r) => r.id)
+                    )
+                  }
+                  style={{
+                    padding: "8px 16px",
+                    backgroundColor: "#1976d2",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    fontSize: "13px",
+                    cursor: "pointer",
+                  }}
+                >
+                  {selectedRoomIds.length === rooms.length
+                    ? "Unselect All"
+                    : "Select All"}
+                </button>
+              </div>
+            </div>
+
             <div className="room-box" style={{ marginTop: "20px" }}>
               <h4 className="room-box-title">All Rooms</h4>
               <ul
                 className="room-list"
-                style={{ maxHeight: "180px", overflowY: "auto" }}
+                style={{ maxHeight: "150px", overflowY: "auto" }}
               >
                 {rooms.map((room) => (
                   <li key={room.id} className="room-item">
