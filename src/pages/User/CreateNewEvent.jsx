@@ -37,6 +37,12 @@ export default function CreateNewEvent({
     repeatDays: [],
   });
 
+  const [repeatConfig, setRepeatConfig] = useState({
+    type: "none",
+    weeks: 1,
+    customStartDate: "",
+    customEndDate: "",
+  });
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [roomDevices, setRoomDevices] = useState([]);
   const [searchEmail, setSearchEmail] = useState("");
@@ -213,6 +219,12 @@ export default function CreateNewEvent({
           isRepeat: false,
           repeatDays: [],
         });
+        setRepeatConfig({
+          type: "none",
+          weeks: 1,
+          endMonths: 1,
+          customDays: [],
+        });
         setSelectedRoom(null);
         setRoomDevices([]);
         setSearchEmail("");
@@ -356,6 +368,67 @@ export default function CreateNewEvent({
       return;
     }
 
+    if (repeatConfig.type !== "none") {
+      if (
+        repeatConfig.type === "weekly" &&
+        (repeatConfig.weeks < 1 || repeatConfig.weeks > 36)
+      ) {
+        toast.error("Number of weeks must be between 1 and 36");
+        return;
+      }
+      if (
+        (repeatConfig.type === "daily" || repeatConfig.type === "custom") &&
+        repeatConfig.customDays.length === 0 &&
+        repeatConfig.type === "custom"
+      ) {
+        toast.error("Please select at least one day for custom repeat");
+        return;
+      }
+    }
+
+    let submitRepeatType = repeatConfig.type.toUpperCase();
+    let submitEndMonths = null;
+    let submitRepeatDays = null;
+    let startDate = formData.date;
+
+    if (repeatConfig.type === "weekly") {
+      submitRepeatType = "DAILY";
+    }
+
+    if (repeatConfig.type === "daily" || repeatConfig.type === "weekly") {
+      // Tính số tháng từ số tuần (36 tuần ~ 9 tháng, nhưng giới hạn 2 tháng = 8 tuần)
+      submitEndMonths = repeatConfig.weeks <= 4 ? 1 : 2;
+      submitRepeatDays = [
+        "MONDAY",
+        "TUESDAY",
+        "WEDNESDAY",
+        "THURSDAY",
+        "FRIDAY",
+        "SATURDAY",
+      ];
+    } else if (repeatConfig.type === "custom") {
+      if (!repeatConfig.customEndDate) {
+        toast.error("Vui lòng chọn ngày kết thúc");
+        return;
+      }
+      if (repeatConfig.customDays.length === 0) {
+        toast.error("Vui lòng chọn ít nhất một ngày");
+        return;
+      }
+      startDate = repeatConfig.customStartDate || formData.date;
+      const end = new Date(repeatConfig.customEndDate);
+      const start = new Date(startDate);
+      const monthsDiff =
+        (end.getFullYear() - start.getFullYear()) * 12 +
+        (end.getMonth() - start.getMonth());
+      if (monthsDiff > 2) {
+        toast.error("Thời gian lặp tối đa 2 tháng");
+        return;
+      }
+      submitEndMonths = monthsDiff <= 1 ? 1 : 2;
+      submitRepeatDays = repeatConfig.customDays;
+    }
+
     const startMinutes =
       parseInt(formData.startTime.split(":")[0]) * 60 +
       parseInt(formData.startTime.split(":")[1]);
@@ -390,7 +463,9 @@ export default function CreateNewEvent({
         participants: formData.participants,
         borrowedDevices: formData.borrowedDevices.filter((d) => d.deviceId),
         isRepeat: formData.isRepeat,
-        repeatDays: formData.isRepeat ? formData.repeatDays : [],
+        repeatType: repeatConfig.type !== "none" ? submitRepeatType : null,
+        repeatEndAfterMonths: submitEndMonths,
+        repeatDays: submitRepeatDays,
       };
 
       console.log("Meeting data sending to API:", meetingData);
@@ -723,172 +798,218 @@ export default function CreateNewEvent({
           </div>
 
           {/* REPEAT SELECTOR */}
-          <div className="create-event-form-group">
-            <label className="create-event-label">Repeat Meeting</label>
-            <div ref={repeatDropdownRef} style={{ position: "relative" }}>
-              <div
-                className="custom-select"
+          <div className="create-event-repeat-group">
+            <label className="create-event-repeat-label">Repeat</label>
+
+            <div style={{ position: "relative" }}>
+              <button
+                type="button"
+                className="create-event-repeat-trigger"
                 onClick={() => setShowRepeatDropdown(!showRepeatDropdown)}
-                style={{ cursor: "pointer" }}
               >
-                <span className="selected-value">
-                  {!formData.isRepeat
-                    ? "No Repeat"
-                    : `Repeat - ${formData.repeatDays.length} day(s)`}
+                <span className="create-event-repeat-trigger-text">
+                  {repeatConfig.type === "none" && "Does not repeat"}
+                  {repeatConfig.type === "daily" &&
+                    `Daily for ${repeatConfig.weeks} week${
+                      repeatConfig.weeks > 1 ? "s" : ""
+                    }`}
+                  {repeatConfig.type === "weekly" &&
+                    `Repeat every day from this day for ${
+                      repeatConfig.weeks
+                    } week${repeatConfig.weeks > 1 ? "s" : ""}`}
+                  {repeatConfig.type === "custom" &&
+                    `Custom from ${
+                      repeatConfig.customStartDate || formData.date
+                    } to ${repeatConfig.customEndDate || "no end"}`}
                 </span>
-                <span className="arrow">{showRepeatDropdown ? "▲" : "▼"}</span>
-              </div>
+                <span className="create-event-repeat-trigger-icon">▼</span>
+              </button>
 
               {showRepeatDropdown && (
                 <div
-                  style={{
-                    position: "absolute",
-                    top: "100%",
-                    left: 0,
-                    right: 0,
-                    backgroundColor: "white",
-                    border: "1px solid #ddd",
-                    borderRadius: "4px",
-                    zIndex: 10,
-                    padding: "12px",
-                    marginTop: "4px",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                  }}
+                  ref={repeatDropdownRef}
+                  className="create-event-repeat-dropdown"
                 >
-                  {/* No Repeat */}
-                  <label
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      cursor: "pointer",
-                      marginBottom: "12px",
-                      paddingBottom: "12px",
-                      borderBottom: "1px solid #eee",
-                      fontWeight: "500",
+                  <div
+                    className="create-event-repeat-option"
+                    onClick={() => {
+                      setRepeatConfig({
+                        type: "none",
+                        weeks: 1,
+                        customStartDate: "",
+                        customEndDate: "",
+                      });
+                      setShowRepeatDropdown(false);
                     }}
                   >
-                    <input
-                      type="radio"
-                      name="repeatType"
-                      checked={!formData.isRepeat}
-                      onChange={() =>
-                        setFormData({
-                          ...formData,
-                          isRepeat: false,
-                          repeatDays: [],
-                        })
-                      }
-                      style={{ marginRight: "8px", cursor: "pointer" }}
-                    />
-                    No Repeat
-                  </label>
+                    Does not repeat
+                  </div>
 
-                  {/* Repeat This Week */}
-                  <label
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      cursor: "pointer",
-                      marginBottom: "12px",
-                      fontWeight: "500",
+                  <div
+                    className="create-event-repeat-option"
+                    onClick={() => {
+                      setRepeatConfig((prev) => ({ ...prev, type: "daily" }));
+                      setShowRepeatDropdown(false);
                     }}
                   >
-                    <input
-                      type="radio"
-                      name="repeatType"
-                      checked={formData.isRepeat}
-                      onChange={() =>
-                        setFormData({ ...formData, isRepeat: true })
-                      }
-                      style={{ marginRight: "8px", cursor: "pointer" }}
-                    />
-                    Repeat This Week
-                  </label>
+                    Daily (Mon–Sat)
+                  </div>
 
-                  {/* Days Selection */}
-                  {formData.isRepeat && (
-                    <div
-                      style={{
-                        marginTop: "12px",
-                        paddingTop: "12px",
-                        borderTop: "1px solid #eee",
+                  {/* <div className="create-event-weekly-box create-event-repeat-option">
+                    <div className="create-event-weekly-title">
+                      Repeat every day from this day (Mon–Sat)
+                    </div>
+                    <div className="create-event-weekly-input-group">
+                      <span>for</span>
+                      <input
+                        type="number"
+                        min="1"
+                        max="36"
+                        value={repeatConfig.weeks}
+                        onChange={(e) =>
+                          setRepeatConfig((prev) => ({
+                            ...prev,
+                            weeks: Math.max(
+                              1,
+                              Math.min(36, parseInt(e.target.value) || 1)
+                            ),
+                          }))
+                        }
+                        onClick={(e) => e.stopPropagation()}
+                        className="create-event-weekly-input"
+                      />
+                      <span>weeks (max 36)</span>
+                    </div>
+                    <button
+                      className="create-event-apply-weekly-btn"
+                      onClick={() => {
+                        setRepeatConfig((prev) => ({
+                          ...prev,
+                          type: "weekly",
+                        }));
+                        setShowRepeatDropdown(false);
                       }}
                     >
-                      <label
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          cursor: "pointer",
-                          marginBottom: "10px",
-                          padding: "8px",
-                          backgroundColor: "#f5f5f5",
-                          borderRadius: "4px",
-                          fontWeight: "600",
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={
-                            WEEKDAYS.filter((d) => !isDateDisabled(d.value))
-                              .length > 0 &&
-                            formData.repeatDays.length ===
-                              WEEKDAYS.filter((d) => !isDateDisabled(d.value))
-                                .length
-                          }
-                          onChange={handleSelectAllDays}
-                          style={{ marginRight: "8px", cursor: "pointer" }}
-                        />
-                        Select All Available
-                      </label>
+                      Apply
+                    </button>
+                  </div> */}
 
-                      <div style={{ marginTop: "10px" }}>
-                        {WEEKDAYS.map((day) => (
-                          <label
-                            key={day.value}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              cursor: isDateDisabled(day.value)
-                                ? "not-allowed"
-                                : "pointer",
-                              marginBottom: "8px",
-                              padding: "8px",
-                              borderRadius: "4px",
-                              backgroundColor: formData.repeatDays.includes(
-                                day.value
-                              )
-                                ? "#e7f3ff"
-                                : "transparent",
-                              opacity: isDateDisabled(day.value) ? 0.5 : 1,
-                            }}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={formData.repeatDays.includes(day.value)}
-                              onChange={() => handleToggleRepeatDay(day.value)}
-                              disabled={isDateDisabled(day.value)}
-                              style={{ marginRight: "8px", cursor: "pointer" }}
-                            />
-                            {day.label}
-                            {isDateDisabled(day.value) && (
-                              <span
-                                style={{
-                                  marginLeft: "auto",
-                                  fontSize: "12px",
-                                  color: "#999",
-                                }}
-                              >
-                                (Passed)
-                              </span>
-                            )}
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <div
+                    className="create-event-repeat-option"
+                    onClick={() => {
+                      setRepeatConfig((prev) => ({
+                        ...prev,
+                        type: "custom",
+                        customStartDate: formData.date, // mặc định từ ngày gốc
+                        customEndDate: "",
+                      }));
+                      setShowRepeatDropdown(false);
+                    }}
+                  >
+                    Custom date range...
+                  </div>
                 </div>
               )}
             </div>
+
+            {/* Cho Daily và Weekly: chọn số tuần */}
+            {(repeatConfig.type === "daily" ||
+              repeatConfig.type === "weekly") && (
+              <div className="create-event-end-after-box">
+                <label className="create-event-end-after-label">
+                  Repeat for:
+                </label>
+                <select
+                  value={repeatConfig.weeks}
+                  onChange={(e) =>
+                    setRepeatConfig((prev) => ({
+                      ...prev,
+                      weeks: parseInt(e.target.value),
+                    }))
+                  }
+                  className="create-event-end-after-select"
+                >
+                  {Array.from({ length: 36 }, (_, i) => i + 1).map((w) => (
+                    <option key={w} value={w}>
+                      {w} week{w > 1 ? "s" : ""}
+                    </option>
+                  ))}
+                </select>
+                <small className="create-event-end-after-note">
+                  Tối đa 36 tuần
+                </small>
+              </div>
+            )}
+
+            {/* Cho Custom: chọn từ ngày đến ngày */}
+            {repeatConfig.type === "custom" && (
+              <div className="create-event-end-after-box">
+                <label className="create-event-end-after-label">
+                  Repeat from - to:
+                </label>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <input
+                    type="date"
+                    value={repeatConfig.customStartDate || formData.date}
+                    min={formData.date}
+                    onChange={(e) =>
+                      setRepeatConfig((prev) => ({
+                        ...prev,
+                        customStartDate: e.target.value,
+                      }))
+                    }
+                    className="create-event-end-after-select"
+                  />
+                  <input
+                    type="date"
+                    value={repeatConfig.customEndDate}
+                    min={repeatConfig.customStartDate || formData.date}
+                    onChange={(e) =>
+                      setRepeatConfig((prev) => ({
+                        ...prev,
+                        customEndDate: e.target.value,
+                      }))
+                    }
+                    className="create-event-end-after-select"
+                  />
+                </div>
+                <small className="create-event-end-after-note">
+                  Choose an end date (up to 2 months from the start date)
+                </small>
+              </div>
+            )}
+
+            {/* Custom days selection - giữ nguyên như cũ */}
+            {repeatConfig.type === "custom" && (
+              <div className="create-event-custom-days-box">
+                <p className="create-event-custom-days-title">
+                  Select days to repeat:
+                </p>
+                <div className="create-event-custom-days-grid">
+                  {WEEKDAYS.map((day) => (
+                    <button
+                      key={day.value}
+                      type="button"
+                      className={`create-event-custom-day-btn ${
+                        repeatConfig.customDays.includes(day.value)
+                          ? "selected"
+                          : ""
+                      }`}
+                      onClick={() =>
+                        setRepeatConfig((prev) => ({
+                          ...prev,
+                          customDays: prev.customDays.includes(day.value)
+                            ? prev.customDays.filter((d) => d !== day.value)
+                            : [...prev.customDays, day.value],
+                        }))
+                      }
+                    >
+                      {day.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Participants */}

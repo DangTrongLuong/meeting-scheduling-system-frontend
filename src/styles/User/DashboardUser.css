@@ -154,12 +154,20 @@
   align-items: center;
   gap: 16px;
 }
+.navbar-calendar-tool {
+  width: 100%;
+  background-color: white;
+  padding: 20px 0 0 0;
+  position: sticky;
+  top: 70px;
+  z-index: 10;
+}
 
 .navbar-right {
   display: flex;
   justify-content: end;
   align-items: center;
-  margin: 20px 30px 0 20px;
+  margin: 0px 30px 0 20px;
   gap: 12px;
 }
 
@@ -332,7 +340,7 @@
 .sidebar-user-calender {
   position: sticky;
   right: 0;
-  top: 40px;
+  top: 165px;
   width: auto;
   background: #f8f8f8;
   padding: 20px;
@@ -458,167 +466,6 @@
 }
 .layout-calendar {
   display: flex;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .main-inner-calender {
-    flex-direction: column;
-    padding: 8px 0;
-  }
-
-  .main-content-user {
-    margin-left: 0 !important;
-    padding: 12px 16px;
-    min-height: auto;
-  }
-
-  .navbar {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 8px 12px;
-  }
-
-  .navbar-left,
-  .navbar-right {
-    gap: 8px;
-    margin: 8px 0;
-    flex-wrap: wrap;
-  }
-  .navbar-right {
-    display: flex;
-    flex-direction: column;
-    margin-top: 20px;
-  }
-
-  .calendar-container {
-    max-width: 100%;
-    margin-right: 0;
-    padding: 8px;
-  }
-
-  .team-box {
-    gap: 4px;
-    padding: 4px;
-  }
-
-  .avatar,
-  .more-box {
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
-  }
-
-  .meeting-btn,
-  .meeting-btn-list,
-  .meeting-btn-invite,
-  .google-calendar-btn {
-    width: auto;
-    margin-top: 8px;
-    font-size: 13px;
-    padding: 8px 12px;
-  }
-
-  .profile-circle {
-    width: 32px;
-    height: 32px;
-    font-size: 16px;
-  }
-
-  .sidebar-user-calender {
-    width: 100%;
-    position: static;
-    padding: 12px;
-    border-right: none;
-    border-top: 1px solid #ddd;
-    margin-top: 12px;
-  }
-
-  .react-calendar__navigation button {
-    font-size: 12px;
-  }
-
-  .react-calendar__tile {
-    padding: 6px;
-    font-size: 10px;
-  }
-
-  .sidebar-title {
-    font-size: 16px;
-  }
-
-  .room-box-title {
-    font-size: 14px;
-  }
-
-  .room-item {
-    font-size: 12px;
-    gap: 6px;
-  }
-
-  .fc {
-    font-size: 13px; /* Tăng kích thước chữ tổng thể một chút */
-  }
-
-  /* Tăng kích thước chữ giờ bên trái (7:00 AM, 8:00 AM...) */
-  .fc .fc-timegrid-slot-label-cushion {
-    font-size: 14px !important;
-    font-weight: 600;
-    padding: 4px 2px !important;
-  }
-
-  /* Tăng chiều cao mỗi slot giờ để dễ đọc và chạm hơn trên mobile */
-  .fc-timegrid-slot {
-    height: 50px !important; /* Hoặc 45-55px tùy ý, làm các giờ cách xa nhau */
-    min-height: 50px !important;
-  }
-
-  /* Toolbar: làm button và title dễ đọc hơn, tránh dính */
-  .fc-toolbar {
-    flex-direction: column;
-    gap: 8px;
-    padding: 8px;
-  }
-
-  .fc-toolbar .fc-toolbar-title {
-    font-size: 16px !important;
-    margin: 0;
-  }
-
-  .fc-toolbar .fc-button {
-    font-size: 13px;
-    padding: 6px 10px;
-  }
-
-  /* Event: tránh text tràn ra ngoài, wrap nếu cần hoặc ellipsis */
-  .fc-event {
-    font-size: 12px !important;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    padding: 2px 4px !important;
-  }
-
-  .fc-event-title {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* Axis (cột giờ bên trái) rộng hơn một chút để chữ không bị cắt */
-  .fc-timegrid-axis {
-    width: 60px !important;
-  }
-
-  /* Scroller: đảm bảo scroll ngang nếu cần (trên mobile nhỏ) */
-  .fc-scroller-harness {
-    overflow: auto;
-  }
-
-  /* Optional: làm event dễ chạm hơn (tăng padding) */
-  .fc-event {
-    touch-action: manipulation;
-  }
 }
 
 .calendar-selected {
@@ -777,4 +624,396 @@
 /* Giữ event vẫn nổi */
 .fc-event {
   z-index: 5;
+}
+
+.calendar-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+  flex-wrap: nowrap;
+}
+
+/* LEFT: prev today next */
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.nav-btn {
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-btn:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.nav-btn:last-child {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.nav-btn.today {
+  font-weight: 600;
+  padding: 6px 14px;
+}
+
+.nav-btn:focus,
+.nav-btn:active {
+  outline: none;
+  box-shadow: none;
+}
+.nav-btn:hover {
+  background: #f5f7fa;
+}
+
+.nav-btn:active {
+  background: #e5e7eb;
+}
+
+/* TITLE */
+.toolbar-title {
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+  margin: 0 6px;
+}
+
+/* RIGHT */
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.fc .fc-button,
+.fc .fc-button:focus,
+.fc .fc-button:active,
+.fc .fc-button:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+  box-shadow: none !important;
+}
+
+/* Hover nhẹ */
+.fc .fc-button:hover {
+  background-color: #f3f4f6;
+}
+
+.fc .fc-button {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-weight: 500;
+  color: #111827;
+  transition: all 0.15s ease;
+}
+
+/* Prev / Next icon gọn */
+.fc .fc-prev-button,
+.fc .fc-next-button {
+  padding: 6px 10px;
+}
+
+.view-dropdown {
+  position: relative;
+}
+
+.view-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.view-menu {
+  position: absolute;
+  top: 110%;
+  right: 0;
+  width: 150px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  z-index: 999;
+}
+
+.view-menu div {
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.view-menu div:hover {
+  background: #f3f4f6;
+}
+@media (max-width: 768px) {
+  /* ===== Layout tổng ===== */
+  .main-inner-calender {
+    flex-direction: column;
+    padding: 8px 0;
+  }
+
+  .main-content-user {
+    margin-left: 0 !important;
+    padding: 12px 16px;
+    min-height: auto;
+  }
+
+  /* ===== Navbar ===== */
+  .navbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 8px 12px;
+  }
+
+  .navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    flex-wrap: wrap;
+  }
+
+  /* 👉 navbar-right: sửa cho ĐẸP – GỌN – CÂN */
+  /* 👉 navbar-right: ACTION CHÍNH mỗi nút 1 hàng */
+  .navbar-right {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  /* ===== ACTION CHÍNH – FULL WIDTH ===== */
+  .navbar-right .meeting-btn,
+  .navbar-right .google-calendar-btn,
+  .navbar-right .room-filter-dropdown {
+    width: 100%;
+  }
+
+  .navbar-right .meeting-btn {
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+  }
+
+  .room-filter-dropdown .filter-btn {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+
+  /* ===== ACTION PHỤ (nếu có) – nhỏ gọn ===== */
+  .meeting-btn-list,
+  .meeting-btn-invite {
+    width: auto;
+    padding: 8px 12px;
+    font-size: 13px;
+    border-radius: 6px;
+  }
+
+  .navbar-right > * {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Button gọn hơn */
+  .meeting-btn,
+  .meeting-btn-list,
+  .meeting-btn-invite {
+    padding: 8px 12px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+
+  .room-filter-dropdown {
+    width: 100%;
+  }
+
+  /* ===== Calendar toolbar (custom) ===== */
+  .calendar-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .toolbar-left {
+    order: 1;
+  }
+
+  .toolbar-title {
+    order: 2;
+    width: 100%;
+    text-align: center;
+    margin: 4px 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .toolbar-right {
+    order: 3;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .toolbar-right > * {
+    width: 100%;
+  }
+
+  /* ===== Calendar container ===== */
+  .calendar-container {
+    max-width: 100%;
+    margin-right: 0;
+    padding: 8px;
+  }
+
+  /* ===== Team / Avatar ===== */
+  .team-box {
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .avatar,
+  .more-box {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  .profile-circle {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+
+  /* ===== Sidebar ===== */
+  .sidebar-user-calender {
+    width: 100%;
+    position: static;
+    padding: 12px;
+    border-right: none;
+    border-top: 1px solid #ddd;
+    margin-top: 12px;
+  }
+
+  .sidebar-title {
+    font-size: 16px;
+  }
+
+  .room-box-title {
+    font-size: 14px;
+  }
+
+  .room-item {
+    font-size: 12px;
+    gap: 6px;
+  }
+
+  /* ===== Mini calendar ===== */
+  .react-calendar__navigation button {
+    font-size: 12px;
+  }
+
+  .react-calendar__tile {
+    padding: 6px;
+    font-size: 10px;
+  }
+
+  /* ===== FullCalendar ===== */
+  .fc {
+    font-size: 13px;
+  }
+
+  .fc .fc-timegrid-slot-label-cushion {
+    font-size: 14px !important;
+    font-weight: 600;
+    padding: 4px 2px !important;
+  }
+
+  .fc-timegrid-slot {
+    height: 50px !important;
+    min-height: 50px !important;
+  }
+
+  .fc-timegrid-axis {
+    width: 60px !important;
+  }
+
+  .fc-toolbar {
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .fc-toolbar .fc-toolbar-title {
+    font-size: 16px !important;
+    margin: 0;
+  }
+
+  .fc-toolbar .fc-button {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+
+  .fc-event {
+    font-size: 12px !important;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    padding: 2px 4px !important;
+    touch-action: manipulation;
+  }
+
+  .fc-event-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .fc-scroller-harness {
+    overflow: auto;
+  }
+}
+/* Gạch title */
+.event-ended .fc-event-title {
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: rgba(0, 0, 0, 0.75);
+}
+
+/* Gạch time (day / week) */
+.event-ended .fc-event-time {
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: rgba(0, 0, 0, 0.75);
 }
