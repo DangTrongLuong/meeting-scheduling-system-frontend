@@ -25,7 +25,7 @@ const RoomDevices = () => {
   });
   const [deleting, setDeleting] = useState(false);
 
-  // Sort dropdown states
+
   const [sortRoomOpen, setSortRoomOpen] = useState(false);
   const [sortStatusOpen, setSortStatusOpen] = useState(false);
   const [selectedRooms, setSelectedRooms] = useState([]);
@@ -41,7 +41,7 @@ const RoomDevices = () => {
     setActiveMenuItem(pathToItem[location.pathname] || "device-room");
   }, [location.pathname]);
 
-  // Close dropdowns when clicking outside
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!e.target.closest(".sort-dropdown-wrapper")) {
