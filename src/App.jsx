@@ -36,6 +36,10 @@ import { UserProvider } from "./context/UserContext.jsx";
 import AuthMiddleware from "./middlewares/AuthMiddleware.jsx";
 import Search from "./pages/User/Search.jsx";
 import RoomMeeting from "./pages/User/RoomMeeting.jsx";
+
+import Chat from "./pages/Chat_Call/Chat.jsx";
+import Call from "./pages/Chat_Call/Call.jsx";
+
 import "./App.css";
 
 function App() {
@@ -233,6 +237,23 @@ function App() {
             element={
               <AuthMiddleware>
                 <DetailMeetingManagement />
+              </AuthMiddleware>
+            }
+          />
+
+          <Route
+            path="/user/chatMessage"
+            element={
+              <AuthMiddleware>
+                <Chat />
+              </AuthMiddleware>
+            }
+          />
+          <Route
+            path="/user/callMeeting"
+            element={
+              <AuthMiddleware>
+                <Call />
               </AuthMiddleware>
             }
           />
