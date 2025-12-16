@@ -518,3 +518,180 @@
   font-style: italic; /* Kiểu chữ */
   padding-left: 4px; /* Khoảng cách bên trái */
 }
+
+/* styles/User/CreateNewEventRepeat.css */
+
+.create-event-repeat-group {
+  margin-bottom: 24px;
+}
+
+.create-event-repeat-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 15px;
+  color: #333;
+}
+
+.create-event-repeat-trigger {
+  width: 100%;
+  padding: 6px 16px;
+  text-align: left;
+  background: #f8f9fa;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  font-size: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.create-event-repeat-trigger:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.create-event-repeat-trigger-text {
+  font-weight: 500;
+}
+
+.create-event-repeat-trigger-icon {
+  font-size: 20px;
+  color: #6c757d;
+}
+
+.create-event-repeat-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-top: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.create-event-repeat-option {
+  padding: 10px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+  transition: background 0.2s;
+}
+
+.create-event-repeat-option:hover {
+  background: #f0f8ff;
+}
+
+.create-event-repeat-option:last-child {
+  border-bottom: none;
+}
+
+.create-event-weekly-box {
+  padding: 16px;
+}
+
+.create-event-weekly-title {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.create-event-weekly-input-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.create-event-weekly-input {
+  width: 80px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 15px;
+}
+
+.create-event-apply-weekly-btn {
+  padding: 8px 16px;
+  background: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.create-event-apply-weekly-btn:hover {
+  background: #1565c0;
+}
+
+.create-event-end-after-box {
+  margin-top: 16px;
+  padding: 16px;
+  background: #e3f2fd;
+  border-radius: 8px;
+}
+
+.create-event-end-after-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.create-event-end-after-select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #90caf9;
+  font-size: 15px;
+  background: white;
+}
+
+.create-event-end-after-note {
+  color: #1565c0;
+  font-size: 13px;
+  margin-top: 6px;
+  display: block;
+}
+
+.create-event-custom-days-box {
+  margin-top: 16px;
+}
+
+.create-event-custom-days-title {
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.create-event-custom-days-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.create-event-custom-day-btn {
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: white;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.create-event-custom-day-btn:hover {
+  border-color: #90caf9;
+}
+
+.create-event-custom-day-btn.selected {
+  background: #e3f2fd;
+  border: 2px solid #1976d2;
+  font-weight: 600;
+}
