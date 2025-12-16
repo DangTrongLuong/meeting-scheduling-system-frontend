@@ -46,7 +46,7 @@ export default function MeetingCreate() {
       });
       navigate("/admin/meeting-management");
     } catch {
-      // TODO: toast error
+      // toast error
     } finally {
       setSaving(false);
     }
