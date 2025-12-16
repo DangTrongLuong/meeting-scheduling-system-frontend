@@ -17,11 +17,16 @@ import DetailEvent from "./DetailEvent";
 import EditEvent from "./EditEvent";
 import ggCalendar from "../../assets/gcalendericon.png";
 import { useNavigate } from "react-router-dom";
+import { Clock, LayoutGrid, LayoutList } from "lucide-react";
 
 export default function DashboardUser() {
   const navigate = useNavigate();
   const calendarRef = useRef(null);
   const filterDropdownRef = useRef(null);
+  const [viewMode, setViewMode] = useState("timeGridDay");
+  const [showViewDropdown, setShowViewDropdown] = useState(false);
+  const viewDropdownRef = useRef(null);
+  const [calendarTitle, setCalendarTitle] = useState("");
 
   const [rooms, setRooms] = useState([]);
   const [events, setEvents] = useState([]);
@@ -53,6 +58,13 @@ export default function DashboardUser() {
   const [activeMenuItem, setActiveMenuItem] = useState("meetting");
   const [miniCalendarKey, setMiniCalendarKey] = useState(0);
 
+  const changeView = (view) => {
+    const calendarApi = calendarRef.current.getApi();
+    calendarApi.changeView(view);
+    setViewMode(view);
+    setShowViewDropdown(false);
+  };
+
   // Lọc phòng theo search term
   const filteredRoomsForFilter = rooms.filter((room) =>
     room.name.toLowerCase().includes(roomSearchTerm.toLowerCase())
@@ -61,15 +73,25 @@ export default function DashboardUser() {
   // Close dropdown khi click outside
   useEffect(() => {
     const handleClickOutside = (e) => {
+      const target = e.target;
+
       if (
         filterDropdownRef.current &&
-        !filterDropdownRef.current.contains(e.target)
+        !filterDropdownRef.current.contains(target)
       ) {
         setShowRoomFilter(false);
       }
+
+      if (
+        viewDropdownRef.current &&
+        !viewDropdownRef.current.contains(target)
+      ) {
+        setShowViewDropdown(false);
+      }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
   const handleTodayClick = () => {
@@ -181,8 +203,6 @@ export default function DashboardUser() {
     }
   }, [events, filterMode]);
 
-  console.log("Get: ", getFilteredEvents);
-
   const handleEditClick = (event) => {
     setSelectedEvent(event);
     setShowEdit(true);
@@ -222,97 +242,84 @@ export default function DashboardUser() {
     setShowEdit(false);
     setShowDetailModal(true);
     setToastMessage("Meeting updated successfully!");
-  }; 
-const fetchEvents = async () => {
-  try {
-    setLoading(true);
-    const token = localStorage.getItem("accessToken");
-    const userId = localStorage.getItem("userId");
-    let meetings = [];
+  };
 
-    if (filterMode === "my-meetings") {
-      // Lấy các cuộc họp của tôi (có thể bao gồm cả đã kết thúc)
-      const res = await axios.get("/api/meetings/my-meetings", {
-        headers: { Authorization: `Bearer ${token}`, userId },
-      });
-      meetings = res.data.data ?? res.data ?? [];
-    } else {
-      // Lấy các cuộc họp theo phòng (đang scheduled + active)
-      const res = await axios.get(
-        `/api/meetings/room/${filterMode}/scheduled-active`,
-        {
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("accessToken");
+      const userId = localStorage.getItem("userId");
+
+      let meetings = [];
+
+      if (filterMode === "my-meetings") {
+        // Lấy các cuộc họp của tôi (có thể bao gồm cả đã kết thúc)
+        const res = await axios.get("/api/meetings/my-meetings", {
           headers: { Authorization: `Bearer ${token}`, userId },
+        });
+        meetings = res.data.data || res.data || [];
+      } else {
+        const res = await axios.get(
+          `/api/meetings/room/${filterMode}/scheduled-active`,
+          {
+            headers: { Authorization: `Bearer ${token}`, userId },
+          }
+        );
+        meetings = res.data.data || [];
+      }
+
+      // Lọc thêm CANCELLED phòng hờ (dù backend đã lọc rồi)
+      const visibleMeetings = meetings.filter((m) => m.status !== "CANCELLED");
+
+      const formattedEvents = visibleMeetings.map((meeting) => {
+        const isCreator = meeting.creator?.id === userId;
+        const isParticipant = meeting.participants?.some(
+          (p) => p.user?.id === userId && p.status === "ACCEPTED"
+        );
+        const isMyMeeting = isCreator || isParticipant;
+
+        const ended = meeting.hasConcluded === true;
+
+        let backgroundColor = "#3f9bf7ff"; // mặc định xanh dương
+        let borderColor = "#1565c0";
+
+        if (ended || meeting.status === "CANCELLED") {
+          backgroundColor = "#f88a8aff";
+          borderColor = "#f88a8aff";
+        } else if (meeting.status === "PENDING_APPROVAL") {
+          backgroundColor = "#b1b1b1ff";
+          borderColor = "#b1b1b1ff";
+        } else if (!isMyMeeting) {
+          // Của người khác → xanh lá
+          backgroundColor = "#00ce22ff";
+          borderColor = "#27e900ff";
         }
-      );
-      meetings = res.data.data ?? [];
+        // Nếu isMyMeeting → giữ nguyên xanh dương
+
+        return {
+          id: meeting.id,
+          title: `${meeting.title} – ${meeting.room?.name || "Unknown Room"}`,
+          start: meeting.startTime,
+          end: meeting.endTime,
+          backgroundColor,
+          borderColor,
+          textColor: "white",
+          extendedProps: {
+            ...meeting,
+            isMyMeeting,
+            ended,
+          },
+        };
+      });
+
+      setEvents(formattedEvents);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      toast.error("Không thể tải lịch họp");
+    } finally {
+      setLoading(false);
     }
-
-    // --- Lọc hiển thị ---
-    // 1) Loại bỏ CANCELLED
-    // 2) Ẩn các PENDING_APPROVAL đã quá thời gian (local time)
-    const nowMs = Date.now(); // local epoch milliseconds
-    const visibleMeetings = meetings.filter((m) => {
-      if (m.status === "CANCELLED") return false;
-
-      if (m.status === "PENDING_APPROVAL") {
-        const endMs = m?.endTime ? new Date(m.endTime).getTime() : Number.NaN;
-        // Nếu có endTime và đã kết thúc trong quá khứ -> ẩn khỏi lịch
-        if (Number.isFinite(endMs) && endMs < nowMs) return false;
-      }
-
-      return true;
-    });
-
-    // --- Map sang sự kiện cho FullCalendar ---
-    const formattedEvents = visibleMeetings.map((meeting) => {
-      const isCreator = meeting.creator?.id === userId;
-      const isParticipant = meeting.participants?.some(
-        (p) => p.user?.id === userId && p.status === "ACCEPTED"
-      );
-      const isMyMeeting = isCreator || isParticipant;
-
-      // 'ended' chỉ phục vụ style trong eventDidMount; không ảnh hưởng hiển thị vì đã lọc ở trên
-      const ended = meeting.hasConcluded === true;
-
-      let backgroundColor = "#3f9bf7ff"; // mặc định xanh dương
-      let borderColor = "#1565c0";
-
-      if (ended || meeting.status === "CANCELLED") {
-        backgroundColor = "#f88a8aff";
-        borderColor = "#f88a8aff";
-      } else if (meeting.status === "PENDING_APPROVAL") {
-        backgroundColor = "#b1b1b1ff";
-        borderColor = "#b1b1b1ff";
-      } else if (!isMyMeeting) {
-        // Của người khác → xanh lá
-        backgroundColor = "#00ce22ff";
-        borderColor = "#27e900ff";
-      }
-
-      return {
-        id: meeting.id,
-        title: `${meeting.title} – ${meeting.room?.name ?? "Unknown Room"}`,
-        start: meeting.startTime,
-        end: meeting.endTime,
-        backgroundColor,
-        borderColor,
-        textColor: "white",
-        extendedProps: {
-          ...meeting,
-          isMyMeeting,
-          ended,
-        },
-      };
-    });
-
-    setEvents(formattedEvents);
-  } catch (error) {
-    console.error("Error fetching events:", error);
-    toast.error("Không thể tải lịch họp");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   useEffect(() => {
     fetchEvents();
@@ -400,105 +407,185 @@ const fetchEvents = async () => {
           onClose={closeSidebar}
         />
 
-        <div className="navbar-right">
-          {/* Room/Meeting Filter Dropdown */}
-          <div ref={filterDropdownRef} className="room-filter-dropdown">
-            {/* Nút chính */}
+        <div className="navbar-calendar-tool">
+          <div className="navbar-right calendar-toolbar">
+            <div className="toolbar-left">
+              <button
+                className="nav-btn"
+                onClick={() => calendarRef.current.getApi().prev()}
+              >
+                ‹
+              </button>
+
+              <button className="nav-btn today" onClick={handleTodayClick}>
+                Today
+              </button>
+
+              <button
+                className="nav-btn"
+                onClick={() => calendarRef.current.getApi().next()}
+              >
+                ›
+              </button>
+            </div>
+
+            <div className="toolbar-title">{calendarTitle}</div>
+            {/* Room/Meeting Filter Dropdown */}
+            <div className="toolbar-right">
+              <div ref={viewDropdownRef} className="view-dropdown">
+                <button
+                  className="view-btn"
+                  onClick={() => setShowViewDropdown((prev) => !prev)}
+                >
+                  {viewMode === "timeGridDay" && (
+                    <>
+                      <Clock size={16} /> Day
+                    </>
+                  )}
+                  {viewMode === "timeGridWeek" && (
+                    <>
+                      <LayoutList size={16} /> Week
+                    </>
+                  )}
+                  {viewMode === "dayGridMonth" && (
+                    <>
+                      <LayoutGrid size={16} /> Month
+                    </>
+                  )}
+                  <span className="arrow">▾</span>
+                </button>
+
+                {showViewDropdown && (
+                  <div className="view-menu">
+                    <div
+                      className={`view-menu-item ${
+                        viewMode === "timeGridDay" ? "active" : ""
+                      }`}
+                      onClick={() => changeView("timeGridDay")}
+                    >
+                      <Clock size={16} /> Day
+                    </div>
+
+                    <div
+                      className={`view-menu-item ${
+                        viewMode === "timeGridWeek" ? "active" : ""
+                      }`}
+                      onClick={() => changeView("timeGridWeek")}
+                    >
+                      <LayoutList size={16} /> Week
+                    </div>
+
+                    <div
+                      className={`view-menu-item ${
+                        viewMode === "dayGridMonth" ? "active" : ""
+                      }`}
+                      onClick={() => changeView("dayGridMonth")}
+                    >
+                      <LayoutGrid size={16} /> Month
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div ref={filterDropdownRef} className="room-filter-dropdown">
+              {/* Nút chính */}
+              <button
+                className="filter-btn"
+                onClick={() => setShowRoomFilter(!showRoomFilter)}
+              >
+                <span className="filter-btn-text">
+                  {filterMode === "my-meetings"
+                    ? "My Meetings"
+                    : rooms.find((r) => r.id === filterMode)?.name ||
+                      "Select Room"}
+                </span>
+                <span className="filter-btn-arrow">
+                  {showRoomFilter ? "▲" : "▼"}
+                </span>
+              </button>
+
+              {/* Dropdown menu */}
+              {showRoomFilter && (
+                <div className="filter-dropdown-menu">
+                  {/* Ô tìm kiếm */}
+                  <div className="filter-search-box">
+                    <input
+                      type="text"
+                      placeholder="Search rooms..."
+                      value={roomSearchTerm}
+                      onChange={(e) => setRoomSearchTerm(e.target.value)}
+                      className="filter-search-input"
+                      autoFocus
+                    />
+                  </div>
+
+                  {/* Option My Meetings */}
+                  <div
+                    className={`filter-item ${
+                      filterMode === "my-meetings" ? "active" : ""
+                    }`}
+                    onClick={() => {
+                      setFilterMode("my-meetings");
+                      setShowRoomFilter(false);
+                      setRoomSearchTerm("");
+                    }}
+                  >
+                    ⭐ My Meetings
+                  </div>
+
+                  {/* Danh sách phòng */}
+                  <div className="filter-room-list">
+                    {filteredRoomsForFilter.length > 0 ? (
+                      filteredRoomsForFilter.map((room) => (
+                        <div
+                          key={room.id}
+                          className={`filter-item ${
+                            filterMode === room.id ? "active" : ""
+                          }`}
+                          onClick={() => {
+                            setFilterMode(room.id);
+                            setShowRoomFilter(false);
+                            setRoomSearchTerm("");
+                          }}
+                        >
+                          {room.name}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="filter-no-results">No rooms found</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <button
-              className="filter-btn"
-              onClick={() => setShowRoomFilter(!showRoomFilter)}
+              className="google-calendar-btn"
+              onClick={
+                isGoogleConnected ? handleGoogleDisconnect : handleGoogleSync
+              }
+              disabled={loading}
             >
-              <span className="filter-btn-text">
-                {filterMode === "my-meetings"
-                  ? "My Meetings"
-                  : rooms.find((r) => r.id === filterMode)?.name ||
-                    "Select Room"}
-              </span>
-              <span className="filter-btn-arrow">
-                {showRoomFilter ? "▲" : "▼"}
+              <img
+                src={ggCalendar}
+                alt="Google Calendar"
+                className="google-calendar-icon"
+              />
+              <span>
+                {isGoogleConnected
+                  ? "Disconnect G-Calendar"
+                  : "Connect G-Calendar"}
               </span>
             </button>
 
-            {/* Dropdown menu */}
-            {showRoomFilter && (
-              <div className="filter-dropdown-menu">
-                {/* Ô tìm kiếm */}
-                <div className="filter-search-box">
-                  <input
-                    type="text"
-                    placeholder="Search rooms..."
-                    value={roomSearchTerm}
-                    onChange={(e) => setRoomSearchTerm(e.target.value)}
-                    className="filter-search-input"
-                    autoFocus
-                  />
-                </div>
-
-                {/* Option My Meetings */}
-                <div
-                  className={`filter-item ${
-                    filterMode === "my-meetings" ? "active" : ""
-                  }`}
-                  onClick={() => {
-                    setFilterMode("my-meetings");
-                    setShowRoomFilter(false);
-                    setRoomSearchTerm("");
-                  }}
-                >
-                  ⭐ My Meetings
-                </div>
-
-                {/* Danh sách phòng */}
-                <div className="filter-room-list">
-                  {filteredRoomsForFilter.length > 0 ? (
-                    filteredRoomsForFilter.map((room) => (
-                      <div
-                        key={room.id}
-                        className={`filter-item ${
-                          filterMode === room.id ? "active" : ""
-                        }`}
-                        onClick={() => {
-                          setFilterMode(room.id);
-                          setShowRoomFilter(false);
-                          setRoomSearchTerm("");
-                        }}
-                      >
-                        {room.name}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="filter-no-results">No rooms found</div>
-                  )}
-                </div>
-              </div>
-            )}
+            <button
+              className="meeting-btn"
+              onClick={() => setShowCreateModal(true)}
+            >
+              + Create Meeting
+            </button>
           </div>
-
-          <button
-            className="google-calendar-btn"
-            onClick={
-              isGoogleConnected ? handleGoogleDisconnect : handleGoogleSync
-            }
-            disabled={loading}
-          >
-            <img
-              src={ggCalendar}
-              alt="Google Calendar"
-              className="google-calendar-icon"
-            />
-            <span>
-              {isGoogleConnected
-                ? "Disconnect G-Calendar"
-                : "Connect G-Calendar"}
-            </span>
-          </button>
-
-          <button
-            className="meeting-btn"
-            onClick={() => setShowCreateModal(true)}
-          >
-            + Create Meeting
-          </button>
         </div>
 
         <div className="main-inner-calender">
@@ -510,10 +597,9 @@ const fetchEvents = async () => {
               locale="en-EN"
               events={getFilteredEvents}
               eventClick={handleEventClick}
-              headerToolbar={{
-                left: "prev,next customtoday",
-                center: "title",
-                right: "dayGridMonth,timeGridWeek,timeGridDay",
+              headerToolbar={false}
+              datesSet={(arg) => {
+                setCalendarTitle(arg.view.title);
               }}
               customButtons={{
                 customtoday: {
@@ -624,6 +710,9 @@ const fetchEvents = async () => {
               eventDidMount={(info) => {
                 const el = info.el;
                 const meeting = info.event.extendedProps;
+                if (meeting?.ended === true) {
+                  el.classList.add("event-ended");
+                }
 
                 const statusText = meeting?.ended
                   ? "This meeting has concluded"
@@ -674,42 +763,6 @@ const fetchEvents = async () => {
                   if (startTime && endTime) {
                     durationMinutes = (endTime - startTime) / (1000 * 60);
                   }
-                  if (durationMinutes > 30) {
-                    if (titleContainer) {
-                      const strike = document.createElement("div");
-                      strike.style.position = "absolute";
-                      strike.style.left = "0";
-                      strike.style.right = "0";
-                      strike.style.top = "50%";
-                      strike.style.transform = "translateY(-50%)";
-                      strike.style.height = "2px";
-                      strike.style.background = "#000";
-                      strike.style.opacity = "0.75";
-                      strike.style.pointerEvents = "none";
-                      strike.style.zIndex = "10";
-                      strike.style.margin = "0 6px";
-
-                      titleContainer.style.position = "relative";
-                      titleContainer.appendChild(strike);
-                    }
-                  }
-                  if (timeContainer) {
-                    const strike = document.createElement("div");
-                    strike.style.position = "absolute";
-                    strike.style.left = "0";
-                    strike.style.right = "0";
-                    strike.style.top = "50%";
-                    strike.style.transform = "translateY(-50%)";
-                    strike.style.height = "2px";
-                    strike.style.background = "#000";
-                    strike.style.opacity = "0.75";
-                    strike.style.pointerEvents = "none";
-                    strike.style.zIndex = "10";
-                    strike.style.margin = "0 6px";
-
-                    timeContainer.style.position = "relative";
-                    timeContainer.appendChild(strike);
-                  }
                 }
               }}
             />
@@ -717,6 +770,7 @@ const fetchEvents = async () => {
 
           <aside className="sidebar-user-calender">
             {/* Mini Calendar */}
+
             <div className="mini-calendar">
               <Calendar
                 key={miniCalendarKey}
@@ -833,6 +887,7 @@ const fetchEvents = async () => {
               </ul>
             </div>
           </aside>
+          {/* </div> */}
         </div>
       </div>
 
