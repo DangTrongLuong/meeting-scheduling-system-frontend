@@ -243,82 +243,88 @@ export default function DashboardUser() {
     setShowDetailModal(true);
     setToastMessage("Meeting updated successfully!");
   };
+ 
+const fetchEvents = async () => {
+  try {
+    setLoading(true);
+    const token = localStorage.getItem("accessToken");
+    const userId = localStorage.getItem("userId");
+    let meetings = [];
 
-  const fetchEvents = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("accessToken");
-      const userId = localStorage.getItem("userId");
+    if (filterMode === "my-meetings") {
+      const res = await axios.get("/api/meetings/my-meetings", {
+        headers: { Authorization: `Bearer ${token}`, userId },
+      });
+      meetings = res.data.data ?? res.data ?? [];
+    } else {
+      const res = await axios.get(
+        `/api/meetings/room/${filterMode}/scheduled-active`,
+        { headers: { Authorization: `Bearer ${token}`, userId } }
+      );
+      meetings = res.data.data ?? [];
+    }
 
-      let meetings = [];
+    // --- Lọc hiển thị ---
+    // 1) Loại bỏ CANCELLED
+    // 2) Ẩn các PENDING_APPROVAL đã quá thời gian (local time)
+    const nowMs = Date.now(); // thời điểm hiện tại theo local time
+    const visibleMeetings = meetings.filter((m) => {
+      if (m.status === "CANCELLED") return false;
 
-      if (filterMode === "my-meetings") {
-        // Lấy các cuộc họp của tôi (có thể bao gồm cả đã kết thúc)
-        const res = await axios.get("/api/meetings/my-meetings", {
-          headers: { Authorization: `Bearer ${token}`, userId },
-        });
-        meetings = res.data.data || res.data || [];
-      } else {
-        const res = await axios.get(
-          `/api/meetings/room/${filterMode}/scheduled-active`,
-          {
-            headers: { Authorization: `Bearer ${token}`, userId },
-          }
-        );
-        meetings = res.data.data || [];
+      if (m.status === "PENDING_APPROVAL") {
+        const endMs = m?.endTime ? new Date(m.endTime).getTime() : Number.NaN;
+        if (Number.isFinite(endMs) && endMs < nowMs) return false;
+      }
+      return true;
+    });
+
+    // --- Map sang sự kiện cho FullCalendar ---
+    const formattedEvents = visibleMeetings.map((meeting) => {
+      const isCreator = meeting.creator?.id === userId;
+      const isParticipant = meeting.participants?.some(
+        (p) => p.user?.id === userId && p.status === "ACCEPTED"
+      );
+      const isMyMeeting = isCreator || isParticipant;
+
+      const ended = meeting.hasConcluded === true;
+
+      let backgroundColor = "#3f9bf7ff";
+      let borderColor = "#1565c0";
+
+      if (ended || meeting.status === "CANCELLED") {
+        backgroundColor = "#f88a8aff";
+        borderColor = "#f88a8aff";
+      } else if (meeting.status === "PENDING_APPROVAL") {
+        backgroundColor = "#b1b1b1ff";
+        borderColor = "#b1b1b1ff";
+      } else if (!isMyMeeting) {
+        backgroundColor = "#00ce22ff";
+        borderColor = "#27e900ff";
       }
 
-      // Lọc thêm CANCELLED phòng hờ (dù backend đã lọc rồi)
-      const visibleMeetings = meetings.filter((m) => m.status !== "CANCELLED");
+      return {
+        id: meeting.id,
+        title: `${meeting.title} – ${meeting.room?.name ?? "Unknown Room"}`,
+        start: meeting.startTime,
+        end: meeting.endTime,
+        backgroundColor,
+        borderColor,
+        textColor: "white",
+        extendedProps: {
+          ...meeting,
+          isMyMeeting,
+          ended,
+        },
+      };
+    });
 
-      const formattedEvents = visibleMeetings.map((meeting) => {
-        const isCreator = meeting.creator?.id === userId;
-        const isParticipant = meeting.participants?.some(
-          (p) => p.user?.id === userId && p.status === "ACCEPTED"
-        );
-        const isMyMeeting = isCreator || isParticipant;
-
-        const ended = meeting.hasConcluded === true;
-
-        let backgroundColor = "#3f9bf7ff"; // mặc định xanh dương
-        let borderColor = "#1565c0";
-
-        if (ended || meeting.status === "CANCELLED") {
-          backgroundColor = "#f88a8aff";
-          borderColor = "#f88a8aff";
-        } else if (meeting.status === "PENDING_APPROVAL") {
-          backgroundColor = "#b1b1b1ff";
-          borderColor = "#b1b1b1ff";
-        } else if (!isMyMeeting) {
-          // Của người khác → xanh lá
-          backgroundColor = "#00ce22ff";
-          borderColor = "#27e900ff";
-        }
-        // Nếu isMyMeeting → giữ nguyên xanh dương
-
-        return {
-          id: meeting.id,
-          title: `${meeting.title} – ${meeting.room?.name || "Unknown Room"}`,
-          start: meeting.startTime,
-          end: meeting.endTime,
-          backgroundColor,
-          borderColor,
-          textColor: "white",
-          extendedProps: {
-            ...meeting,
-            isMyMeeting,
-            ended,
-          },
-        };
-      });
-
-      setEvents(formattedEvents);
-    } catch (error) {
-      console.error("Error fetching events:", error);
-      toast.error("Không thể tải lịch họp");
-    } finally {
-      setLoading(false);
-    }
+    setEvents(formattedEvents);
+  } catch (error) {
+    console.error("Error fetching events:", error);
+    toast.error("Không thể tải lịch họp");
+  } finally {
+    setLoading(false);
+   }
   };
 
   useEffect(() => {
