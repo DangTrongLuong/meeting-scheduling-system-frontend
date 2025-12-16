@@ -57,7 +57,7 @@ const MeetingManagement = () => {
     }
   };
 
-  // Gửi webhook thông báo approve/reject
+
   const sendWebhookNotification = (meeting, action) => {
     try {
       const webhookData = {
@@ -118,7 +118,7 @@ const MeetingManagement = () => {
 
       console.log("Sending webhook notification:", webhookData);
 
-      // Fire and forget - không chờ phản hồi
+
       axios
         .post(
           "https://n8n.quanliduan-pms.site/webhook-test/email-aprrove-or-reject",
