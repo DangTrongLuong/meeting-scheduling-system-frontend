@@ -11,6 +11,7 @@ import {
   PhoneCall,
   Search,
   Rose,
+  MessageCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Admin/SideBarAdmin.css";
@@ -47,11 +48,11 @@ const SideBarUser = ({ activeItem, onItemClick, isOpen, onClose }) => {
     // },
 
     {
-      id: "search",
-      icon: Search,
-      label: "Search",
+      id: "chat",
+      icon: MessageCircle,
+      label: "Chat",
       hasSubmenu: true,
-      path: "/user/search",
+      path: "/user/chatMessage",
     },
   ];
 

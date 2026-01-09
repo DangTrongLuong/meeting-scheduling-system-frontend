@@ -332,20 +332,15 @@ export default function CreateNewEvent({
     setSearchResults([]);
   };
 
+  // ===== THAY ĐỔI 1: Sửa handleSubmit =====
   const handleSubmit = async () => {
-    const now = new Date();
-    const selectedDateTime = new Date(
-      `${formData.date}T${formData.startTime}:00`
-    );
-
-    // Validation
-    if (formData.title.length < 5) {
-      toast.error("Title must be at least 5 characters long!");
-      return;
-    }
-
+    // Basic validation
     if (!formData.title.trim()) {
       toast.error("Please enter a meeting title!");
+      return;
+    }
+    if (formData.title.trim().length < 5) {
+      toast.error("Title must be at least 5 characters long!");
       return;
     }
     if (!formData.date) {
@@ -353,11 +348,11 @@ export default function CreateNewEvent({
       return;
     }
     if (!formData.roomId) {
-      toast.error("Please select a room!");
+      toast.error("Please select a meeting room!");
       return;
     }
 
-    // Validate time format
+    // Time format validation
     const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
     if (!timeRegex.test(formData.startTime)) {
       toast.error("Invalid start time format (HH:MM)");
@@ -366,67 +361,6 @@ export default function CreateNewEvent({
     if (!timeRegex.test(formData.endTime)) {
       toast.error("Invalid end time format (HH:MM)");
       return;
-    }
-
-    if (repeatConfig.type !== "none") {
-      if (
-        repeatConfig.type === "weekly" &&
-        (repeatConfig.weeks < 1 || repeatConfig.weeks > 36)
-      ) {
-        toast.error("Number of weeks must be between 1 and 36");
-        return;
-      }
-      if (
-        (repeatConfig.type === "daily" || repeatConfig.type === "custom") &&
-        repeatConfig.customDays.length === 0 &&
-        repeatConfig.type === "custom"
-      ) {
-        toast.error("Please select at least one day for custom repeat");
-        return;
-      }
-    }
-
-    let submitRepeatType = repeatConfig.type.toUpperCase();
-    let submitEndMonths = null;
-    let submitRepeatDays = null;
-    let startDate = formData.date;
-
-    if (repeatConfig.type === "weekly") {
-      submitRepeatType = "DAILY";
-    }
-
-    if (repeatConfig.type === "daily" || repeatConfig.type === "weekly") {
-      // Tính số tháng từ số tuần (36 tuần ~ 9 tháng, nhưng giới hạn 2 tháng = 8 tuần)
-      submitEndMonths = repeatConfig.weeks <= 4 ? 1 : 2;
-      submitRepeatDays = [
-        "MONDAY",
-        "TUESDAY",
-        "WEDNESDAY",
-        "THURSDAY",
-        "FRIDAY",
-        "SATURDAY",
-      ];
-    } else if (repeatConfig.type === "custom") {
-      if (!repeatConfig.customEndDate) {
-        toast.error("Vui lòng chọn ngày kết thúc");
-        return;
-      }
-      if (repeatConfig.customDays.length === 0) {
-        toast.error("Vui lòng chọn ít nhất một ngày");
-        return;
-      }
-      startDate = repeatConfig.customStartDate || formData.date;
-      const end = new Date(repeatConfig.customEndDate);
-      const start = new Date(startDate);
-      const monthsDiff =
-        (end.getFullYear() - start.getFullYear()) * 12 +
-        (end.getMonth() - start.getMonth());
-      if (monthsDiff > 2) {
-        toast.error("Thời gian lặp tối đa 2 tháng");
-        return;
-      }
-      submitEndMonths = monthsDiff <= 1 ? 1 : 2;
-      submitRepeatDays = repeatConfig.customDays;
     }
 
     const startMinutes =
@@ -441,41 +375,89 @@ export default function CreateNewEvent({
       return;
     }
 
-    // Validate repeat days if enabled
-    if (formData.isRepeat && formData.repeatDays.length === 0) {
-      toast.error("Please select at least one day for repeat!");
-      return;
+    // === CALCULATE REPEAT END DATE (repeatUntilDate) ===
+    let repeatUntilDate = null; // yyyy-MM-dd - highest priority for backend
+    let repeatType = null;
+    let repeatDays = null;
+
+    if (repeatConfig.type !== "none") {
+      let endDateObj;
+
+      if (repeatConfig.type === "custom") {
+        if (!repeatConfig.customEndDate) {
+          toast.error("Please select an end date for custom repeat");
+          return;
+        }
+        if (repeatConfig.customDays.length === 0) {
+          toast.error("Please select at least one day of the week to repeat");
+          return;
+        }
+
+        endDateObj = new Date(repeatConfig.customEndDate);
+        repeatType = "CUSTOM";
+        repeatDays = repeatConfig.customDays;
+      } else {
+        // Daily or Weekly: calculate end date from number of weeks
+        if (repeatConfig.weeks < 1 || repeatConfig.weeks > 36) {
+          toast.error("Number of weeks must be between 1 and 36");
+          return;
+        }
+
+        endDateObj = new Date(formData.date);
+        endDateObj.setDate(endDateObj.getDate() + repeatConfig.weeks * 7);
+
+        if (repeatConfig.type === "daily") {
+          repeatType = "DAILY";
+
+          repeatDays = [
+            "MONDAY",
+            "TUESDAY",
+            "WEDNESDAY",
+            "THURSDAY",
+            "FRIDAY",
+            "SATURDAY",
+          ];
+        } else if (repeatConfig.type === "weekly") {
+          repeatType = "WEEKLY";
+        }
+      }
+
+      const startDateObj = new Date(formData.date);
+      if (endDateObj < startDateObj) {
+        toast.error("Repeat end date must be on or after the start date");
+        return;
+      }
+
+      repeatUntilDate = endDateObj.toISOString().split("T")[0];
     }
 
+    // === BUILD PAYLOAD ===
+    const meetingData = {
+      title: formData.title.trim(),
+      description: formData.description || "",
+      date: formData.date,
+      startTime: formData.startTime,
+      endTime: formData.endTime,
+      roomId: formData.roomId,
+      participants: formData.participants,
+      borrowedDevices: formData.borrowedDevices.filter(
+        (d) => d.deviceId && d.quantity > 0
+      ),
+
+      // Send repeat fields only if repeat is enabled
+      ...(repeatConfig.type !== "none" && {
+        repeatType: repeatType,
+        repeatUntilDate: repeatUntilDate,
+        ...(repeatType === "CUSTOM" && { repeatDays: repeatDays }),
+        ...(repeatType === "DAILY" && { repeatDays: repeatDays }),
+      }),
+    };
+
     try {
-      const room = rooms.find((r) => r.id === formData.roomId);
-      const roomName = room ? room.name : "";
-
-      console.log("Form data before submit:", formData);
-
-      const meetingData = {
-        title: formData.title,
-        description: formData.description,
-        date: formData.date,
-        startTime: formData.startTime,
-        endTime: formData.endTime,
-        roomId: formData.roomId,
-        participants: formData.participants,
-        borrowedDevices: formData.borrowedDevices.filter((d) => d.deviceId),
-        isRepeat: formData.isRepeat,
-        repeatType: repeatConfig.type !== "none" ? submitRepeatType : null,
-        repeatEndAfterMonths: submitEndMonths,
-        repeatDays: submitRepeatDays,
-      };
-
-      console.log("Meeting data sending to API:", meetingData);
-
       const token = localStorage.getItem("accessToken");
       const userId = localStorage.getItem("userId");
-      const userEmail = localStorage.getItem("userEmail");
-      const userName = localStorage.getItem("userName");
 
-      const response = await axios.post(
+      await axios.post(
         "http://localhost:8080/api/meetings/createMeeting",
         meetingData,
         {
@@ -486,57 +468,57 @@ export default function CreateNewEvent({
         }
       );
 
-      console.log("Meeting created successfully:", response.data);
+      let estimatedCount = 1;
+      if (repeatConfig.type !== "none") {
+        const start = new Date(formData.date);
+        const end = new Date(repeatUntilDate || formData.date);
+        const daysDiff = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
-      const meetingCount = formData.isRepeat ? formData.repeatDays.length : 1;
-      toast.success(`${meetingCount} meeting(s) booked successfully!`);
-
-      resetForm();
-      setTimeout(() => {
-        onSuccess();
-        onClose();
-      }, 1200);
-
-      // Send emails for participants
-      if (formData.participants && formData.participants.length > 0) {
-        const baseUrl = "http://localhost:5173";
-        const meetingIds = Array.isArray(response.data.data)
-          ? response.data.data.map((m) => m.id)
-          : [response.data.data.id];
-
-        for (const p of formData.participants) {
-          const email = typeof p === "string" ? p : p.email;
-          for (const meetingId of meetingIds) {
-            const acceptUrl = `${baseUrl}/invite/accept?email=${encodeURIComponent(
-              email
-            )}&mid=${meetingId}`;
-            const declineUrl = `${baseUrl}/invite/decline?email=${encodeURIComponent(
-              email
-            )}&mid=${meetingId}`;
-            try {
-              await axios.post(
-                "https://n8n.quanliduan-pms.site/webhook/send-email",
-                {
-                  ...meetingData,
-                  meetingId: meetingId,
-                  createdBy: userName,
-                  createdByEmail: userEmail,
-                  roomName: roomName,
-                  acceptUrl: acceptUrl,
-                  declineUrl: declineUrl,
-                }
-              );
-            } catch (emailError) {
-              console.error("Error sending email:", emailError);
+        if (repeatConfig.type === "daily") {
+          // Tính số ngày làm việc (loại bỏ Chủ nhật)
+          estimatedCount = 0;
+          for (let i = 0; i < daysDiff; i++) {
+            const checkDate = new Date(start);
+            checkDate.setDate(checkDate.getDate() + i);
+            const dayOfWeek = checkDate.getDay();
+            // 0 = Sunday, 6 = Saturday
+            if (dayOfWeek !== 0) {
+              estimatedCount++;
             }
           }
+        } else if (repeatConfig.type === "weekly") {
+          estimatedCount = repeatConfig.weeks;
+        } else if (repeatConfig.type === "custom") {
+          estimatedCount = "multiple";
         }
       }
+
+      toast.success(
+        repeatConfig.type === "none"
+          ? "Meeting booked successfully! "
+          : estimatedCount === "multiple"
+          ? "Multiple recurring meetings created successfully! "
+          : `${estimatedCount} meeting(s) booked successfully! `
+      );
+
+      // Reset form and state
+      resetForm();
+      setRepeatConfig({
+        type: "none",
+        weeks: 1,
+        customStartDate: "",
+        customEndDate: "",
+        customDays: [],
+      });
+
+      onSuccess(); // Refresh calendar
+      onClose(); // Close modal
     } catch (error) {
       console.error("Error creating meeting:", error);
-      toast.error(
-        error.response?.data?.message || "An error occurred. Please try again!"
-      );
+      const msg =
+        error.response?.data?.message ||
+        "Failed to create meeting. The room may already be booked or there was a system error.";
+      toast.error(msg);
     }
   };
 
@@ -547,7 +529,7 @@ export default function CreateNewEvent({
       <ToastContainer
         position="top-right"
         style={{ top: "70px" }}
-        autoClose={1500}
+        autoClose={1200}
       />
       <div
         className="create-event-modal-content"
@@ -852,7 +834,7 @@ export default function CreateNewEvent({
                       setShowRepeatDropdown(false);
                     }}
                   >
-                    Daily (Mon–Sat)
+                    Daily (Mon–Sun)
                   </div>
 
                   {/* <div className="create-event-weekly-box create-event-repeat-option">
@@ -936,7 +918,7 @@ export default function CreateNewEvent({
                   ))}
                 </select>
                 <small className="create-event-end-after-note">
-                  Tối đa 36 tuần
+                  Maximum 36 weeks
                 </small>
               </div>
             )}
@@ -1139,9 +1121,9 @@ export default function CreateNewEvent({
           </div>
 
           {/* Borrowed Devices */}
-          <div className="create-event-form-group">
+          {/* <div className="create-event-form-group">
             <label className="create-event-label">
-              Borrow Devices (Optional)
+              Request more devices (Optional)
             </label>
 
             {formData.borrowedDevices.length > 0 && (
@@ -1229,7 +1211,7 @@ export default function CreateNewEvent({
             >
               + Add Device
             </button>
-          </div>
+          </div> */}
         </div>
 
         <div className="create-event-modal-footer">

@@ -59,7 +59,6 @@ const MeetingManagement = () => {
     }
   };
 
-
   const sendWebhookNotification = (meeting, action) => {
     try {
       const webhookData = {
@@ -119,7 +118,6 @@ const MeetingManagement = () => {
       };
 
       console.log("Sending webhook notification:", webhookData);
-
 
       axios
         .post(
@@ -430,6 +428,7 @@ const MeetingManagement = () => {
               <Calendar
                 value={selectedDate}
                 onClickDay={(date) => setSelectedDate(date)}
+                locale="en-EN"
                 tileClassName={({ date }) => {
                   const today = new Date();
                   let classes = "";
