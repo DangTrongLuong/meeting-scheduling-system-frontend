@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo  } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -25,7 +25,6 @@ const RoomDevices = () => {
   });
   const [deleting, setDeleting] = useState(false);
 
-
   const [sortRoomOpen, setSortRoomOpen] = useState(false);
   const [sortStatusOpen, setSortStatusOpen] = useState(false);
   const [selectedRooms, setSelectedRooms] = useState([]);
@@ -40,7 +39,6 @@ const RoomDevices = () => {
     const pathToItem = { "/admin/deviceRoom": "device-room" };
     setActiveMenuItem(pathToItem[location.pathname] || "device-room");
   }, [location.pathname]);
-
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -91,10 +89,10 @@ const RoomDevices = () => {
       setAssignments((prev) => prev.filter((a) => a.id !== id));
       toast.success("Device removed from room");
     } catch (err) {
-          toast.error(err.message || "Failed to delete room");
-        } finally {
-          setDeleting(false);
-          closeDeleteModal();
+      toast.error(err.message || "Failed to delete room");
+    } finally {
+      setDeleting(false);
+      closeDeleteModal();
     }
   };
 
@@ -129,7 +127,6 @@ const RoomDevices = () => {
     );
   };
 
-
   const filteredAssignments = assignments.filter((a) => {
     const matchesSearch = a.roomName
       .toLowerCase()
@@ -159,33 +156,33 @@ const RoomDevices = () => {
     setSearchTerm("");
   };
 
-    // ---------------------------
-    // [ADD] Phân trang client-side
-    // ---------------------------
-    const [currentPage, setCurrentPage] = useState(1); // 1-based
-      const pageSize = 10;      // số dòng/trang
-  
-    // [ADD] Khi search/sort đổi => quay về trang 1
-    useEffect(() => {
-      setCurrentPage(1);
-    }, [searchTerm, sortBy, direction]);
+  // ---------------------------
+  // [ADD] Phân trang client-side
+  // ---------------------------
+  const [currentPage, setCurrentPage] = useState(1); // 1-based
+  const pageSize = 10; // số dòng/trang
 
-    const totalItems = filteredAssignments.length;
-    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  // [ADD] Khi search/sort đổi => quay về trang 1
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, sortBy, direction]);
 
-    // Clamp currentPage khi data thay đổi (ví dụ sau khi xóa/search)
-      useEffect(() => {
-        if (currentPage > totalPages) setCurrentPage(totalPages);
-        if (currentPage < 1 && totalPages >= 1) setCurrentPage(1);
-      }, [totalPages, currentPage]);
-    
-      const startIndex = (currentPage - 1) * pageSize;
+  const totalItems = filteredAssignments.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
-      // Dữ liệu hiển thị theo trang
-        const pagedAssignments = useMemo(
-          () => filteredAssignments.slice(startIndex, startIndex + pageSize),
-          [filteredAssignments, startIndex]
-        );
+  // Clamp currentPage khi data thay đổi (ví dụ sau khi xóa/search)
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+    if (currentPage < 1 && totalPages >= 1) setCurrentPage(1);
+  }, [totalPages, currentPage]);
+
+  const startIndex = (currentPage - 1) * pageSize;
+
+  // Dữ liệu hiển thị theo trang
+  const pagedAssignments = useMemo(
+    () => filteredAssignments.slice(startIndex, startIndex + pageSize),
+    [filteredAssignments, startIndex]
+  );
 
   return (
     <div className="my-project-container">
@@ -230,7 +227,6 @@ const RoomDevices = () => {
               {sortRoomOpen && (
                 <div className="sort-dropdown-menu sort-room-dropdown">
                   <div className="sort-dropdown-search">
-                    <Search className="Room-Device-search-icon" size={20} />
                     <input
                       type="text"
                       placeholder="Search room..."
@@ -352,8 +348,11 @@ const RoomDevices = () => {
           <div className="room-device-summary">
             Total: {filteredAssignments.length} / {assignments.length}
             {filteredAssignments.length > 0 && (
-              <>{" "}
-              (Show {startIndex + 1}–{Math.min(startIndex + pageSize, filteredAssignments.length)} / {filteredAssignments.length})
+              <>
+                {" "}
+                (Show {startIndex + 1}–
+                {Math.min(startIndex + pageSize, filteredAssignments.length)} /{" "}
+                {filteredAssignments.length})
               </>
             )}
           </div>
@@ -403,16 +402,17 @@ const RoomDevices = () => {
             )}
           </div>
 
-            {totalPages > 1 && (
-              <div className="pagination-container">
+          {totalPages > 1 && (
+            <div className="pagination-container">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={setCurrentPage}
                 showFirstLast
                 maxButtons={5}
-              /></div>
-            )}
+              />
+            </div>
+          )}
 
           {deleteModal.isOpen && (
             <div className="delete-modal-overlay" onClick={closeDeleteModal}>

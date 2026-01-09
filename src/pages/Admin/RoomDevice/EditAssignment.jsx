@@ -11,7 +11,7 @@ const EditAssignment = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeMenuItem, setActiveMenuItem] = useState("room-devices");
+  const [activeMenuItem, setActiveMenuItem] = useState("device-room");
 
   const [rooms, setRooms] = useState([]);
   const [devices, setDevices] = useState([]);

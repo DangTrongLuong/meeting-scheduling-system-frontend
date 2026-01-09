@@ -32,11 +32,13 @@ export default function DetailEvent({
       (p) => p.user?.id === currentUserId && p.status === "ACCEPTED"
     );
 
-  const canEdit = isCreator; 
+  const canEdit = isCreator;
   const ended =
     event?.ended === true
       ? true
-      : (event?.end ? new Date(event.end).getTime() < Date.now() : false);
+      : event?.end
+      ? new Date(event.end).getTime() < Date.now()
+      : false;
   // useEffect(() => {
   //   if (event) {
   //     console.log("Event details:", event);
@@ -262,54 +264,64 @@ export default function DetailEvent({
                         : "#fff3cd";
 
                     return (
-                      <li
-                        key={idx}
+                      <div
+                        className="participants-list"
                         style={{
-                          fontSize: "14px",
-                          color: "#444",
+                          height: "auto",
+                          maxHeight: "220px",
+                          overflowY: "auto",
                           marginBottom: "6px",
                         }}
                       >
-                        <strong>{user.name || "Unknown User"}</strong>
-                        <br></br>
-                        {user.email && (
-                          <span
-                            style={{
-                              color: "#666",
-                              marginLeft: "8px",
-                              fontSize: "13px",
-                            }}
-                          >
-                            &lt;{user.email}&gt;
-                          </span>
-                        )}
-                        {p.role && (
-                          <span
-                            style={{
-                              marginLeft: "8px",
-                              color: "#999",
-                              fontSize: "12px",
-                            }}
-                          >
-                            ({p.role})
-                          </span>
-                        )}
-                        {p.status && (
-                          <span
-                            style={{
-                              marginLeft: "10px",
-                              padding: "2px 6px",
-                              borderRadius: "4px",
-                              fontSize: "11px",
-                              backgroundColor: statusBg,
-                              color: statusColor,
-                              fontWeight: "bold",
-                            }}
-                          >
-                            {p.status}
-                          </span>
-                        )}
-                      </li>
+                        <li
+                          key={idx}
+                          style={{
+                            fontSize: "14px",
+                            color: "#444",
+                            marginBottom: "6px",
+                          }}
+                        >
+                          <strong>{user.name || "Unknown User"}</strong>
+
+                          {user.email && (
+                            <span
+                              style={{
+                                color: "#666",
+                                marginLeft: "8px",
+                                fontSize: "13px",
+                              }}
+                            >
+                              &lt;{user.email}&gt;
+                            </span>
+                          )}
+                          {p.role && (
+                            <span
+                              style={{
+                                marginLeft: "8px",
+                                color: "#999",
+                                fontSize: "12px",
+                              }}
+                            >
+                              ({p.role})
+                            </span>
+                          )}
+                          {p.status && (
+                            <span
+                              style={{
+                                marginLeft: "10px",
+                                padding: "2px 6px",
+                                borderRadius: "4px",
+                                fontSize: "11px",
+                                backgroundColor: statusBg,
+                                color: statusColor,
+                                fontWeight: "bold",
+                              }}
+                            >
+                              {p.status}
+                            </span>
+                          )}
+                        </li>
+                      </div>
                     );
                   })
                 ) : (
@@ -323,7 +335,7 @@ export default function DetailEvent({
 
           {/* Devices */}
           <div style={{ marginBottom: "16px" }}>
-            <strong>Borrowed Devices:</strong>
+            <strong>Availabled Devices:</strong>
             <ul style={{ margin: "8px 0", paddingLeft: "20px" }}>
               {roomDevices && roomDevices.length > 0 ? (
                 roomDevices.map((device, idx) => (
@@ -351,36 +363,43 @@ export default function DetailEvent({
             </ul>
           </div>
 
-          {/* Status */}         
-        <div style={{ marginBottom: "16px" }}>
-          <strong>Status:</strong>
-          <p style={{ fontWeight: "bold", margin: 0 }}>
-            {ended ? (
-              // ❗ Không nền, chỉ chữ đỏ đậm, caps (giống pending_approval style nhưng đổi sang đỏ)
-              <span
-                style={{
-                  color: "#c62828",
-                  fontWeight: 700,
-                  letterSpacing: "0.3px",
-                  textTransform: "uppercase",
-                }}
-              >
-                This meeting has concluded
-              </span>
-            ) : (
-              // Giữ nguyên cách hiển thị status khi chưa concluded
-              <span style={{ color: statusColor_Meeting, textTransform: "uppercase" }}>
-                {event.status}
-              </span>
-            )}
-          </p>
+          {/* Status */}
+          <div style={{ marginBottom: "16px" }}>
+            <strong>Status:</strong>
+            <p style={{ fontWeight: "bold", margin: 0 }}>
+              {ended ? (
+                // ❗ Không nền, chỉ chữ đỏ đậm, caps (giống pending_approval style nhưng đổi sang đỏ)
+                <span
+                  style={{
+                    color: "#c62828",
+                    fontWeight: 700,
+                    letterSpacing: "0.3px",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  This meeting has concluded
+                </span>
+              ) : (
+                // Giữ nguyên cách hiển thị status khi chưa concluded
+                <span
+                  style={{
+                    color: statusColor_Meeting,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {event.status}
+                </span>
+              )}
+            </p>
+          </div>
         </div>
-
-        </div>       
         <div className="detail-event-modal-footer">
           {!ended && canEdit ? (
             <>
-              <button className="detail-event-update-btn" onClick={() => onEdit(event)}>
+              <button
+                className="detail-event-update-btn"
+                onClick={() => onEdit(event)}
+              >
                 Update
               </button>
               <button

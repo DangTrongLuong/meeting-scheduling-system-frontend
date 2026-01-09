@@ -452,27 +452,34 @@ const ProfileContent = () => {
 
   const submitPasswordChange = async () => {
     try {
-      const response = await axios.post("/api/admin/auth/reset-password", {
-        email: localStorage.getItem("userEmail"),
-        currentPassword: currentPassword,
-        newPassword: newPassword,
-      });
+      const token = localStorage.getItem("accessToken");
+
+      const response = await axios.post(
+        "/api/admin/auth/reset-password",
+        {
+          email: localStorage.getItem("userEmail"),
+          currentPassword: currentPassword,
+          newPassword: newPassword,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       const result = response.data;
       if (result.success) {
         toast.success("Password changed successfully.");
-        setSuccessMessage(
-          response.data.message || "Password reset successfully."
-        );
+        setSuccessMessage(result.message || "Password reset successfully.");
         setShowConfirmModal(false);
         setShowPasswordModal(false);
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
       } else {
-        setGeneralError(
-          error.response?.data?.message || "Failed to reset password."
-        );
+        setGeneralError(result.message || "Failed to reset password.");
       }
     } catch (error) {
       setShowConfirmModal(false);
