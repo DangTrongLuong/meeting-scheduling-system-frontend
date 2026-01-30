@@ -339,10 +339,7 @@ export default function CreateNewEvent({
       toast.error("Please enter a meeting title!");
       return;
     }
-    if (formData.title.trim().length < 5) {
-      toast.error("Title must be at least 5 characters long!");
-      return;
-    }
+
     if (!formData.date) {
       toast.error("Please select a date!");
       return;
@@ -360,6 +357,18 @@ export default function CreateNewEvent({
     }
     if (!timeRegex.test(formData.endTime)) {
       toast.error("Invalid end time format (HH:MM)");
+      return;
+    }
+
+    const startMinutes =
+      parseInt(formData.startTime.split(":")[0]) * 60 +
+      parseInt(formData.startTime.split(":")[1]);
+    const endMinutes =
+      parseInt(formData.endTime.split(":")[0]) * 60 +
+      parseInt(formData.endTime.split(":")[1]);
+
+    if (endMinutes <= startMinutes) {
+      toast.error("End time must be after start time!");
       return;
     }
 
