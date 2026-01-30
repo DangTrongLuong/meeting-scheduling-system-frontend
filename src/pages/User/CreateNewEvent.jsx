@@ -56,7 +56,7 @@ export default function CreateNewEvent({
   const repeatDropdownRef = useRef(null);
 
   const filteredRooms = rooms.filter((room) =>
-    room.name.toLowerCase().includes(searchTerm.toLowerCase())
+    room.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const handleSelect = (roomId) => {
@@ -72,7 +72,7 @@ export default function CreateNewEvent({
         slots.push(
           `${hour.toString().padStart(2, "0")}:${minute
             .toString()
-            .padStart(2, "0")}`
+            .padStart(2, "0")}`,
         );
       }
     }
@@ -136,7 +136,7 @@ export default function CreateNewEvent({
   const handleSelectAllDays = () => {
     // Lọc chỉ những ngày chưa qua
     const availableDays = WEEKDAYS.filter(
-      (d) => !isPastDate(weekDates[d.value])
+      (d) => !isPastDate(weekDates[d.value]),
     ).map((d) => d.value);
 
     if (availableDays.length === 0) {
@@ -238,7 +238,7 @@ export default function CreateNewEvent({
   const fetchRoomDevices = async (roomId) => {
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/meetings/rooms/${roomId}/devices`
+        `http://localhost:8080/api/meetings/rooms/${roomId}/devices`,
       );
       setRoomDevices(response.data || []);
     } catch (error) {
@@ -249,7 +249,7 @@ export default function CreateNewEvent({
   const fetchAllDevices = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8080/api/meetings/devices/active"
+        "http://localhost:8080/api/meetings/devices/active",
       );
       setAllDevices(response.data || []);
     } catch (error) {
@@ -263,13 +263,13 @@ export default function CreateNewEvent({
     if (value.length > 3) {
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/meetings/users/search?email=${value}`
+          `http://localhost:8080/api/meetings/users/search?email=${value}`,
         );
         const currentEmail = currentEmailLocal;
         setSearchResults(
           (response.data || []).filter(
-            (u) => u.email?.toLowerCase() !== currentEmail.toLowerCase()
-          )
+            (u) => u.email?.toLowerCase() !== currentEmail.toLowerCase(),
+          ),
         );
       } catch (error) {
         console.error("Error searching users:", error);
@@ -363,18 +363,6 @@ export default function CreateNewEvent({
       return;
     }
 
-    const startMinutes =
-      parseInt(formData.startTime.split(":")[0]) * 60 +
-      parseInt(formData.startTime.split(":")[1]);
-    const endMinutes =
-      parseInt(formData.endTime.split(":")[0]) * 60 +
-      parseInt(formData.endTime.split(":")[1]);
-
-    if (endMinutes <= startMinutes) {
-      toast.error("End time must be after start time!");
-      return;
-    }
-
     // === CALCULATE REPEAT END DATE (repeatUntilDate) ===
     let repeatUntilDate = null; // yyyy-MM-dd - highest priority for backend
     let repeatType = null;
@@ -441,7 +429,7 @@ export default function CreateNewEvent({
       roomId: formData.roomId,
       participants: formData.participants,
       borrowedDevices: formData.borrowedDevices.filter(
-        (d) => d.deviceId && d.quantity > 0
+        (d) => d.deviceId && d.quantity > 0,
       ),
 
       // Send repeat fields only if repeat is enabled
@@ -457,16 +445,12 @@ export default function CreateNewEvent({
       const token = localStorage.getItem("accessToken");
       const userId = localStorage.getItem("userId");
 
-      await axios.post(
-        "http://localhost:8080/api/meetings/createMeeting",
-        meetingData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            userId: userId,
-          },
-        }
-      );
+      await axios.post("http://localhost:8080/api/meetings", meetingData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          userId: userId,
+        },
+      });
 
       let estimatedCount = 1;
       if (repeatConfig.type !== "none") {
@@ -497,8 +481,8 @@ export default function CreateNewEvent({
         repeatConfig.type === "none"
           ? "Meeting booked successfully! "
           : estimatedCount === "multiple"
-          ? "Multiple recurring meetings created successfully! "
-          : `${estimatedCount} meeting(s) booked successfully! `
+            ? "Multiple recurring meetings created successfully! "
+            : `${estimatedCount} meeting(s) booked successfully! `,
       );
 
       // Reset form and state
@@ -1115,7 +1099,7 @@ export default function CreateNewEvent({
                         </button>
                       </div>
                     </div>
-                  )
+                  ),
               )}
             </div>
           </div>

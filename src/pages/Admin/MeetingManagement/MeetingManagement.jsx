@@ -37,7 +37,8 @@ const MeetingManagement = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("accessToken");
-      const res = await axios.get("/api/meetings/getAllMeetings", {
+      const userId = localStorage.getItem("userId");
+      const res = await axios.get("/api/meetings", {
         headers: { Authorization: `Bearer ${token}` },
         params: {
           page: 0,
@@ -127,7 +128,7 @@ const MeetingManagement = () => {
             headers: {
               "Content-Type": "application/json",
             },
-          }
+          },
         )
         .then(() => {
           console.log("Webhook sent successfully");
@@ -153,7 +154,7 @@ const MeetingManagement = () => {
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       const approvedMeeting = approveRes.data?.data;
@@ -166,7 +167,7 @@ const MeetingManagement = () => {
       // Nếu là repeat meeting, hiển thị thông báo
       if (selectedMeeting.isRepeat && selectedMeeting.repeatGroupId) {
         toast.success(
-          `✓ Meeting and all repeat sessions approved successfully!`
+          `✓ Meeting and all repeat sessions approved successfully!`,
         );
       } else {
         toast.success("✓ Meeting approved successfully!");
@@ -176,7 +177,7 @@ const MeetingManagement = () => {
     } catch (error) {
       console.error("Error approving meeting:", error);
       toast.error(
-        error.response?.data?.message || "Failed to approve meeting!"
+        error.response?.data?.message || "Failed to approve meeting!",
       );
     } finally {
       setApproveRejectLoading(false);
@@ -199,7 +200,7 @@ const MeetingManagement = () => {
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       const rejectedMeeting = rejectRes.data?.data;
@@ -369,7 +370,7 @@ const MeetingManagement = () => {
   // Dữ liệu hiển thị theo trang
   const pagedMeetings = useMemo(
     () => filteredMeetings.slice(startIndex, startIndex + pageSize),
-    [filteredMeetings, startIndex]
+    [filteredMeetings, startIndex],
   );
   console.log("Paged meetings:", pagedMeetings);
 
@@ -547,7 +548,7 @@ const MeetingManagement = () => {
                         <td>
                           <span
                             className={`mm-status-badge ${getStatusBadgeClass(
-                              meeting.status
+                              meeting.status,
                             )}`}
                           >
                             {getStatusLabel(meeting.status)}
